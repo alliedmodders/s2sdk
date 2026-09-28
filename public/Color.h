@@ -18,7 +18,7 @@
 // Purpose: Basic handler for an rgb set of colors
 //			This class is fully inline
 //-----------------------------------------------------------------------------
-class Color
+class ALIGN4 Color
 {
 public:
 	// constructors
@@ -122,7 +122,7 @@ public:
 
 private:
 	unsigned char _color[4];
-};
+} ALIGN4_POST;
 
 
 #endif // COLOR_H
