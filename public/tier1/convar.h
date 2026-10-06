@@ -1423,6 +1423,7 @@ inline T ConVarRefAbstract::ConvertFromPrimitiveTo( CSplitScreenSlot slot ) cons
 			case EConVarType_UInt64:	return value->m_u64Value;
 			case EConVarType_Float32:	return value->m_fl32Value;
 			case EConVarType_Float64:	return value->m_fl64Value;
+			default:					break;
 		}
 	}
 
@@ -1488,6 +1489,7 @@ inline void ConVarRefAbstract::ConvertToPrimitiveFrom( CSplitScreenSlot slot, co
 			case EConVarType_UInt64:	return CConVarRef<uint64>( *this ).Set( value, slot );
 			case EConVarType_Float32:	return CConVarRef<float32>( *this ).Set( value, slot );
 			case EConVarType_Float64:	return CConVarRef<float64>( *this ).Set( value, slot );
+			default:					break;
 		}
 	}
 }

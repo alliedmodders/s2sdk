@@ -1224,6 +1224,7 @@ inline void CVariantBase<CValueAllocator>::Set( fieldtype_t ftype, void *pData )
 		case FIELD_EHANDLE:			CopyData( *(CEntityHandle *)pData, false ); return;
 		case FIELD_RESOURCE:		CopyData( *(ResourceHandle_t *)pData, false ); return;
 		case FIELD_UTLSTRINGTOKEN:	CopyData( *(CUtlStringToken *)pData, false ); return;
+		default:					break;
 	}
 }
 
@@ -1263,6 +1264,7 @@ inline bool CVariantBase<CValueAllocator>::Convert( fieldtype_t newType )
 		case FIELD_VECTOR4D:		{ Vector4D vec; if((successful = AssignTo( &vec ))) { CopyData( vec, true ); } break; }
 		case FIELD_QANGLE:			{ QAngle ang; if((successful = AssignTo( &ang ))) { CopyData( ang, true ); } break; }
 		case FIELD_QUATERNION:		{ Quaternion quat; if((successful = AssignTo( &quat ))) { CopyData( quat, true ); } break; }
+		default:					break;
 	}
 
 	if(successful)
