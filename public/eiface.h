@@ -475,6 +475,7 @@ public:
 	virtual bool			unk_301( void ) = 0;
 	virtual bool			unk_302( void ) = 0;
 	virtual bool			unk_303( void ) = 0;
+	virtual void			FinishAsyncSave( void ) = 0;
 
 	virtual const char		*GetEntityUniqueHammerID( CEntityIndex nEntityIndex ) = 0;
 };
