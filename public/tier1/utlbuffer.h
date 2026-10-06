@@ -275,7 +275,7 @@ public:
 	DLL_CLASS_IMPORT int	PeekDelimitedStringLength( CUtlCharConversion *pConv, bool bActualSize = true );
 
 	// Just like scanf, but doesn't work in binary mode
-	DLL_CLASS_IMPORT int	Scanf( const char* pFmt, ... ) FMTFUNCTION( 2, 3 );
+	DLL_CLASS_IMPORT int	Scanf( SCANF_FORMAT_STRING const char* pFmt, ... );
 	DLL_CLASS_IMPORT int	VaScanf( const char* pFmt, va_list list );
 
 	// Eats white space, advances Get index
