@@ -47,7 +47,7 @@ public:
 	virtual void *AsProto() const = 0;
 	virtual void *AsProto2() const = 0;
 
-	virtual INetworkMessageInternal *GetNetMessage() const = 0;
+	virtual NetMessageInfo_t *GetNetMessage() const = 0;
 	virtual CNetMessage *CopyConstruct() const = 0;
 	virtual NetworkMessageId GetMessageId() const = 0;
 
@@ -85,10 +85,10 @@ private:
 // This is mainly to access the game constructed objects, and not for direct initialization of them
 // since this misses the CNetMessage implementation which requires supplying other proto related info like
 // proto binding object, proto msg id/group, etc.
-// So to allocate the message yourself use INetworkMessageInternal::AllocateMessage() or INetworkMessages::AllocateNetMessageAbstract()
-// functions instead of direct initialization (they both are equivalent)!
+// So to allocate the message yourself use NetMessageInfo_t::AllocateMessage()
+// instead of direct initialization!
 // Example usage:
-// CNetMessagePB<ProtoClass> *msg = INetworkMessageInternal::AllocateMessage()->ToPB<ProtoClass>();
+// CNetMessagePB<ProtoClass> *msg = pNetMessageInfo->AllocateMessage()->ToPB<ProtoClass>();
 // msg->field1( 2 );
 // msg->field2( 3 );
 // IGameEventSystem::PostEventAbstract( ..., msg, ... );
@@ -219,7 +219,7 @@ abstract_class INetworkMessages
 public:
 	virtual void RegisterNetworkCategory(NetworkCategoryId nCategoryId, char const *szDebugName) = 0;
 
-	virtual void AssociateNetMessageWithChannelCategoryAbstract(INetworkMessageInternal *pNetMessage, NetworkCategoryId nCategoryId, bool bRequireHandler) = 0;
+	virtual void AssociateNetMessageWithChannelCategoryAbstract(NetMessageInfo_t *pNetMessage, NetworkCategoryId nCategoryId, bool bRequireHandler) = 0;
 
 	virtual bool Serialize(bf_write &pBuf, const CNetMessage *pData) = 0;
 
@@ -236,10 +236,10 @@ public:
 	virtual void *RegisterNetworkArrayFieldSerializer(char const *szName, NetworkSerializationMode_t mode, NetworkFieldSerializeBufferCB, NetworkFieldUnserializeBufferCB, NetworkFieldInfoCB,
 		NetworkFieldMetaInfoCB, NetworkFieldSerializeBufferCB, NetworkFieldUnserializeBufferCB) = 0;
 
-	virtual NetMessageInfo_t *GetNetMessageInfo(INetworkMessageInternal *pNetMessage) = 0;
+	virtual NetMessageInfo_t *GetNetMessageInfo(NetMessageInfo_t *pNetMessage) = 0;
 
-	virtual INetworkMessageInternal* FindNetworkMessage(char const *szName) = 0;
-	virtual INetworkMessageInternal* FindNetworkMessagePartial(char const *szPartialName) = 0;
+	virtual NetMessageInfo_t* FindNetworkMessage(char const *szName) = 0;
+	virtual NetMessageInfo_t* FindNetworkMessagePartial(char const *szPartialName) = 0;
 
 	virtual NetworkGroupId FindNetworkGroup(char const *szGroup, bool bCreateIfNotFound = false) = 0;
 	virtual int GetNetworkGroupCount() = 0;
@@ -258,7 +258,7 @@ public:
 	virtual void RegisterNetworkChangeTagCallback(const NetworkChangeTagDelegate_t &callback) = 0;
 
 	// Passing nMessasgeId as -1 would auto-assign the id even if bCannotBeNetworked is false based on the message name hash.
-	virtual INetworkMessageInternal *FindOrCreateNetMessage(int nMessageId, CNetMessage *(*pfnAllocateMessage)(), int nGroup, NetChannelBufType_t nDefaultBufferType, bool, bool bCannotBeNetworked) = 0;
+	virtual NetMessageInfo_t *FindOrCreateNetMessage(int nMessageId, NetMessageAllocateFn pfnAllocateMessage, int nGroup, NetChannelBufType_t nDefaultBufferType, bool bOkayToRedispatch, bool bCannotBeNetworked) = 0;
 
 	// szCallbackName is the name fields refer to in their MNetworkChangeCallback metadata; registering it twice is a fatal error.
 	// AMNOTE: szClassName is stored with the callback but not used
@@ -272,7 +272,7 @@ public:
 
 	virtual void RegisterFieldChangeCallbackPriority(int nPriority) = 0;
 
-	virtual INetworkMessageInternal *FindNetworkMessageById(int nMessageId) = 0;
+	virtual NetMessageInfo_t *FindNetworkMessageById(int nMessageId) = 0;
 
 	virtual void SetIsForServer(bool bIsForServer) = 0;
 	virtual bool GetIsForServer() = 0;

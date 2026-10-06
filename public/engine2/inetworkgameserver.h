@@ -141,7 +141,7 @@ public:
 	// Adds the server to the overlays' listeners to broadcast what they draw, or removes it
 	virtual void	SetBroadcastDebugOverlays( ISceneViewDebugOverlays *pOverlays, bool bBroadcast ) = 0;
 
-	virtual void	BroadcastMessage( INetworkMessageInternal *pNetMessage, const CNetMessage *pData, IRecipientFilter *filter ) = 0;
+	virtual void	BroadcastMessage( NetMessageInfo_t *pNetMessage, const CNetMessage *pData, IRecipientFilter *filter ) = 0;
 	virtual bool	IsRecordingDemo() = 0;
 
 	virtual uint8	GetClientConnectionType( CPlayerSlot slot ) = 0;
