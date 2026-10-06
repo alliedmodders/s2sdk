@@ -14,6 +14,8 @@
 #pragma once
 #endif
 
+#include "tier0/platform.h"
+
 #ifndef NO_STRING_T
 
 #ifdef WEAK_STRING_T

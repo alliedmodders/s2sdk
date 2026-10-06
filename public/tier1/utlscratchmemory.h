@@ -5,6 +5,8 @@
 #pragma once
 #endif
 
+#include "tier0/platform.h"
+
 struct UtlScratchMemoryPoolMark_t
 {
 	void *m_pBlock;

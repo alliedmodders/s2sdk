@@ -17,6 +17,7 @@
 
 class ISwitchLoopModeStatusNotify;
 class IAddonListChangeNotify;
+struct RenderDeviceInfo_t;
 
 struct EventClientOutput_t
 {

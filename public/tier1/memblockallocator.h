@@ -20,6 +20,7 @@
 
 #include "tier1/rawallocator.h"
 #include "tier1/utlleanvector.h"
+#include "tier1/utlvector.h"
 
 // AMNOTE: Handle that contains page/subpage indexes to allocated memory within internal storage
 // Stored in the following format: 

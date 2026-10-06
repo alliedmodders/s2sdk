@@ -14,7 +14,6 @@
 #endif
 
 #include "tier0/dbg.h"
-#include "dt_send.h"
 #include "networkstringtabledefs.h"
 #include "networksystem/iflattenedserializers.h"
 

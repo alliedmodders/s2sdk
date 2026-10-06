@@ -8,6 +8,8 @@
 #define _MATH_PFNS_H_
 
 #include <limits>
+#include <float.h>
+#include "tier0/platform.h"
 
 #if defined( _X360 )
 #include <xboxmath.h>

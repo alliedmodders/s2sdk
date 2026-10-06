@@ -12,6 +12,8 @@
 #pragma once
 #endif
 
+#include "tier0/platform.h"
+
 static const char OR_OP   = '|';
 static const char AND_OP  = '&';
 static const char NOT_OP  = '!';

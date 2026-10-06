@@ -10,6 +10,8 @@
 #pragma once
 #endif
 
+#include "tier0/platform.h"
+
 
 PLATFORM_INTERFACE void ReportProgress(char const *job_name, int total_units_to_do, 
 									   int n_units_completed);

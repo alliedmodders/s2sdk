@@ -10,6 +10,8 @@
 #pragma once
 #endif
 
+#include "tier0/platform.h"
+
 // Function to attach a console for I/O to a Win32 GUI application in a reasonably smart fashion.
 PLATFORM_INTERFACE bool SetupWin32ConsoleIO();
 

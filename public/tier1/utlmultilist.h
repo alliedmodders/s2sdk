@@ -14,6 +14,7 @@
 #endif
 
 #include "utllinkedlist.h"
+#include "utlvectormemory.h"
 
 // memdbgon must be the last include file in a .h file!!!
 #include "tier0/memdbgon.h"

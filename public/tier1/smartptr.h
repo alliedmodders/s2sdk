@@ -11,6 +11,8 @@
 #pragma once
 #endif
 
+#include "tier0/platform.h"
+
 
 class CRefCountAccessor
 {

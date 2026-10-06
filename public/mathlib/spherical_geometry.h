@@ -15,6 +15,7 @@
 
 #include <math.h>
 #include <float.h>
+#include "mathlib/vector.h"
 
 // see http://mathworld.wolfram.com/SphericalTrigonometry.html
 

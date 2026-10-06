@@ -14,6 +14,7 @@
 #endif
 
 #include "interface.h"
+#include "interfaces/interfaces.h"
 
 class IServer;
 class IHLTVDirector;

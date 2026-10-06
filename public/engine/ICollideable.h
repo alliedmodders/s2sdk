@@ -11,6 +11,8 @@
 #pragma once
 #endif
 
+#include "mathlib/mathlib.h"
+
 
 enum SolidType_t : unsigned char;
 class CEntityInstance;

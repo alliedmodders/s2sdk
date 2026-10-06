@@ -7,6 +7,8 @@
 #pragma once
 #endif
 
+#include "tier1/strtools.h"
+
 //-----------------------------------------------------------------------------
 // 
 // This class is a handy way to match a series of values to stings and vice
