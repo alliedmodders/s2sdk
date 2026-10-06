@@ -1,0 +1,79 @@
+# vim: set ts=2 sw=2 tw=99 noet ft=python:
+import os
+
+# Compiles every header on its own, and the sources that plugins compile themselves, into a library
+# configured and linked through hl2sdk-manifests like plugins are. A header missing an include or out of date
+# with the rest of the SDK fails the build, and so does a declaration the SDK's libraries don't export.
+
+builder.SetBuildFolder('check')
+
+# Only meant to be included from another header
+ExcludedHeaders = [
+  'public/vscript/vscript_templates.h',
+]
+
+# Copied from the Steamworks SDK, whose other headers are included through these
+SteamHeaders = [
+  'public/steam/steam_api.h',
+  'public/steam/steam_gameserver.h',
+]
+
+def IsChecked(path):
+  if path in ExcludedHeaders:
+    return False
+  if path.startswith('public/steam/'):
+    return path in SteamHeaders
+  return True
+
+headers = []
+for folder in ['common', 'game', 'public']:
+  for root, dirs, files in os.walk(os.path.join(builder.sourcePath, folder)):
+    for file in files:
+      if not file.endswith('.h'):
+        continue
+      path = os.path.relpath(os.path.join(root, file), builder.sourcePath).replace('\\', '/')
+      if IsChecked(path):
+        headers.append(path)
+
+sources = []
+for header in sorted(headers):
+  content = '#include "{}"\n'.format(os.path.join(builder.sourcePath, header).replace('\\', '/'))
+  sources.append(builder.AddOutputFile(os.path.join('headers', header.replace('/', '_') + '.cpp'), content.encode('utf-8')))
+
+for folder in ['entity2', 'tier1']:
+  for file in sorted(os.listdir(os.path.join(builder.sourcePath, folder))):
+    if file.endswith('.cpp'):
+      sources.append(os.path.join(folder, file))
+sources.append(os.path.join('public', 'tier0', 'memoverride.cpp'))
+
+# Plugins define the entity system getter that the entity2 sources call
+sources.append(builder.AddOutputFile('gameentitysystem.cpp', b'class CGameEntitySystem;\nCGameEntitySystem *GameEntitySystem() { return nullptr; }\n'))
+
+SdkHelpers = builder.Eval(os.path.join(os.path.abspath(builder.options.hl2sdk_manifests), 'SdkHelpers.ambuild'), {
+  'Project': 'sdkcheck'
+})
+SdkHelpers.find_sdk_path = lambda name: builder.sourcePath
+SdkHelpers.findSdks(builder, HL2SDK.targets, [builder.options.sdk])
+sdk = SdkHelpers.sdks[builder.options.sdk]
+
+project = builder.LibraryProject('sdkcheck')
+project.sources = sources
+
+for sdk_target in SdkHelpers.sdk_targets:
+  binary = project.Configure(sdk_target.cxx, 'sdkcheck', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
+  SdkHelpers.configureCxx(builder, binary, sdk)
+  compiler = binary.compiler
+
+  # Plugins use the SDK's allocator overrides
+  if 'NO_MALLOC_OVERRIDE' in compiler.defines:
+    compiler.defines.remove('NO_MALLOC_OVERRIDE')
+
+  # Fail on symbols the libraries don't have, which shared libraries allow by default
+  if compiler.target.platform == 'linux':
+    compiler.linkflags += ['-Wl,-z,defs']
+
+  binary.custom = [builder.tools.Protoc(protoc = sdk_target.protoc, sources = [
+    os.path.join(builder.sourcePath, 'common', 'network_connection.proto'),
+  ])]
+
+builder.Add(project)

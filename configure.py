@@ -8,4 +8,8 @@ parser.options.add_argument('--enable-optimize', action='store_const', const='1'
                         help='Enable optimization')
 parser.options.add_argument('--targets', type=str, dest='targets', default=None,
 		                help="Override the target architecture (use commas to separate multiple targets).")
+parser.options.add_argument('--hl2sdk-manifests', type=str, dest='hl2sdk_manifests', default=None,
+                        help='Path to hl2sdk-manifests, to check the SDK the way plugins build against it')
+parser.options.add_argument('--sdk', type=str, dest='sdk', default='cs2',
+                        help='hl2sdk-manifests SDK name of this branch')
 parser.Configure()
