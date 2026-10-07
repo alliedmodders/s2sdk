@@ -57,6 +57,9 @@
     <ClCompile Include="sparse_convolution_noise.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="spherical.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="sse.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -19,6 +19,7 @@ project.sources = [
 	'randsse.cpp',
 	'simdvectormatrix.cpp',
 	'sparse_convolution_noise.cpp',
+	'spherical.cpp',
 	'sse.cpp',
 	'sseconst.cpp',
 	'ssenoise.cpp',

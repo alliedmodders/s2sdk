@@ -329,6 +329,7 @@
     <ClCompile Include="randsse.cpp" />
     <ClCompile Include="simdvectormatrix.cpp" />
     <ClCompile Include="sparse_convolution_noise.cpp" />
+    <ClCompile Include="spherical.cpp" />
     <ClCompile Include="sse.cpp" />
     <ClCompile Include="sseconst.cpp" />
     <ClCompile Include="ssenoise.cpp" />

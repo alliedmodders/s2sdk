@@ -44,6 +44,7 @@ LIB_OBJS= \
 	$(LIB_OBJ_DIR)/randsse.o \
 	$(LIB_OBJ_DIR)/simdvectormatrix.o \
 	$(LIB_OBJ_DIR)/sparse_convolution_noise.o \
+	$(LIB_OBJ_DIR)/spherical.o \
 	$(LIB_OBJ_DIR)/sse.o \
 	$(LIB_OBJ_DIR)/sseconst.o \
 	$(LIB_OBJ_DIR)/ssenoise.o \
