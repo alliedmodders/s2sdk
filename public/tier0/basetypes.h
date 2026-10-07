@@ -300,7 +300,7 @@ inline vec_t BitsToFloat( uint32 i )
 	union Convertor_t
 	{
 		vec_t f;
-		unsigned long ul;
+		uint32 ul;
 	}tmp;
 	tmp.ul = i;
 	return tmp.f;
