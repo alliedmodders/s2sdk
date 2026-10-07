@@ -1183,6 +1183,7 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( T *pDest ) const
 			case FIELD_FLOAT64:		*pDest = m_float64; return true;
 			case FIELD_CHARACTER:	*pDest = m_char; return true;
 			case FIELD_BOOLEAN:		*pDest = m_bool; return true;
+			default:				break;
 		}
 	}
 	else
