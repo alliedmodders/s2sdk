@@ -56,7 +56,6 @@ class SDKConfig(object):
       '-Wno-unused',
       '-Wno-narrowing',
       '-Wno-register',
-      '-fno-strict-aliasing',
       '-fPIC'
     ]
 

@@ -13,6 +13,11 @@ jobs:
             cc: clang-22
             cxx: clang++-22
             container_image: ghcr.io/alliedmodders/build-containers/debian11-clang22:latest
+          - os: ubuntu-22.04
+            cc: gcc
+            cxx: g++
+            container_image: ghcr.io/alliedmodders/build-containers/debian11-clang22:latest
+            configure_args: --enable-optimize
           - os: windows-2022
             cc: msvc
       fail-fast: false
@@ -52,7 +57,7 @@ jobs:
         run: |
           python3 -m pip install ./ambuild
 
-      - name: Select clang compiler
+      - name: Select compiler
         if: startsWith(runner.os, 'Linux')
         run: |
           echo "CC=${{ matrix.cc }}" >> $GITHUB_ENV
@@ -66,10 +71,11 @@ jobs:
         run: |
           mkdir build
           cd build
-          python3 ../configure.py --hl2sdk-manifests ../../hl2sdk-manifests
+          python3 ../configure.py --hl2sdk-manifests ../../hl2sdk-manifests ${{ matrix.configure_args }}
           ambuild
 
       - name: Upload artifact
+        if: matrix.cc != 'gcc'
         uses: actions/upload-artifact@v7
         with:
           name: libs_${{ runner.os }}
