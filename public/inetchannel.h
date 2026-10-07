@@ -76,7 +76,7 @@ public:
 
 	virtual void	Reset( void ) = 0;
 	virtual void	Clear( void ) = 0;
-	virtual void	Shutdown( ENetworkDisconnectionReason reason ) = 0;
+	virtual void	Shutdown( ENetworkDisconnectionReason reason, const char *pszReason ) = 0;
 	
 	virtual HSteamNetConnection GetSteamNetConnection( void ) const = 0;
 	
