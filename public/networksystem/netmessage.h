@@ -24,7 +24,7 @@ public:
 	virtual void *AsProto2() const = 0;
 
 	virtual INetworkMessageInternal *GetNetMessage() const = 0;
-	virtual CNetMessage *CopyConstruct( const CNetMessage *other ) const = 0;
+	virtual CNetMessage *CopyConstruct() const = 0;
 	virtual NetworkMessageId GetMessageId() const = 0;
 	virtual const char *GetName() const = 0;
 
