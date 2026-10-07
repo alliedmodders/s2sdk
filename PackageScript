@@ -13,3 +13,9 @@ for task in HL2SDK.libs:
   if folder not in folder_map:
     folder_map[folder] = builder.AddFolder(folder)
   builder.AddCopy(task.binary, folder_map[folder])
+
+# The headers generated for the protobufs library
+if HL2SDK.protobuf_headers:
+  protobufs_folder = builder.AddFolder('protobufs')
+  for header in HL2SDK.protobuf_headers:
+    builder.AddCopy(header, protobufs_folder)

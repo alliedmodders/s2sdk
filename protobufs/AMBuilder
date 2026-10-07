@@ -1,0 +1,67 @@
+# vim: set ts=2 sw=2 tw=99 noet ft=python:
+import os
+
+builder.SetBuildFolder('/')
+
+# The game's folder of SteamTracking/Protobufs
+proto_dir = os.path.join(builder.sourcePath, 'thirdparty', 'Protobufs', 'csgo')
+protobuf_src = os.path.join(builder.sourcePath, 'thirdparty', 'protobuf-3.21.8', 'src')
+
+protos = [
+	'base_gcmessages.proto',
+	'clientmessages.proto',
+	'connectionless_netmessages.proto',
+	'cs_gameevents.proto',
+	'cs_usercmd.proto',
+	'cstrike15_gcmessages.proto',
+	'cstrike15_usermessages.proto',
+	'econ_gcmessages.proto',
+	'engine_gcmessages.proto',
+	'gameevents.proto',
+	'gcsdk_gcmessages.proto',
+	'gcsystemmsgs.proto',
+	'netmessages.proto',
+	'network_connection.proto',
+	'networkbasetypes.proto',
+	'networksystem_protomessages.proto',
+	'source2_steam_stats.proto',
+	'steammessages.proto',
+	'te.proto',
+	'usercmd.proto',
+	'usermessages.proto',
+	'valveextensions.proto',
+]
+
+if builder.host.platform == 'windows':
+	protoc_path = os.path.join(builder.sourcePath, 'devtools', 'bin', 'protoc.exe')
+else:
+	protoc_path = os.path.join(builder.sourcePath, 'devtools', 'bin', 'linux', 'protoc')
+
+protoc = builder.DetectProtoc(path = protoc_path)
+# AMNOTE: The game's folder has to come first, its google/protobuf/descriptor.proto is the game's own
+#  and has the options the protos use (like boxed_type) that protobuf's descriptor.proto doesn't
+protoc.includes += [
+	proto_dir,
+	protobuf_src,
+]
+
+# Generated once and shared by every target, the headers are packaged next to the libraries
+generated_folder = builder.AddFolder(os.path.join('protobufs', 'generated'))
+generated = protoc.Generate(builder, [os.path.join(proto_dir, proto) for proto in protos], [('cpp', generated_folder)])
+
+project = builder.StaticLibraryProject('protobufs')
+
+for cxx in HL2SDK.targets:
+	binary = HL2SDK.ConfigureLibrary(project, cxx, builder)
+	binary.compiler.cxxincludes += [
+		os.path.join(builder.buildPath, generated_folder.path),
+		protobuf_src
+	]
+	# AMNOTE: The prebuilt libprotobuf.a uses the old std::string ABI, the generated code has to match it
+	if cxx.target.platform == 'linux':
+		binary.compiler.defines += ['_GLIBCXX_USE_CXX11_ABI=0']
+	binary.compiler.sourcedeps += generated['cpp']['sources'] + generated['cpp']['headers']
+	binary.sources += [os.path.join(builder.buildPath, source.path) for source in generated['cpp']['sources']]
+
+HL2SDK.libs += builder.Add(project)
+HL2SDK.protobuf_headers += generated['cpp']['headers']
