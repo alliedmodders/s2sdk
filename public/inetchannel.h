@@ -117,7 +117,7 @@ public:
 	virtual INetMessageDispatcher *GetNetMessageDispatcher( void ) const = 0;
 	
 	virtual void	StartRegisteringMessageHandlers( void ) = 0;
-	virtual void	FinishRegisteringMessageHandlers( void ) = 0;
+	virtual void	FinishRegisteringMessageHandlers( bool ) = 0;
 	
 	virtual void	RegisterNetMessageHandlerAbstract( CUtlSlot *nSlot, const CUtlAbstractDelegate &delegate, int nParamCount, INetworkMessageInternal *pNetMessage, int nPriority ) = 0;
 	virtual void	UnregisterNetMessageHandlerAbstract( CUtlSlot *nSlot, const CUtlAbstractDelegate &delegate, INetworkMessageInternal *pNetMessage ) = 0;
@@ -132,7 +132,9 @@ public:
 	virtual void	InstallMessageFilter( INetworkMessageProcessingPreFilter *pFilter ) = 0;
 	virtual void	UninstallMessageFilter( INetworkMessageProcessingPreFilter *pFilter ) = 0;
 	
-	virtual void	PostReceivedNetMessage( INetworkMessageInternal *pNetMessage, const CNetMessage *pData, const NetChannelBufType_t *pBufType, int nBits, int nInSequenceNr ) = 0;
+	virtual void	PostReceivedNetMessage( CNetMessage *pData ) = 0;
+	// AMNOTE: Same as PostReceivedNetMessage, but adds the message to the front of the queue
+	virtual void	unk211( CNetMessage *pData ) = 0;
 	virtual void	InsertReplayMessage( InstantReplayMessage_t &msg ) = 0;
 	virtual bool	HasQueuedNetMessages( int nMessageId ) const = 0;
 
@@ -144,10 +146,10 @@ public:
 	
 	virtual EResult	SendRawMessage( const void *pData, uint32 cbData, int nSendFlags ) = 0;
 	
-	virtual void	unk211() = 0;
-	virtual void	unk212() = 0;
-	virtual void	unk213() = 0;
-	virtual void	unk214() = 0;
+	virtual void	unk311() = 0;
+	virtual void	unk312() = 0;
+	virtual void	unk313() = 0;
+	virtual void	unk314() = 0;
 };
 
 
