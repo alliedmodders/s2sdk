@@ -128,7 +128,7 @@ public:
 	CUtlSymbolTableLargeBase( int nGrowSize = 0, int nInitSize = 16 )
 		:	m_HashTable( 0 ), 
 			m_MemBlocks( nGrowSize, nInitSize ), 
-			m_Mutex( "CUtlSymbolTableLargeBase" ), 
+			m_Mutex(), 
 			m_MemBlockAllocator( ( nInitSize > 0 ) ? 8 : 0, PAGE_SIZE ), 
 			m_nElementLimit( INT_MAX - 1 ), 
 			m_bThrowError( true ),
@@ -332,7 +332,7 @@ inline UtlSymLargeId_t CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUT
 template < bool CASEINSENSITIVE, size_t PAGE_SIZE, class MUTEX_TYPE >
 inline UtlSymLargeId_t CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUTEX_TYPE >::FindRaw( const char* pString ) const
 {	
-	return Find( pString, pString ? strlen( pString ) : 0 );
+	return FindRaw( pString, pString ? strlen( pString ) : 0 );
 }
 
 template < bool CASEINSENSITIVE, size_t PAGE_SIZE, class MUTEX_TYPE >
