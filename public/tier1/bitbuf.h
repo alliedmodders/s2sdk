@@ -413,7 +413,7 @@ BITBUF_INLINE void bf_write::WriteUBitLong( unsigned int curData, int numbits, b
 	m_iCurBit += numbits;
 
 	// Mask in a dword.
-	Assert( (iDWord*4 + sizeof(long)) <= (unsigned int)m_nDataBytes );
+	Assert( (iDWord*4 + sizeof(uint32)) <= (unsigned int)m_nDataBytes );
 	uint32 * RESTRICT pOut = &m_pData[iDWord];
 
 	// Rotate data into dword alignment
@@ -457,15 +457,9 @@ BITBUF_INLINE void bf_write::WriteUBitVar( unsigned int n )
 }
 
 // write raw IEEE float bits in little endian form
-BITBUF_INLINE void bf_write::WriteBitFloat(float val)
+BITBUF_INLINE void bf_write::WriteBitFloat(const float val)
 {
-	long intVal;
-
-	Assert(sizeof(long) == sizeof(float));
-	Assert(sizeof(float) == 4);
-
-	intVal = *((long*)&val);
-	WriteUBitLong( intVal, 32 );
+	WriteUBitLong( FloatBits( val ), 32 );
 }
 
 //-----------------------------------------------------------------------------

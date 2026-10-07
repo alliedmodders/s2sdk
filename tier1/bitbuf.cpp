@@ -738,7 +738,7 @@ void bf_write::WriteWord(int val)
 
 void bf_write::WriteLong(long val)
 {
-	WriteSBitLong(val, sizeof(long) << 3);
+	WriteSBitLong(val, 32);
 }
 
 void bf_write::WriteLongLong(int64 val)
@@ -748,8 +748,8 @@ void bf_write::WriteLongLong(int64 val)
 	// Insert the two DWORDS according to network endian
 	const short endianIndex = 0x0100;
 	byte *idx = (byte*)&endianIndex;
-	WriteUBitLong(pLongs[*idx++], sizeof(long) << 3);
-	WriteUBitLong(pLongs[*idx], sizeof(long) << 3);
+	WriteUBitLong(pLongs[*idx++], 32);
+	WriteUBitLong(pLongs[*idx], 32);
 }
 
 void bf_write::WriteFloat(float val)
@@ -1341,8 +1341,8 @@ int64 bf_read::ReadLongLong()
 	// Read the two DWORDs according to network endian
 	const short endianIndex = 0x0100;
 	byte *idx = (byte*)&endianIndex;
-	pLongs[*idx++] = ReadUBitLong(sizeof(long) << 3);
-	pLongs[*idx] = ReadUBitLong(sizeof(long) << 3);
+	pLongs[*idx++] = ReadUBitLong(32);
+	pLongs[*idx] = ReadUBitLong(32);
 
 	return retval;
 }
