@@ -20,7 +20,7 @@ if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
 	message(FATAL_ERROR "s2sdk only supports 64-bit targets")
 endif()
 
-if(MSVC AND NOT CMAKE_MSVC_RUNTIME_LIBRARY STREQUAL "MultiThreaded")
+if(MSVC AND NOT CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "^MultiThreaded(\\$<\\$<CONFIG:Debug>:Debug>)?$")
 	message(WARNING "s2sdk's libraries use the static runtime (/MT); set CMAKE_MSVC_RUNTIME_LIBRARY to MultiThreaded")
 endif()
 
