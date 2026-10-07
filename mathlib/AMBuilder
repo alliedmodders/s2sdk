@@ -5,6 +5,7 @@ builder.SetBuildFolder('/')
 
 project = builder.StaticLibraryProject('mathlib')
 project.sources = [
+	'almostequal.cpp',
 	'anorms.cpp',
 	'bumpvects.cpp',
 	'color_conversion.cpp',

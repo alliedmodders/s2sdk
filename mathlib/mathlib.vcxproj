@@ -315,6 +315,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="almostequal.cpp" />
     <ClCompile Include="anorms.cpp" />
     <ClCompile Include="bumpvects.cpp" />
     <ClCompile Include="color_conversion.cpp" />
