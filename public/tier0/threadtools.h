@@ -989,6 +989,24 @@ public:
 	}
 };
 
+class CThreadMultiWaitEvent
+{
+public:
+	DLL_CLASS_IMPORT CThreadMultiWaitEvent( bool bManualReset = false );
+	DLL_CLASS_IMPORT ~CThreadMultiWaitEvent();
+
+	DLL_CLASS_IMPORT void Set();
+	DLL_CLASS_IMPORT void Reset();
+
+private:
+#ifdef _WIN32
+	HANDLE m_hEvent;
+#else
+	int m_nEventFd;
+#endif
+	int m_nType; // AMNOTE: 2 for auto-reset, 4 for manual-reset
+};
+
 
 //-----------------------------------------------------------------------------
 //
