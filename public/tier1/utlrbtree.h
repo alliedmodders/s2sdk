@@ -335,7 +335,7 @@ public:
 	void	Reinsert( I elem );
 
 	// swap in place
-	void Swap( CUtlRBTree< T, I, L > &that );
+	void Swap( CUtlRBTree< T, I, L, M > &that );
 
 private:
 	// Can't copy the tree this way!
@@ -1865,7 +1865,7 @@ bool CUtlRBTree<T, I, L, M>::HasElement( T const &search ) const
 // swap in place
 //-----------------------------------------------------------------------------
 template < class T, class I, typename L, class M > 
-void CUtlRBTree<T, I, L, M>::Swap( CUtlRBTree< T, I, L > &that )
+void CUtlRBTree<T, I, L, M>::Swap( CUtlRBTree< T, I, L, M > &that )
 {
 	m_Elements.Swap( that.m_Elements );
 	V_swap( m_LessFunc, that.m_LessFunc );
