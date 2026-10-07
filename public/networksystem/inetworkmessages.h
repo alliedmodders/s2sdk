@@ -89,10 +89,11 @@ public:
 	virtual void AssociateNetMessageGroupIdWithChannelCategory(NetworkCategoryId nCategoryId, char const *szGroup) = 0;
 
 	virtual void SetNetworkSerializationContextData(char const *szContext, NetworkSerializationMode_t, void *) = 0;
-	virtual void *GetNetworkSerializationContextData(char const *szContext) = 0;
+	virtual uint16 GetNetworkSerializationContextData(char const *szContext) = 0;
 
-	virtual void unk101() = 0;
-	virtual void unk102() = 0;
+	// AMNOTE: Returns the data SetNetworkSerializationContextData set
+	virtual void *unk101(uint16 hContext, NetworkSerializationMode_t mode) = 0;
+	virtual void unk102(const void *) = 0;
 
 	// Passing nMessasgeId as -1 would auto-assign the id even if bCannotBeNetworked is false based on the message name hash.
 	virtual NetMessageInfo_t *FindOrCreateNetMessage(int nMessageId, NetMessageAllocateFn pfnAllocateMessage, int nGroup, NetChannelBufType_t nDefaultBufferType, bool bOkayToRedispatch, bool bCannotBeNetworked) = 0;
@@ -117,7 +118,7 @@ public:
 
 	virtual int ComputeOrderForPriority(int nPriority) = 0;
 
-	virtual CLoggingSystem::LoggingChannel_t *GetLoggingChannel() = 0;
+	virtual LoggingChannelID_t GetLoggingChannel() = 0;
 
 	virtual void unk201(const void *) = 0;
 	virtual void *unk202() = 0;
