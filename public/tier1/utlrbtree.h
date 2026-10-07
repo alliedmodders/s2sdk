@@ -14,6 +14,7 @@
 #include "tier1/utlleanvector.h"
 #include "tier1/utlfixedmemory.h"
 #include "tier1/utlblockmemory.h"
+#include <type_traits>
 
 
 // This is a useful macro to iterate from start to end in order in a map
@@ -1252,8 +1253,11 @@ void CUtlRBTree<T, I, L, M>::Purge()
 template < class T, class I, typename L, class M >
 void CUtlRBTree<T, I, L, M>::RemoveAllAndDeleteElements()
 {
-	for ( I i = FirstInorder(); i != InvalidIndex(); i = NextInorder( i ) )
-		delete Element( i );
+	if constexpr ( std::is_pointer_v<T> )
+	{
+		for ( I i = FirstInorder(); i != InvalidIndex(); i = NextInorder( i ) )
+			delete Element( i );
+	}
 	RemoveAll();
 }
 
@@ -1264,8 +1268,11 @@ void CUtlRBTree<T, I, L, M>::RemoveAllAndDeleteElements()
 template < class T, class I, typename L, class M >
 void CUtlRBTree<T, I, L, M>::PurgeAndDeleteElements()
 {
-	for ( I i = FirstInorder(); i != InvalidIndex(); i = NextInorder( i ) )
-		delete Element( i );
+	if constexpr ( std::is_pointer_v<T> )
+	{
+		for ( I i = FirstInorder(); i != InvalidIndex(); i = NextInorder( i ) )
+			delete Element( i );
+	}
 	Purge();
 }
 

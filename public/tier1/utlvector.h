@@ -17,6 +17,7 @@
 
 
 #include <string.h>
+#include <type_traits>
 #include "tier0/platform.h"
 #include "tier0/dbg.h"
 #include "tier0/threadtools.h"
@@ -417,9 +418,12 @@ public:
 	{
 		if ( m_pData != StaticData() )
 		{
-			for( int i=0; i < m_pData->m_Size; i++ )
+			if constexpr ( std::is_pointer_v<T> )
 			{
-				delete Element(i);
+				for( int i=0; i < m_pData->m_Size; i++ )
+				{
+					delete Element(i);
+				}
 			}
 			RemoveAll();
 		}
@@ -1179,9 +1183,12 @@ inline void CUtlVectorBase<T, I, A>::Purge()
 template< typename T, class I, class A >
 inline void CUtlVectorBase<T, I, A>::PurgeAndDeleteElements()
 {
-	for( I i=0; i < m_Size; i++ )
+	if constexpr ( std::is_pointer_v<T> )
 	{
-		delete Element(i);
+		for( I i=0; i < m_Size; i++ )
+		{
+			delete Element(i);
+		}
 	}
 	Purge();
 }

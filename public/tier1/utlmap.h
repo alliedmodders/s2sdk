@@ -239,23 +239,28 @@ public:
 	void RemoveAll( )										{ m_Tree.RemoveAll(); }
 	void Purge( )											{ m_Tree.Purge(); }
 
-	// Only valid when ElemType_t is a pointer
 	void PurgeAndDeleteElements()
 	{
-		for ( IndexType_t i = 0; i < MaxElement(); ++i )
+		if constexpr ( std::is_pointer_v<ElemType_t> )
 		{
-			if ( IsValidIndex( i ) )
-				delete Element( i );
+			for ( IndexType_t i = 0; i < MaxElement(); ++i )
+			{
+				if ( IsValidIndex( i ) )
+					delete Element( i );
+			}
 		}
 		Purge();
 	}
 
 	void RemoveAllAndDeleteElements()
 	{
-		for ( IndexType_t i = 0; i < MaxElement(); ++i )
+		if constexpr ( std::is_pointer_v<ElemType_t> )
 		{
-			if ( IsValidIndex( i ) )
-				delete Element( i );
+			for ( IndexType_t i = 0; i < MaxElement(); ++i )
+			{
+				if ( IsValidIndex( i ) )
+					delete Element( i );
+			}
 		}
 		RemoveAll();
 	}
