@@ -64,7 +64,7 @@ class SDKConfig(object):
     ]
 
     cxx.cxxflags += [
-      '-std=c++17'
+      '-std=c++20'
     ]
 
     if builder.options.opt == '1':
@@ -74,7 +74,7 @@ class SDKConfig(object):
     cxx.defines += ['COMPILER_MSVC', 'COMPILER_MSVC64']
 
     cxx.cxxflags += [
-      '/std:c++17'
+      '/std:c++20'
     ]
 
     if builder.options.opt == '1':
