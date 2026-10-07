@@ -75,7 +75,7 @@ public:
 	// Use for access
 	operator const char *() const				{ return m_szBuf; }
 	char *Access()								{ return m_szBuf; }
-	CFmtStrN<SIZE_BUF> & operator=( const char *pchValue ) { sprintf( pchValue ); return *this; }
+	CFmtStrN<SIZE_BUF> & operator=( const char *pchValue ) { V_strncpy( m_szBuf, pchValue, SIZE_BUF ); return *this; }
 	CFmtStrN<SIZE_BUF> & operator+=( const char *pchValue ) { Append( pchValue ); return *this; }
 	int Length() const { return V_strlen( m_szBuf ); }
 
@@ -83,7 +83,7 @@ public:
 
 	void AppendFormat( const char *pchFormat, ... ) { int nLength = Length(); char *pchEnd = m_szBuf + nLength; FmtStrVSNPrintf( pchEnd, SIZE_BUF - nLength, &pchFormat, pchFormat ); }
 	void AppendFormatV( const char *pchFormat, va_list args );
-	void Append( const char *pchValue ) { AppendFormat( pchValue ); }
+	void Append( const char *pchValue ) { AppendFormat( "%s", pchValue ); }
 
 	void AppendIndent( uint32 unCount, char chIndent = '\t' );
 private:
