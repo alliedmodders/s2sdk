@@ -399,7 +399,7 @@ void *__cdecl operator new( size_t nSize, int nBlockUse, const char *pFileName, 
 	return MemAlloc_Alloc(nSize, pFileName, nLine );
 }
 
-void __cdecl operator delete( void *pMem )
+void __cdecl operator delete( void *pMem ) noexcept
 {
 #if !defined(USE_LIGHT_MEM_DEBUG) && !defined(USE_MEM_DEBUG)
 	g_pMemAlloc->Free(pMem);
@@ -418,7 +418,7 @@ void *__cdecl operator new[] ( size_t nSize, int nBlockUse, const char *pFileNam
 	return MemAlloc_Alloc(nSize, pFileName, nLine);
 }
 
-void __cdecl operator delete[] ( void *pMem )
+void __cdecl operator delete[] ( void *pMem ) noexcept
 {
 #if !defined(USE_LIGHT_MEM_DEBUG) && !defined(USE_MEM_DEBUG)
 	g_pMemAlloc->Free(pMem);
