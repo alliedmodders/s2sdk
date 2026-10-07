@@ -99,7 +99,7 @@ public:
 	// returns the game time scale (multiplied in conjunction with host_timescale)
 	virtual float	GetTimescale( void ) const = 0;
 
-	virtual bool	IsSaveRestoreAllowed( void ) const = 0;
+	virtual bool	IsSaveRestoreAllowed( CUtlString *pReason ) const = 0;
 
 	virtual void	SetMapName( const char *pszNewName ) = 0;
 	// current map name (BSP)
@@ -242,10 +242,19 @@ public:
 	virtual void	SetGameLoadStarted( void ) = 0;
 	virtual void	StartChangeLevel( const char *, const char *pszLandmark, void * ) = 0;
 	virtual bool	FinishChangeLevel( void ) = 0;
-	virtual bool	unk101( void ) = 0;
+	virtual bool	IsChangelevelPending( void ) const = 0;
 	virtual void	PreserveSteamID( void ) = 0;
 	virtual CRC32_t	GetServerSerializersCRC( void ) = 0;
 	virtual void	*GetServerSerializersMsg( void ) = 0;
+	virtual IGameSpawnGroupMgr *GetGameSpawnGroupMgr( void ) = 0;
+	virtual bool	IsSaveRestoreAllowed( CUtlString *pReason ) = 0;
+	virtual bool	unk101( void ) = 0;
+	virtual void	*unk102( int ) = 0;
+	virtual void	unk103( void ) = 0;
+	virtual void	unk104( void ) = 0;
+	virtual bool	unk105( void ) = 0;
+	virtual void	unk106( void ) = 0;
+	virtual void	unk107( bool ) = 0;
 };
 
 typedef CNetworkGameServerBase IServer;
