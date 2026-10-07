@@ -72,8 +72,8 @@ for sdk_target in SdkHelpers.sdk_targets:
   if compiler.target.platform == 'linux':
     compiler.linkflags += ['-Wl,-z,defs']
 
-  binary.custom = [builder.tools.Protoc(protoc = sdk_target.protoc, sources = [
-    os.path.join(builder.sourcePath, 'common', 'network_connection.proto'),
-  ])]
+  # The headers protobufs/AMBuilder generates, for the ones that include network_connection.pb.h
+  compiler.cxxincludes += [os.path.join(builder.buildPath, os.path.dirname(HL2SDK.protobuf_headers[0].path))]
+  compiler.sourcedeps += HL2SDK.protobuf_headers
 
 builder.Add(project)
