@@ -1671,7 +1671,7 @@ void Parabolic_Spline_NormalizeX(
 FORCEINLINE float QuinticInterpolatingPolynomial(float t)
 {
 	// 6t^5-15t^4+10t^3
-	return t * t * t *( t * ( t* 6.0 - 15.0 ) + 10.0 );
+	return t * t * t *( t * ( t* 6.0f - 15.0f ) + 10.0f );
 }
 
 // given a table of sorted tabulated positions, return the two indices and blendfactor to linear

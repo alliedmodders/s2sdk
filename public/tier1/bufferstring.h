@@ -80,7 +80,7 @@ public:
 protected:
 	CBufferString( size_t nAllocatedSize, bool bAllowHeapAllocation = true ) :
 		m_nLength( 0 ),
-		m_nAllocatedSize( (bAllowHeapAllocation * ALLOW_HEAP_ALLOCATION) | STACK_ALLOCATED_MARKER | (nAllocatedSize + sizeof( m_szString )) ),
+		m_nAllocatedSize( (bAllowHeapAllocation * ALLOW_HEAP_ALLOCATION) | STACK_ALLOCATED_MARKER | (int)( nAllocatedSize + sizeof( m_szString ) ) ),
 		m_pString( nullptr )
 	{
 		Assert( nAllocatedSize > 8 );

@@ -313,7 +313,7 @@ public:
 
 	I NumAllocated() const
 	{
-		return AllocSize() / sizeof( T );
+		return (I)( AllocSize() / sizeof( T ) );
 	}
 	I Count() const
 	{

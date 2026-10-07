@@ -938,7 +938,7 @@ int bf_read::ReadBitsClamped_ptr(void *pOutData, size_t outSizeBytes, size_t nBi
 		//	return 0;
 	}
 
-	ReadBits( pOutData, readSizeBits );
+	ReadBits( pOutData, (int)readSizeBits );
 	SeekRelative( skippedBits );
 
 	// Return the number of bits actually read.

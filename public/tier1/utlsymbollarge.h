@@ -189,7 +189,7 @@ private:
 		bool operator()( UtlSymTableLargeAltKey a, UtlSymLargeId_t b ) const 
 		{ 
 			const char* pString = a.m_pTable->String( b );
-			int nLength = strlen( pString );
+			int nLength = (int)strlen( pString );
 
 			if ( a.m_nLength != nLength )
 				return false;
@@ -311,7 +311,7 @@ inline CUtlSymbolLarge CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUT
 template < bool CASEINSENSITIVE, size_t PAGE_SIZE, class MUTEX_TYPE >
 inline CUtlSymbolLarge CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUTEX_TYPE >::Find( const char *pString ) const
 {
-	return Find( pString, pString ? strlen( pString ) : 0 );
+	return Find( pString, pString ? (int)strlen( pString ) : 0 );
 }
 
 template < bool CASEINSENSITIVE, size_t PAGE_SIZE, class MUTEX_TYPE >
@@ -332,7 +332,7 @@ inline UtlSymLargeId_t CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUT
 template < bool CASEINSENSITIVE, size_t PAGE_SIZE, class MUTEX_TYPE >
 inline UtlSymLargeId_t CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUTEX_TYPE >::FindRaw( const char* pString ) const
 {	
-	return FindRaw( pString, pString ? strlen( pString ) : 0 );
+	return FindRaw( pString, pString ? (int)strlen( pString ) : 0 );
 }
 
 template < bool CASEINSENSITIVE, size_t PAGE_SIZE, class MUTEX_TYPE >
@@ -349,7 +349,7 @@ inline CUtlSymbolLarge CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUT
 template < bool CASEINSENSITIVE, size_t PAGE_SIZE, class MUTEX_TYPE >
 inline CUtlSymbolLarge CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUTEX_TYPE >::AddString( const char *pString, bool *created )
 {
-	return AddString( pString, pString ? strlen( pString ) : 0, created );
+	return AddString( pString, pString ? (int)strlen( pString ) : 0, created );
 }
 
 template < bool CASEINSENSITIVE, size_t PAGE_SIZE, class MUTEX_TYPE >
@@ -378,7 +378,7 @@ inline UtlSymLargeId_t CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUT
 template < bool CASEINSENSITIVE, size_t PAGE_SIZE, class MUTEX_TYPE >
 inline UtlSymLargeId_t CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUTEX_TYPE >::AddStringRaw( const char* pString, bool* created )
 {	
-	return AddStringRaw( pString, pString ? strlen( pString ) : 0, created );
+	return AddStringRaw( pString, pString ? (int)strlen( pString ) : 0, created );
 }
 
 template < bool CASEINSENSITIVE, size_t PAGE_SIZE, class MUTEX_TYPE >

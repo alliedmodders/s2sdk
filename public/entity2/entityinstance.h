@@ -45,7 +45,7 @@ struct NetworkStateChangedData
 	}
 
 	inline NetworkStateChangedData(const std::initializer_list< uint32 > nLocalOffsets, int32 nArrayIndex = -1, ChangeAccessorFieldPathIndex_t nPathIndex = ChangeAccessorFieldPathIndex_t()) :
-		m_unk001(1), m_LocalOffsets(0, nLocalOffsets.size()), m_nLine(-1), m_nArrayIndex(nArrayIndex), m_nPathIndex(nPathIndex), m_unk101(1)
+		m_unk001(1), m_LocalOffsets(0, (int)nLocalOffsets.size()), m_nLine(-1), m_nArrayIndex(nArrayIndex), m_nPathIndex(nPathIndex), m_unk101(1)
 	{
 		for ( const uint32& nLocalOffset : nLocalOffsets )
 		{

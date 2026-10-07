@@ -1580,7 +1580,7 @@ inline void CKV3ArenaBase::NodeList<NODE>::EnsureByteSize( int bytes_needed )
 template<typename NODE>
 inline NODE *CKV3ArenaBase::NodeList<NODE>::Alloc( int initial_size )
 {
-	int byte_size_needed = m_nUsedBytes + NODE::TotalSizeOf( initial_size ) + 8;
+	int byte_size_needed = m_nUsedBytes + (int)NODE::TotalSizeOf( initial_size ) + 8;
 	EnsureByteSize( byte_size_needed );
 	
 	auto entry = Tail();
@@ -1695,7 +1695,7 @@ auto CKV3Arena::Alloc( ClusterNodeChain<CLUSTER> &partial_clusters,
 template<typename CLUSTER, typename NODE, typename ...Args, typename>
 inline NODE *CKV3Arena::RawAlloc( NodeList<NODE> &raw_array, ClusterNodeChain<CLUSTER> &partial_clusters, ClusterNodeChain<CLUSTER> &full_clusters, int initial_size, Args && ...args )
 {
-	int needed_byte_size = MAX( NODE::TotalSizeOf( initial_size ), 32 );
+	int needed_byte_size = MAX( (int)NODE::TotalSizeOf( initial_size ), 32 );
 
 	if(raw_array.IsFull() || needed_byte_size > raw_array.FreeBytes())
 	{

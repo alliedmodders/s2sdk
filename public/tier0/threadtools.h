@@ -1395,7 +1395,7 @@ inline void CAtomicMutex::Unlock( const char *pFileName, int nLine )
 	if(m_LockCount == 0)
 	{
 		m_CurrentOwnerID = 0;
-		if(m_State.AtomicAdd(-(uint32)State::MASK) != (uint32)State::MASK)
+		if(m_State.AtomicAdd(0u - (uint32)State::MASK) != (uint32)State::MASK)
 			ThreadAtomicNotifyOne( (uint32 *)&m_State );
 	}
 }

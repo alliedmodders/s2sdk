@@ -1009,7 +1009,7 @@ size_t __cdecl _CrtSetDebugFillThreshold( size_t _NewDebugFillThreshold)
 
 char * __cdecl _strdup ( const char * string )
 {
-	int nSize = strlen(string) + 1;
+	int nSize = (int)strlen(string) + 1;
 	char *pCopy = (char*)AllocUnattributed( nSize );
 	if ( pCopy )
 		memcpy( pCopy, string, nSize );

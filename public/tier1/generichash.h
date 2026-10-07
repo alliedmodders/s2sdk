@@ -469,11 +469,11 @@ inline uint32 MurmurHash2LowerCase( const char *key, int len, uint32 seed )
 // AMNOTE: Template is required to enforce compiler to pick the correct overload when inlining
 // as otherwise non templated overload would always win the pick thus no const folding would happen
 template <typename T, std::enable_if_t<std::is_same_v<T, const char *>, int> = 0>
-inline uint32 MurmurHash2LowerCase( T key, uint32 seed ) { return MurmurHash2LowerCase( key, strlen( key ), seed ); }
+inline uint32 MurmurHash2LowerCase( T key, uint32 seed ) { return MurmurHash2LowerCase( key, (int)strlen( key ), seed ); }
 
 inline uint32 HashString( const char *pszKey )
 {
-	return MurmurHash2( pszKey, strlen( pszKey ), 0x3501A674 );
+	return MurmurHash2( pszKey, (int)strlen( pszKey ), 0x3501A674 );
 }
 
 inline uint32 HashStringCaseless( const char *pszKey )
