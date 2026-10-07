@@ -2,6 +2,7 @@
 #include "mathlib/vector.h"
 #include "mathlib/mathlib.h"
 #include "interfaces/interfaces.h"
+#include "networkbasetypes.pb.h"
 
 #ifdef _WIN32
 #define TEST_EXPORT extern "C" __declspec(dllexport)
@@ -16,6 +17,10 @@ TEST_EXPORT float CMakeTest( CreateInterfaceFn factory )
 
 	ConnectInterfaces( &factory, 1 );
 	Msg( "length %f\n", length );
+
+	CMsgVector msg;
+	msg.set_x( v.x );
+	length += (float)msg.ByteSizeLong();
 
 	return length;
 }

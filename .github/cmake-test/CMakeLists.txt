@@ -7,3 +7,8 @@ add_subdirectory(../.. s2sdk)
 
 add_library(cmake_test SHARED plugin.cpp)
 target_link_libraries(cmake_test PRIVATE s2sdk::s2sdk)
+s2sdk_protobufs(cmake_test
+	common/networkbasetypes.proto
+	common/network_connection.proto
+	common/valveextensions.proto
+)

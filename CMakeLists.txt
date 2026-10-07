@@ -9,7 +9,8 @@ project(s2sdk LANGUAGES C CXX)
 #
 # interfaces and mathlib are the prebuilt ones in lib/ unless S2SDK_BUILD_LIBS
 # is on, which builds them from interfaces/ and mathlib/ like the AMBuilders.
-# S2SDK_PROTOC is the protoc for the host, for generating the protobufs.
+# S2SDK_PROTOC is the protoc for the host, and s2sdk_protobufs() generates and
+# compiles the SDK's protos a target uses.
 #
 # With MSVC the libraries use the static runtime (/MT), so the consumer has to
 # as well: set CMAKE_MSVC_RUNTIME_LIBRARY to MultiThreaded before adding s2sdk.
@@ -155,3 +156,51 @@ target_link_libraries(s2sdk INTERFACE
 add_library(s2sdk_steam_api INTERFACE)
 add_library(s2sdk::steam_api ALIAS s2sdk_steam_api)
 target_link_libraries(s2sdk_steam_api INTERFACE "${S2SDK_STEAM_API}")
+
+# Generates the given protos into a target and compiles them with it, like
+# AMBuild's Protoc tool with the protoc hl2sdk-manifests sets up. The protos are
+# relative to the SDK or absolute, and a proto's imports have to be listed too.
+# Imports are looked up in each proto's folder, then the SDK's include paths.
+# The generated headers' folder is public, for a static library of protobufs.
+#
+#   s2sdk_protobufs(my_plugin common/netmessages.proto common/networkbasetypes.proto)
+function(s2sdk_protobufs target)
+	set(out "${CMAKE_CURRENT_BINARY_DIR}/${target}_protobufs")
+	file(MAKE_DIRECTORY "${out}")
+
+	set(protos)
+	set(dirs)
+	foreach(proto ${ARGN})
+		if(NOT IS_ABSOLUTE "${proto}")
+			set(proto "${S2SDK_DIR}/${proto}")
+		endif()
+		get_filename_component(dir "${proto}" DIRECTORY)
+		list(APPEND protos "${proto}")
+		list(APPEND dirs "${dir}")
+	endforeach()
+	get_target_property(includes s2sdk_headers INTERFACE_INCLUDE_DIRECTORIES)
+	list(APPEND dirs ${includes})
+
+	# One protoc run per proto with its own folder first, like the Protoc tool: a
+	# proto in a subfolder of another one's folder would otherwise be seen under
+	# two names when one imports it.
+	set(sources)
+	foreach(proto ${protos})
+		get_filename_component(dir "${proto}" DIRECTORY)
+		get_filename_component(name "${proto}" NAME_WE)
+		set(proto_paths "${dir}" ${dirs})
+		list(REMOVE_DUPLICATES proto_paths)
+		list(TRANSFORM proto_paths PREPEND "--proto_path=")
+		add_custom_command(
+			OUTPUT "${out}/${name}.pb.cc" "${out}/${name}.pb.h"
+			COMMAND "${S2SDK_PROTOC}" ${proto_paths} "--cpp_out=${out}" "${proto}"
+			DEPENDS ${protos}
+			COMMENT "Generating ${name}.pb.cc"
+			VERBATIM
+		)
+		list(APPEND sources "${out}/${name}.pb.cc")
+	endforeach()
+
+	target_sources(${target} PRIVATE ${sources})
+	target_include_directories(${target} PUBLIC "${out}")
+endfunction()
