@@ -1,0 +1,79 @@
+CS2:
+  - base-branch: '^cs2$'
+
+Dota2:
+  - base-branch: '^dota$'
+
+Deadlock:
+  - base-branch: '^deadlock$'
+
+Engine:
+  - changed-files:
+    - any-glob-to-any-file:
+      - public/eiface.h
+      - public/iserver.h
+      - public/igameevents.h
+      - public/iloopmode.h
+      - public/engine/**
+
+Networking:
+  - changed-files:
+    - any-glob-to-any-file:
+      - public/networksystem/**
+      - public/inetchannel.h
+      - public/networkstringtabledefs.h
+      - public/irecipientfilter.h
+
+Entity:
+  - changed-files:
+    - any-glob-to-any-file:
+      - public/entity2/**
+      - entity2/**
+      - public/entityhandle.h
+      - public/datamap.h
+      - public/variant.h
+
+Tier0:
+  - changed-files:
+    - any-glob-to-any-file:
+      - public/tier0/**
+      - public/tier1/**
+      - tier1/**
+      - public/icvar.h
+
+Schema System:
+  - changed-files:
+    - any-glob-to-any-file:
+      - public/schemasystem/**
+
+Mathlib:
+  - changed-files:
+    - any-glob-to-any-file:
+      - public/mathlib/**
+      - mathlib/**
+
+Game:
+  - changed-files:
+    - any-glob-to-any-file:
+      - game/**
+
+Protobufs:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.proto'
+
+CI:
+  - changed-files:
+    - any-glob-to-any-file:
+      - .github/**
+      - AMBuildScript
+      - CheckScript
+      - PackageScript
+      - configure.py
+      - '**/AMBuilder'
+
+Thirdparty:
+  - changed-files:
+    - any-glob-to-any-file:
+      - thirdparty/**
+      - public/steam/**
