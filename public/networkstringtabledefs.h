@@ -67,11 +67,12 @@ public:
 	virtual bool			SetStringUserData(int stringNumber, const SetStringUserDataRequest_t *userdata, bool bForceOverride) = 0;
 	virtual const StringUserData_t* GetStringUserData(int stringNumber) const = 0;
 	virtual int				FindStringIndex( char const *string ) = 0; // returns INVALID_STRING_INDEX if not found
-	virtual void			unk001() = 0;
+	// AMNOTE: Sets the string changed callback, { void *pContext; void (*fn)( void *pContext, INetworkStringTable *, int stringNumber, const char *, const StringUserData_t * ); }
+	virtual void			unk001( const void *pCallback, bool bCallForExisting ) = 0;
 	virtual void			SetAllowClientSideAddString( bool state ) = 0;
-	virtual void			unk003() = 0;
+	virtual void			unk003( bool ) = 0; // AMNOTE: Enables logging of string changes
 	virtual void			unk004( const char *string ) const = 0; // all stringtables in engine/server set this to "[server]".
-	virtual void			unk005() = 0; // likely SetStringChangedCallback
+	virtual void			unk005( const void *pCallback ) = 0; // AMNOTE: Sets the user data formatter used when dumping the table
 };
 
 enum ENetworkStringtableFlags
@@ -94,6 +95,8 @@ public:
 	virtual INetworkStringTable	*FindTable( const char *tableName ) const = 0;
 	virtual INetworkStringTable	*GetTable( TABLEID stringTable ) const = 0;
 	virtual int					GetNumTables( void ) const = 0;
+
+	virtual const char			*GetName( void ) const = 0;
 };
 
 #endif // NETWORKSTRINGTABLEDEFS_H
