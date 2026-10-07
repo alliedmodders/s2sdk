@@ -50,6 +50,7 @@ class ISwitchLoopModeStatusNotify
 
 class IHostStateMgr : public IAppSystem
 {
+public:
 	virtual void RequestHS_Quit(void) = 0;
 	virtual void RequestHS_Idle(KeyValues *) = 0;
 	virtual void RequestHS_Connect(const char *, KeyValues *) = 0;
@@ -62,6 +63,8 @@ class IHostStateMgr : public IAppSystem
 	virtual void RequestHS_SourceTVRelay(const char *, KeyValues *) = 0;
 	virtual void RequestHS_ReloadLastSaveGame(void) = 0;
 	virtual void RequestHS_RestartSpawnGroups(void) = 0;
+	virtual void unk001(void) = 0;
+	virtual void unk002(void) = 0;
 };
 
 class CHostStateMgr : public CTier2AppSystem<IHostStateMgr>, public ISwitchLoopModeStatusNotify
