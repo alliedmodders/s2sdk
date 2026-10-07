@@ -722,6 +722,11 @@ PLATFORM_INTERFACE void Plat_Printf ( const tchar *pFmt, ... ) FMTFUNCTION( 1, 2
 #define _stat stat
 #define _O_RDONLY O_RDONLY
 #define _stricmp strcasecmp
+#define stricmp strcasecmp
+#define _strnicmp strncasecmp
+#define strnicmp strncasecmp
+#define strcmpi strcasecmp
+#define _alloca alloca
 #define _finite finite
 #define _unlink unlink
 #define _putenv putenv
