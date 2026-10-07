@@ -17,8 +17,8 @@ class CUtlStringMap
 {
 public:
 	CUtlStringMap( bool caseInsensitive = true, int initsize = 32 ) : 
-	  m_SymbolTable( 0, 32, caseInsensitive ),
-		  m_Vector( initsize )
+	  m_Vector( initsize ),
+		  m_SymbolTable( 0, 32, caseInsensitive )
 	{
 	}
 
