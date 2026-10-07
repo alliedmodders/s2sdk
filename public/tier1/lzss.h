@@ -31,8 +31,8 @@ class CUtlBuffer;
 class CLZSS
 {
 public:
-	DLL_CLASS_IMPORT unsigned char*	Compress( unsigned char *pInput, int inputlen, bool );
-	DLL_CLASS_IMPORT unsigned char*	CompressNoAlloc( unsigned char *pInput, int inputlen, unsigned char *pOutput, bool );
+	DLL_CLASS_IMPORT unsigned char*	Compress( unsigned char *pInput, int inputlen, unsigned int *pOutputSize, bool );
+	DLL_CLASS_IMPORT unsigned char*	CompressNoAlloc( unsigned char *pInput, int inputlen, unsigned char *pOutput, unsigned int *pOutputSize, bool );
 	DLL_CLASS_IMPORT unsigned int	Uncompress( unsigned char *pInput, unsigned char *pOutput );
 	//unsigned int	Uncompress( unsigned char *pInput, CUtlBuffer &buf );
 	DLL_CLASS_IMPORT unsigned int	SafeUncompress( unsigned char *pInput, unsigned char *pOutput, unsigned int unBufSize );
