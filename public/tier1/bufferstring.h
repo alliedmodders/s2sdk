@@ -150,8 +150,8 @@ public:
 	// Given a path and a filename, composes "path\filename", inserting the (OS correct) separator if necessary
 	DLL_CLASS_IMPORT const char *ComposeFileName(const char *pPath, const char *pFile, char cSeparator);
 
-	DLL_CLASS_IMPORT const char *ConvertIn(unsigned int const *pData, int nSize, bool bIgnoreAlignment = false);
-	DLL_CLASS_IMPORT const char *ConvertIn(wchar_t const *pData, int nSize, bool bIgnoreAlignment = false);
+	DLL_CLASS_IMPORT const char *ConvertIn(const uchar16 *pData, int nSize, bool bIgnoreAlignment = false);
+	DLL_CLASS_IMPORT const char *ConvertIn(const uchar32 *pData, int nSize, bool bIgnoreAlignment = false);
 
 	// Make path end with extension if it doesn't already have an extension
 	DLL_CLASS_IMPORT const char *DefaultExtension(const char *extension);
