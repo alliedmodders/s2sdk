@@ -20,7 +20,6 @@ public:
 	friend class CEntityIdentity;
 
 	CEntityHandle();
-	CEntityHandle(const CEntityHandle& other);
 	CEntityHandle(uint32 value);
 	CEntityHandle(int iEntry, int iSerialNumber);
 
@@ -70,11 +69,6 @@ protected:
 inline CEntityHandle::CEntityHandle()
 {
 	m_Index = INVALID_EHANDLE_INDEX;
-}
-
-inline CEntityHandle::CEntityHandle(const CEntityHandle& other)
-{
-	m_Index = other.m_Index;
 }
 
 inline CEntityHandle::CEntityHandle(uint32 value)
