@@ -280,7 +280,7 @@ inline UtlSymLargeId_t CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUT
 template < bool CASEINSENSITIVE, size_t PAGE_SIZE, class MUTEX_TYPE >
 inline const char* CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUTEX_TYPE >::String( UtlSymLargeId_t id ) const
 {
-	if(id == UTL_INVAL_SYMBOL_LARGE || id >= m_MemBlocks.Count())
+	if(id == UTL_INVAL_SYMBOL_LARGE || id >= (UtlSymLargeId_t)m_MemBlocks.Count())
 		return nullptr;
 
 	return ( const char* )m_MemBlockAllocator.GetBlock( m_MemBlocks[ id ] );
@@ -289,7 +289,7 @@ inline const char* CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUTEX_T
 template < bool CASEINSENSITIVE, size_t PAGE_SIZE, class MUTEX_TYPE >
 inline unsigned int CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUTEX_TYPE >::HashValue( UtlSymLargeId_t id ) const
 {
-	if(id == UTL_INVAL_SYMBOL_LARGE || id >= m_MemBlocks.Count())
+	if(id == UTL_INVAL_SYMBOL_LARGE || id >= (UtlSymLargeId_t)m_MemBlocks.Count())
 		return 0;
 
 	CUtlSymbolTableLargeBaseTreeEntry_t *entry = (CUtlSymbolTableLargeBaseTreeEntry_t *)m_MemBlockAllocator.GetBlock( m_MemBlocks[ id ] - sizeof( LargeSymbolTableHashDecoration_t ) );

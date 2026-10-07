@@ -1697,7 +1697,7 @@ inline NODE *CKV3Arena::RawAlloc( NodeList<NODE> &raw_array, ClusterNodeChain<CL
 
 	if(raw_array.IsFull() || needed_byte_size > raw_array.FreeBytes())
 	{
-		if(initial_size <= NODE::DATA_SIZE)
+		if(initial_size <= (int)NODE::DATA_SIZE)
 			return Alloc( partial_clusters, full_clusters, CLUSTER::CLUSTER_SIZE );
 		else
 			return nullptr;
