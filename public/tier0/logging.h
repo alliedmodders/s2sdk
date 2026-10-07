@@ -530,8 +530,8 @@ public:
 	//-----------------------------------------------------------------------------
 	// Gets a pointer to the logging channel description.
 	//-----------------------------------------------------------------------------
-	LoggingChannel_t *GetChannel( LoggingChannelID_t channelID );
-	const LoggingChannel_t *GetChannel( LoggingChannelID_t channelID ) const;
+	LoggingChannel_t *GetChannel( LoggingChannelID_t channelID ) { return &m_RegisteredChannels[channelID]; }
+	const LoggingChannel_t *GetChannel( LoggingChannelID_t channelID ) const { return &m_RegisteredChannels[channelID]; }
 	
 	//-----------------------------------------------------------------------------
 	// Returns true if the given channel has the specified tag.
