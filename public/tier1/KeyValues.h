@@ -92,7 +92,7 @@ protected:
 	char const *Internal_GetString( const char *defaultValue, char *szBuf, size_t maxlen );
 	const wchar_t *Internal_GetWString( const wchar_t *defaultValue, wchar_t *szBuf, size_t maxlen );
 
-private:
+protected:
 	IKeyValuesSystem *KVSystem() const;
 
 	Color ResolveColorValue() const;
@@ -252,10 +252,10 @@ public:
 	// Read from a utlbuffer...
 	bool LoadFromBuffer( char const *resourceName, CUtlBuffer &buf, IFileSystem *pFileSystem = NULL, const char *pPathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, IKeyValuesErrorSpew *pErrorSpew = NULL, void *pUnk1 = NULL, const char *pUnk2 = NULL );
 
-	CTemporaryKeyValues *LoadTemporaryFromBuffer( bool, char const *resourceName, const char *pBuffer, IFileSystem *pFileSystem = NULL, const char *pPathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, IKeyValuesErrorSpew *pErrorSpew = NULL, void *pUnk1 = NULL, const char *pUnk2 = NULL );
-	CTemporaryKeyValues *LoadTemporaryFromBuffer( bool, char const *resourceName, CUtlBuffer &buf, IFileSystem *pFileSystem = NULL, const char *pPathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, void *pUnk1 = NULL, const char *pUnk2 = NULL );
+	static CTemporaryKeyValues *LoadTemporaryFromBuffer( bool, char const *resourceName, const char *pBuffer, IFileSystem *pFileSystem = NULL, const char *pPathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, IKeyValuesErrorSpew *pErrorSpew = NULL, void *pUnk1 = NULL, const char *pUnk2 = NULL );
+	static CTemporaryKeyValues *LoadTemporaryFromBuffer( bool, char const *resourceName, CUtlBuffer &buf, IFileSystem *pFileSystem = NULL, const char *pPathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, void *pUnk1 = NULL, const char *pUnk2 = NULL );
 
-	CTemporaryKeyValues *LoadTemporaryFromFile( bool, IFileSystem *filesystem, const char *resourceName, const char *pathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, void *pUnk1 = NULL, const char *pUnk2 = NULL );
+	static CTemporaryKeyValues *LoadTemporaryFromFile( bool, IFileSystem *filesystem, const char *resourceName, const char *pathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, void *pUnk1 = NULL, const char *pUnk2 = NULL );
 
 	// Find a keyValue, create it if it is not found.
 	// Set bCreate to true to create the key if it doesn't already exist (which ensures a valid pointer will be returned)
@@ -356,16 +356,16 @@ public:
 	void operator delete(void *pMem);
 	void operator delete(void *pMem, int nBlockUse, const char *pFileName, int nLine);
 
-	KeyValues &operator=( KeyValues &src );
+	KeyValues &operator=( const KeyValues &src );
 
 	void RecursiveSaveToFile( CUtlBuffer &buf, int indentLevel, bool bSortKeys = false, bool bAllowEmptyString = false ) const;
 	void RecursiveSaveToLocalizationFile( IFileSystem *filesystem, void *buf, int indentLevel, bool bAllowEmptyString = false );
 
-	bool WriteAsBinary( CUtlBuffer &buffer );
+	bool WriteAsBinary( CUtlBuffer &buffer ) const;
 	bool WriteAsBinaryFiltered( CUtlBuffer &buffer );
 	bool ReadAsBinary( CUtlBuffer &buffer );
 	bool ReadAsBinaryFiltered( CUtlBuffer &buffer );
-	CTemporaryKeyValues *ReadTemporaryAsBinary( bool, CUtlBuffer &buffer );
+	static CTemporaryKeyValues *ReadTemporaryAsBinary( bool, CUtlBuffer &buffer );
 
 	// Allocate & create a new copy of the keys
 	KeyValues *MakeCopy( void ) const;
