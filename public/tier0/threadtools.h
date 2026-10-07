@@ -968,8 +968,6 @@ public:
 	//-----------------------------------------------------
 	bool Check();
 
-	bool Wait( uint32 dwTimeout = TT_INFINITE );
-
 	// See CThreadSyncObject for definitions of these functions.
 	static uint32 WaitForMultiple( int nObjects, CThreadEvent **ppObjects, bool bWaitAll, uint32 dwTimeout = TT_INFINITE );
 	static uint32 WaitForMultiple( int nObjects, CThreadEvent *ppObjects, bool bWaitAll, uint32 dwTimeout = TT_INFINITE );
