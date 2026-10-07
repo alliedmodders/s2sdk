@@ -170,9 +170,9 @@ public:
 
 	DLL_CLASS_IMPORT const char *EnsureTrailingSlash(char cSeparator, bool bDontAppendIfEmpty = true);
 
-	DLL_CLASS_IMPORT const char *ExtendPath(const char *pPath, char cSeparator);
+	DLL_CLASS_IMPORT const char *ExtendPath(const char *pPath, char cSeparator, bool bIgnoreAlignment = false);
 
-	DLL_CLASS_IMPORT const char *ExtractFileBase(const char *pPath);
+	DLL_CLASS_IMPORT const char *ExtractFileBase(const char *pPath, bool bIgnoreAlignment = false);
 
 	// Copy out the file extension into dest
 	DLL_CLASS_IMPORT const char *ExtractFileExtension(const char *pPath);
@@ -219,7 +219,7 @@ public:
 	// The first is the full path of the file to make a relative path for.
 	// The second is the full path of the directory to make the first file relative to
 	// Returns NULL if they can't be made relative (on separate drives, for example)
-	DLL_CLASS_IMPORT const char *MakeRelativePath(const char *pFullPath, const char *pDirectory);
+	DLL_CLASS_IMPORT const char *MakeRelativePath(const char *pFullPath, const char *pDirectory, bool bIgnoreAlignment = false);
 
 	// Copies data from pOther and then purges it
 	DLL_CLASS_IMPORT void MoveFrom(CBufferString &pOther);
@@ -236,7 +236,7 @@ public:
 
 	DLL_CLASS_IMPORT const char *RemoveFilePath();
 	DLL_CLASS_IMPORT const char *RemoveFirstDir(CBufferString *pRemovedDir);
-	DLL_CLASS_IMPORT const char *RemoveToFileBase();
+	DLL_CLASS_IMPORT const char *RemoveToFileBase(bool bIgnoreAlignment = false);
 
 	DLL_CLASS_IMPORT bool RemovePartialUTF8Tail(bool);
 	DLL_CLASS_IMPORT const char *RemoveTailUTF8(int nIndex);
@@ -250,7 +250,7 @@ public:
 	DLL_CLASS_IMPORT const char *ReverseChars(int nIndex, int nChars);
 
 	// Strips any current extension from path and ensures that extension is the new extension
-	DLL_CLASS_IMPORT const char *SetExtension(const char *extension);
+	DLL_CLASS_IMPORT const char *SetExtension(const char *extension, bool bIgnoreAlignment = false);
 
 	DLL_CLASS_IMPORT char *SetLength(int nLen, bool bIgnoreAlignment = false, int *pNewCapacity = nullptr);
 	DLL_CLASS_IMPORT void SetPtr(char *pBuf, int nBufferChars, int, bool, bool);
@@ -266,7 +266,7 @@ public:
 	DLL_CLASS_IMPORT const char *StrAppendFormat(const char *pFormat, ...) FMTFUNCTION(2, 3);
 	DLL_CLASS_IMPORT const char *StrFormat(const char *pFormat, ...) FMTFUNCTION(2, 3);
 
-	DLL_CLASS_IMPORT const char *StripExtension();
+	DLL_CLASS_IMPORT const char *StripExtension(bool bIgnoreAlignment = false);
 	DLL_CLASS_IMPORT const char *StripTrailingSlash();
 
 	DLL_CLASS_IMPORT void ToLowerFast(int nStart);
