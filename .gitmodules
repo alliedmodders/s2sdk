@@ -1,0 +1,3 @@
+[submodule "thirdparty/Protobufs"]
+	path = thirdparty/Protobufs
+	url = https://github.com/SteamTracking/Protobufs.git

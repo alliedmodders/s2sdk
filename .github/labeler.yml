@@ -61,6 +61,8 @@ Protobufs:
   - changed-files:
     - any-glob-to-any-file:
       - '**/*.proto'
+      - thirdparty/Protobufs
+      - protobufs/**
 
 CI:
   - changed-files:
