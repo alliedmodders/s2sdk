@@ -44,6 +44,7 @@ const uint32 ALIGN16 g_SIMD_lsbmask[4]= { 0xfffffffe, 0xfffffffe, 0xfffffffe, 0x
 const uint32 ALIGN16 g_SIMD_clear_wmask[4]= { 0xffffffff, 0xffffffff, 0xffffffff, 0 };
 const uint32 ALIGN16 g_SIMD_AllOnesMask[4]= { 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff }; // ~0,~0,~0,~0
 const uint32 ALIGN16 g_SIMD_Low16BitsMask[4]= { 0xffff, 0xffff, 0xffff, 0xffff }; // 0xffff x 4
+const uint32 ALIGN16 g_SIMD_EveryOtherMask[4]= { 0, 0xffffffff, 0, 0xffffffff }; // 0, ~0, 0, ~0
 
 const uint32 ALIGN16 g_SIMD_ComponentMask[4][4] =
 {
