@@ -46,6 +46,12 @@ for folder in ['entity2', 'tier1']:
       sources.append(os.path.join(folder, file))
 sources.append(os.path.join('public', 'tier0', 'memoverride.cpp'))
 
+# Templates only compile when instantiated, so these instantiate the ones plugins use. An explicit
+# instantiation compiles every member of a class, but not those of its base classes, so bases are named too.
+for file in sorted(os.listdir(os.path.join(builder.sourcePath, 'tests'))):
+  if file.endswith('.cpp'):
+    sources.append(os.path.join('tests', file))
+
 # Plugins define the entity system getter that the entity2 sources call
 sources.append(builder.AddOutputFile('gameentitysystem.cpp', b'class CGameEntitySystem;\nCGameEntitySystem *GameEntitySystem() { return nullptr; }\n'))
 
@@ -74,6 +80,8 @@ for sdk_target in SdkHelpers.sdk_targets:
 
   binary.custom = [builder.tools.Protoc(protoc = sdk_target.protoc, sources = [
     os.path.join(builder.sourcePath, 'common', 'network_connection.proto'),
+    # Messages for the tests, from a proto without imports
+    os.path.join(builder.sourcePath, 'common', 'source2_steam_stats.proto'),
   ])]
 
 builder.Add(project)

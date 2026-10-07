@@ -1,0 +1,29 @@
+#include "tier1/utlvector.h"
+#include "tier1/utlleanvector.h"
+#include "tier1/utlstring.h"
+
+template class CUtlVectorBase<CUtlString>;
+template class CUtlVectorMemory_Growable<CUtlString>;
+template class CCopyableUtlVector<CUtlString>;
+template class CUtlLeanVectorImpl<CUtlLeanVectorBase<CUtlString, int, CMemAllocAllocator>, CUtlString, int>;
+template class CUtlLeanVectorBase<CUtlString, int, CMemAllocAllocator>;
+template class CUtlLeanVectorImpl<CUtlLeanVectorFixedGrowableBase<CUtlString, 4, int, CMemAllocAllocator>, CUtlString, int>;
+template class CUtlLeanVectorFixedGrowableBase<CUtlString, 4, int, CMemAllocAllocator>;
+template class CUtlVectorMemory_Aligned<CUtlString, 16>;
+template class CUtlVectorBase<CUtlString, int, CUtlVectorMemory_Aligned<CUtlString, 16>>;
+template class CUtlVectorAutoPurge<CUtlString *>;
+
+// Clang rejects its flexible array member for types with a destructor
+template class CUtlVectorUltraConservative<CUtlString *>;
+
+// CUtlVectorBase can only be instantiated whole with the allocators above, the others lack members it forwards to like SetGrowSize and Detach
+template class CUtlVectorMemory_Fixed<CUtlString, 4>;
+template class CUtlVectorMemory_FixedGrowable<CUtlString, 4>;
+template class CUtlVectorMemory_Conservative<CUtlString>;
+template class CUtlVectorMemory_RawAllocator<CUtlString, CMemAllocAllocator>;
+template class CUtlBlockMemory<CUtlString, int>;
+template class CUtlVectorFixed<CUtlString, 4>;
+template class CUtlVectorFixedGrowable<CUtlString, 4>;
+template class CUtlVectorConservative<CUtlString>;
+template class CUtlVectorRawAllocator<CUtlString>;
+template class CUtlBlockVector<CUtlString>;
