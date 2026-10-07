@@ -39,9 +39,9 @@ public:
 	virtual void PostEventAbstract( CSplitScreenSlot nSlot, bool bLocalOnly, IRecipientFilter *pFilter,
 		INetworkMessageInternal *pEvent, const CNetMessage *pData, unsigned long nSize ) = 0;
 
-	// Posts the event to all clients, even tho the function name tells otherwise
+	// Posts the event to all clients when bAllClients is set, even tho the function name tells otherwise
 	// Providing nSize has no effect and is unused.
-	virtual void PostEntityEventAbstract( const CBaseHandle &hndl, INetworkMessageInternal *pEvent, const CNetMessage *pData, unsigned long nSize, NetChannelBufType_t bufType ) = 0;
+	virtual void PostEntityEventAbstract( const CBaseHandle &hndl, INetworkMessageInternal *pEvent, const CNetMessage *pData, unsigned long nSize, NetChannelBufType_t bufType, bool bAllClients ) = 0;
 
 	virtual void ProcessQueuedEvents() = 0;
 	virtual CEntityIndex GetEventSource() const = 0;
