@@ -3,9 +3,13 @@ import os
 
 builder.SetBuildFolder('/')
 
+# From this script's folder rather than builder.sourcePath, so a consumer's
+# build can build the library with builder.Build() too
+sdk_root = os.path.dirname(builder.currentSourcePath)
+
 # The game's folder of SteamTracking/Protobufs
-proto_dir = os.path.join(builder.sourcePath, 'thirdparty', 'Protobufs', 'csgo')
-protobuf_src = os.path.join(builder.sourcePath, 'thirdparty', 'protobuf-3.21.8', 'src')
+proto_dir = os.path.join(sdk_root, 'thirdparty', 'Protobufs', 'csgo')
+protobuf_src = os.path.join(sdk_root, 'thirdparty', 'protobuf-3.21.8', 'src')
 
 protos = [
 	'base_gcmessages.proto',
@@ -33,9 +37,9 @@ protos = [
 ]
 
 if builder.host.platform == 'windows':
-	protoc_path = os.path.join(builder.sourcePath, 'devtools', 'bin', 'protoc.exe')
+	protoc_path = os.path.join(sdk_root, 'devtools', 'bin', 'protoc.exe')
 else:
-	protoc_path = os.path.join(builder.sourcePath, 'devtools', 'bin', 'linux', 'protoc')
+	protoc_path = os.path.join(sdk_root, 'devtools', 'bin', 'linux', 'protoc')
 
 protoc = builder.DetectProtoc(path = protoc_path)
 # AMNOTE: The game's folder has to come first, its google/protobuf/descriptor.proto is the game's own
