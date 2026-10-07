@@ -1,6 +1,6 @@
 //========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
-// Purpose: 
+// Purpose:
 //
 // $NoKeywords: $
 //=============================================================================//
@@ -13,8 +13,8 @@
 
 #include "irecipientfilter.h"
 #include "const.h"
-#include "player.h"
 #include "bitvec.h"
+#include "playerslot.h"
 
 //-----------------------------------------------------------------------------
 // Purpose: A generic filter for determining whom to send message/sounds etc. to and
@@ -23,55 +23,95 @@
 class CRecipientFilter : public IRecipientFilter
 {
 public:
-					CRecipientFilter();
-	virtual 		~CRecipientFilter();
+	CRecipientFilter() :
+		m_nPredictedPlayerSlot( -1 ),
+		m_nBufType( BUF_DEFAULT ),
+		m_bInitMessage( false ),
+		m_bUsingPredictionRules( false ),
+		m_bIgnorePredictionCull( false )
+	{
+	}
 
-	virtual bool	IsReliable( void ) const;
-	virtual bool	IsInitMessage( void ) const;
+	virtual			~CRecipientFilter() {}
 
-	virtual int		GetRecipientCount( void ) const;
-	virtual int		GetRecipientIndex( int slot ) const;
+	virtual NetChannelBufType_t	GetNetworkBufType( void ) const { return m_nBufType; }
+	virtual bool	IsInitMessage( void ) const { return m_bInitMessage; }
+
+	virtual const CPlayerBitVec &GetRecipients( void ) const { return m_Recipients; }
+	virtual CPlayerSlot GetPredictedPlayerSlot( void ) const { return m_nPredictedPlayerSlot; }
 
 public:
 
-	void			CopyFrom( const CRecipientFilter& src );
+	void			CopyFrom( const CRecipientFilter &src )
+	{
+		m_Recipients = src.m_Recipients;
+		m_nBufType = src.GetNetworkBufType();
+		m_bInitMessage = src.IsInitMessage();
+		m_bUsingPredictionRules = src.m_bUsingPredictionRules;
+		m_bIgnorePredictionCull = src.m_bIgnorePredictionCull;
+	}
 
-	void			Reset( void );
+	void			Reset( void )
+	{
+		m_Recipients.ClearAll();
+		m_nBufType = BUF_DEFAULT;
+		m_bInitMessage = false;
+		m_bUsingPredictionRules = false;
+		m_bIgnorePredictionCull = false;
+	}
 
-	void			MakeInitMessage( void );
+	void			MakeInitMessage( void ) { m_bInitMessage = true; }
 
-	void			MakeReliable( void );
-	
-	void			AddAllPlayers( void );
-	void			AddRecipientsByPVS( const Vector& origin );
-	void			RemoveRecipientsByPVS( const Vector& origin );
-	void			AddRecipientsByPAS( const Vector& origin );
-	void			AddRecipient( CBasePlayer *player );
-	void			RemoveAllRecipients( void );
-	void			RemoveRecipient( CBasePlayer *player );
-	void			RemoveRecipientByPlayerIndex( int playerindex );
-	void			AddRecipientsByTeam( CTeam *team );
-	void			RemoveRecipientsByTeam( CTeam *team );
-	void			RemoveRecipientsNotOnTeam( CTeam *team );
+	void			MakeReliable( void ) { m_nBufType = BUF_RELIABLE; }
 
-	void			UsePredictionRules( void );
-	bool			IsUsingPredictionRules( void ) const;
+	// AMNOTE: The game adds only connected players, the engine skips slots without a connected client
+	void			AddAllPlayers( void )
+	{
+		m_Recipients.SetAll();
+		m_nPredictedPlayerSlot.Invalidate();
+	}
 
-	bool			IgnorePredictionCull( void ) const;
-	void			SetIgnorePredictionCull( bool ignore );
+	// AMNOTE: The game adds only a slot with a connected player, and with prediction rules it sets the predicted player slot instead for the suppressed host
+	void			AddRecipient( CPlayerSlot slot )
+	{
+		if ( slot.IsValid() )
+			m_Recipients.Set( slot.Get() );
+	}
 
-	void			AddPlayersFromBitMask( CPlayerBitVec& playerbits );
-	void			RemovePlayersFromBitMask( CPlayerBitVec& playerbits );
+	void			RemoveAllRecipients( void )
+	{
+		m_Recipients.ClearAll();
+	}
 
-	void			RemoveSplitScreenPlayers();
+	void			RemoveRecipient( CPlayerSlot slot )
+	{
+		if ( slot.IsValid() )
+			m_Recipients.Clear( slot.Get() );
+	}
+
+	// AMNOTE: The game sets and clears only slots with a connected player
+	void			AddPlayersFromBitMask( const CPlayerBitVec &playerbits )
+	{
+		for ( int i = 0; i < m_Recipients.GetNumDWords(); i++ )
+			m_Recipients.SetDWord( i, m_Recipients.GetDWord( i ) | playerbits.GetDWord( i ) );
+	}
+
+	void			RemovePlayersFromBitMask( const CPlayerBitVec &playerbits )
+	{
+		for ( int i = 0; i < m_Recipients.GetNumDWords(); i++ )
+			m_Recipients.SetDWord( i, m_Recipients.GetDWord( i ) & ~playerbits.GetDWord( i ) );
+	}
+
+	bool			IsUsingPredictionRules( void ) const { return m_bUsingPredictionRules; }
+
+	bool			IgnorePredictionCull( void ) const { return m_bIgnorePredictionCull; }
+	void			SetIgnorePredictionCull( bool ignore ) { m_bIgnorePredictionCull = ignore; }
 
 private:
 
-	bool				m_bReliable;
-	int					m_Unk001;
-	int					m_nRecipientCount;
-	CUtlVectorFixedGrowable< int, 64 >	m_Recipients;
-	
+	CPlayerBitVec		m_Recipients;
+	CPlayerSlot			m_nPredictedPlayerSlot;
+	NetChannelBufType_t	m_nBufType;
 	bool				m_bInitMessage;
 	// If using prediction rules, the filter itself suppresses local player
 	bool				m_bUsingPredictionRules;
@@ -81,28 +121,32 @@ private:
 };
 
 //-----------------------------------------------------------------------------
-// Purpose: Simple class to create a filter for a single player ( unreliable )
+// Purpose: Simple class to create a filter for a single player
 //-----------------------------------------------------------------------------
 class CSingleUserRecipientFilter : public CRecipientFilter
 {
 public:
-	CSingleUserRecipientFilter( CBasePlayer *player )
+	CSingleUserRecipientFilter( CPlayerSlot slot )
 	{
-		AddRecipient( player );
+		AddRecipient( slot );
 	}
 };
 
 //-----------------------------------------------------------------------------
-// Purpose: Simple class to create a filter for all players on a given team 
+// Purpose: Simple class to create a filter for a single player ( reliable )
 //-----------------------------------------------------------------------------
-class CTeamRecipientFilter : public CRecipientFilter
+class CReliableSingleUserRecipientFilter : public CSingleUserRecipientFilter
 {
 public:
-	CTeamRecipientFilter( int team, bool isReliable = false );
+	CReliableSingleUserRecipientFilter( CPlayerSlot slot ) :
+		CSingleUserRecipientFilter( slot )
+	{
+		MakeReliable();
+	}
 };
 
 //-----------------------------------------------------------------------------
-// Purpose: Simple class to create a filter for all players ( unreliable )
+// Purpose: Simple class to create a filter for all players
 //-----------------------------------------------------------------------------
 class CBroadcastRecipientFilter : public CRecipientFilter
 {
@@ -122,110 +166,6 @@ public:
 	CReliableBroadcastRecipientFilter( void )
 	{
 		MakeReliable();
-	}
-};
-
-//-----------------------------------------------------------------------------
-// Purpose: Add players in PAS to recipient list (unreliable)
-//-----------------------------------------------------------------------------
-class CPASFilter : public CRecipientFilter
-{
-public:
-	CPASFilter( void )
-	{
-	}
-
-	CPASFilter( const Vector& origin )
-	{
-		AddRecipientsByPAS( origin );
-	}
-};
-
-//-----------------------------------------------------------------------------
-// Purpose: Add players in PAS to list and if not in single player, use attenuation
-//  to remove those that are too far away from source origin
-// Source origin can be stated as an entity or just a passed in origin
-// (unreliable)
-//-----------------------------------------------------------------------------
-class CPASAttenuationFilter : public CPASFilter
-{
-public:
-	CPASAttenuationFilter( void )
-	{
-	}
-
-	CPASAttenuationFilter( CBaseEntity *entity, soundlevel_t soundlevel ) :
-		CPASFilter( static_cast<const Vector&>(entity->GetSoundEmissionOrigin()) )
-	{
-		Filter( entity->GetSoundEmissionOrigin(), SNDLVL_TO_ATTN( soundlevel ) );
-	}
-
-	CPASAttenuationFilter( CBaseEntity *entity, float attenuation = ATTN_NORM ) :
-		CPASFilter( static_cast<const Vector&>(entity->GetSoundEmissionOrigin()) )
-	{
-		Filter( entity->GetSoundEmissionOrigin(), attenuation );
-	}
-
-	CPASAttenuationFilter( const Vector& origin, soundlevel_t soundlevel ) :
-		CPASFilter( origin )
-	{
-		Filter( origin, SNDLVL_TO_ATTN( soundlevel ) );
-	}
-
-	CPASAttenuationFilter( const Vector& origin, float attenuation = ATTN_NORM ) :
-		CPASFilter( origin )
-	{
-		Filter( origin, attenuation );
-	}
-
-	CPASAttenuationFilter( CBaseEntity *entity, const char *lookupSound ) :
-		CPASFilter( static_cast<const Vector&>(entity->GetSoundEmissionOrigin()) )
-	{
-		soundlevel_t level = CBaseEntity::LookupSoundLevel( lookupSound );
-		float attenuation = SNDLVL_TO_ATTN( level );
-		Filter( entity->GetSoundEmissionOrigin(), attenuation );
-	}
-
-	CPASAttenuationFilter( const Vector& origin, const char *lookupSound ) :
-		CPASFilter( origin )
-	{
-		soundlevel_t level = CBaseEntity::LookupSoundLevel( lookupSound );
-		float attenuation = SNDLVL_TO_ATTN( level );
-		Filter( origin, attenuation );
-	}
-
-	CPASAttenuationFilter( CBaseEntity *entity, const char *lookupSound, HSOUNDSCRIPTHANDLE& handle ) :
-		CPASFilter( static_cast<const Vector&>(entity->GetSoundEmissionOrigin()) )
-	{
-		soundlevel_t level = CBaseEntity::LookupSoundLevel( lookupSound, handle );
-		float attenuation = SNDLVL_TO_ATTN( level );
-		Filter( entity->GetSoundEmissionOrigin(), attenuation );
-	}
-
-	CPASAttenuationFilter( const Vector& origin, const char *lookupSound, HSOUNDSCRIPTHANDLE& handle ) :
-		CPASFilter( origin )
-	{
-		soundlevel_t level = CBaseEntity::LookupSoundLevel( lookupSound, handle );
-		float attenuation = SNDLVL_TO_ATTN( level );
-		Filter( origin, attenuation );
-	}
-
-
-	
-
-public:
-	void Filter( const Vector& origin, float attenuation = ATTN_NORM );
-};
-
-//-----------------------------------------------------------------------------
-// Purpose: Simple PVS based filter ( unreliable )
-//-----------------------------------------------------------------------------
-class CPVSFilter : public CRecipientFilter
-{
-public:
-	CPVSFilter( const Vector& origin )
-	{
-		AddRecipientsByPVS( origin );
 	}
 };
 
