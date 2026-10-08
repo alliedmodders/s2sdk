@@ -95,6 +95,7 @@ PLATFORM_OVERLOAD void ThreadAtomicNotifyAll( const uint32 *addr );
 PLATFORM_OVERLOAD void ThreadAtomicWait( volatile uint32 *addr, uint32 value );
 
 PLATFORM_INTERFACE void ThreadSleep(unsigned duration = 0);
+PLATFORM_INTERFACE void ThreadNanoSleep( uint32 nNanoseconds );
 PLATFORM_INTERFACE ThreadId_t ThreadGetCurrentId();
 PLATFORM_INTERFACE ThreadHandle_t ThreadGetCurrentHandle();
 PLATFORM_INTERFACE int ThreadGetPriority( ThreadHandle_t hThread = NULL );
