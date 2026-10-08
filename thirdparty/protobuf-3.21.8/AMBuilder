@@ -1,0 +1,31 @@
+# vim: set ts=2 sw=2 tw=99 noet ft=python:
+import os, re
+
+builder.SetBuildFolder('/')
+
+# The sources libprotobuf's own CMake build compiles
+def CMakeSources(file, variable):
+  with open(os.path.join(builder.currentSourcePath, 'cmake', file)) as fp:
+    files = re.search(r'set\(' + variable + r'\s(.*?)\)', fp.read(), re.S).group(1)
+  return re.findall(r'\$\{protobuf_SOURCE_DIR\}/(\S+\.cc)', files)
+
+project = builder.StaticLibraryProject('libprotobuf')
+project.sources = CMakeSources('libprotobuf-lite.cmake', 'libprotobuf_lite_files') + CMakeSources('libprotobuf.cmake', 'libprotobuf_files')
+
+for cxx in HL2SDK.targets:
+  binary = HL2SDK.ConfigureLibrary(project, cxx, builder)
+  binary.compiler.cxxincludes += [
+    os.path.join(builder.currentSourcePath, 'src')
+  ]
+
+  # Third-party code, so its warnings are left to upstream
+  if binary.compiler.like('msvc'):
+    binary.compiler.cflags += ['/w', '/EHsc', '/utf-8', '/bigobj']
+  else:
+    binary.compiler.cflags += ['-w']
+
+  # The engine's and the prebuilt library's std::string ABI
+  if binary.compiler.target.platform == 'linux':
+    binary.compiler.defines += ['_GLIBCXX_USE_CXX11_ABI=0']
+
+HL2SDK.libs += builder.Add(project)

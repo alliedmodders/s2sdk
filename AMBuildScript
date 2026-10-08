@@ -124,7 +124,7 @@ class SDKConfig(object):
 HL2SDK = SDKConfig()
 HL2SDK.configure()
 
-BuildScripts = ['interfaces/AMBuilder', 'mathlib/AMBuilder', 'PackageScript']
+BuildScripts = ['interfaces/AMBuilder', 'mathlib/AMBuilder', 'thirdparty/protobuf-3.21.8/AMBuilder', 'PackageScript']
 if builder.options.hl2sdk_manifests:
   BuildScripts += ['CheckScript']
 # Turn off the 'lib' prefix for all platform, we will add it if we need to
