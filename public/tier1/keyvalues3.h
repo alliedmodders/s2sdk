@@ -893,8 +893,8 @@ private:
 	uint8 m_nInitialSize;
 	bool m_bIsDynamicallySized;
 
+	bool m_bHasInvalidMemberNames;
 	bool m_unk001;
-	bool m_unk002;
 
 	union
 	{

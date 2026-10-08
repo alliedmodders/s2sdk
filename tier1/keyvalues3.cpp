@@ -1522,8 +1522,8 @@ CKeyValues3Table::CKeyValues3Table( int cluster_elem, int alloc_size ) :
 	m_nCount( 0 ),
 	m_nInitialSize( MIN( alloc_size, 255 ) ),
 	m_bIsDynamicallySized( false ),
+	m_bHasInvalidMemberNames( false ),
 	m_unk001( false ),
-	m_unk002( false ),
 	m_pDynamicBuffer( nullptr )
 {
 }
