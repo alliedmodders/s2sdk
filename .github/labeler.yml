@@ -28,7 +28,6 @@ Entity:
       - entity2/**
       - public/entityhandle.h
       - public/datamap.h
-      - public/variant.h
 
 Tier0:
   - changed-files:

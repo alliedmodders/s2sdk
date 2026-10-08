@@ -12,7 +12,7 @@
 #include "tier1/keyvalues3.h"
 #include "mathlib/vec3d.h"
 #include "ehandle.h"
-#include "variant.h"
+#include "entity2/variant.h"
 #include "appframework/IAppSystem.h"
 #include "tier1/tier1.h"
 #include "entity2/entityinstance.h"

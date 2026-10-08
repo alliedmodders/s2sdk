@@ -166,7 +166,7 @@ DECLARE_POINTER_HANDLE( HSCRIPT );
 // 
 //-----------------------------------------------------------------------------
 
-#include "variant.h"
+#include "entity2/variant.h"
 
 typedef fieldtype_t ScriptDataType_t;
 typedef CVariant ScriptVariant_t;
