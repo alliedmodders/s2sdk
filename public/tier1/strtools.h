@@ -1076,6 +1076,18 @@ PLATFORM_OVERLOAD void V_SplitStringInPlace( char *pString, const char *pSeparat
 class CUtlStringList : public CUtlVectorAutoPurge< char * >
 {
 public:
+	CUtlStringList() {}
+
+	CUtlStringList( const char *pString, const char *pSeparator )
+	{
+		SplitString( pString, &pSeparator, 1 );
+	}
+
+	CUtlStringList( const char *pString, const char * const *pSeparators, int nSeparators )
+	{
+		SplitString( pString, pSeparators, nSeparators );
+	}
+
 	~CUtlStringList()
 	{
 		PurgeAndDeleteElements();
@@ -1101,6 +1113,9 @@ public:
 		}
 		Purge();
 	}
+
+private:
+	DLL_CLASS_IMPORT void SplitString( const char *pString, const char * const *pSeparators, int nSeparators );
 };
 
 class CSplitString : public CUtlVector< char * >
