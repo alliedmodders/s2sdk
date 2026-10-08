@@ -70,6 +70,9 @@ class SDKConfig(object):
     if builder.options.opt == '1':
       cxx.cflags += ['-O3']
 
+    if builder.options.debug == '1':
+      cxx.cflags += ['-g3']
+
   def configure_msvc(self, cxx):
     cxx.defines += ['COMPILER_MSVC', 'COMPILER_MSVC64']
 
@@ -79,6 +82,13 @@ class SDKConfig(object):
 
     if builder.options.opt == '1':
       cxx.cflags += ['/Ox', '/Zo']
+
+    if builder.options.debug == '1':
+      cxx.cflags += ['/MTd', '/Od', '/RTC1']
+      cxx.linkflags += ['/NODEFAULTLIB:libcmt']
+      # The game is built without iterator debugging, which changes the layout of STL types,
+      # like the strings in protobuf messages that plugins share with the game
+      cxx.defines += ['_ITERATOR_DEBUG_LEVEL=0']
 
   def configure_linux(self, cxx):
     cxx.defines += ['_LINUX', 'LINUX', 'POSIX', 'GNUC']
