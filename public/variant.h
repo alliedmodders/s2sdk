@@ -165,10 +165,10 @@ private:
 	static CUtlScratchMemoryPool *sm_pMemoryPool;
 };
 
-enum CVFlags_t
+enum SVFlags_t
 {
 	// Indicates that variant has the memory allocated in place of a primitive types and it would be freed when needed
-	CV_FREE = 0x01,
+	SV_FREE = 0x01,
 };
 
 template <typename CValueAllocator = CVariantDefaultAllocator>
@@ -360,7 +360,7 @@ private:
 
 	fieldtype_t m_type;
 
-	// CVFlags_t flags
+	// SVFlags_t flags
 	uint16 m_flags;
 };
 
@@ -525,10 +525,10 @@ inline void CVariantBase<CValueAllocator>::Free( void *pMemory )
 template< class CValueAllocator >
 inline void CVariantBase<CValueAllocator>::Free()
 {
-	if(m_flags & CV_FREE)
+	if(m_flags & SV_FREE)
 	{
 		Free( m_pData );
-		m_flags &= ~CV_FREE;
+		m_flags &= ~SV_FREE;
 	}
 
 	m_pData = nullptr;
@@ -552,7 +552,7 @@ inline void CVariantBase<CValueAllocator>::CopyData( const char *src, bool bForc
 		m_pszString = (char *)Allocate( len );
 		memcpy( (void *)m_pszString, src, len );
 
-		m_flags |= CV_FREE;
+		m_flags |= SV_FREE;
 	}
 	else
 	{
@@ -576,7 +576,7 @@ inline void CVariantBase<CValueAllocator>::CopyData( const T &src, bool bForceCo
 		m_pData = Allocate<T>();
 		*(T *)m_pData = src;
 
-		m_flags |= CV_FREE;
+		m_flags |= SV_FREE;
 	}
 	else
 	{
@@ -587,7 +587,7 @@ inline void CVariantBase<CValueAllocator>::CopyData( const T &src, bool bForceCo
 template< class CValueAllocator >
 inline void CVariantBase<CValueAllocator>::ConvertToCopiedData( bool silent )
 {
-	if((m_flags & CV_FREE) == 0)
+	if((m_flags & SV_FREE) == 0)
 	{
 		switch( m_type )
 		{
