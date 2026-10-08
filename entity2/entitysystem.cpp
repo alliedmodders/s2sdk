@@ -205,7 +205,8 @@ EntityInstanceByNameIter_t::EntityInstanceByNameIter_t(const char* szName, CEnti
 		}
 		else
 		{
-			m_pEntityHandles = GameEntitySystem()->m_entityNames[ idx ];
+			EntityNameHandles_t* pNameHandles = GameEntitySystem()->m_entityNames[ idx ];
+			m_pEntityHandles = pNameHandles ? &pNameHandles->m_Handles : nullptr;
 			m_nCurEntHandle = 0;
 
 			if (m_pEntityHandles)

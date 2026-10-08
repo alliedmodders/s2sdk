@@ -208,6 +208,14 @@ public:
 	virtual void		LockResourceManifest(bool bLock, CEntityResourceManifestLock* const context) = 0;
 };
 
+struct EntityNameHandles_t
+{
+	CUtlVector<CEntityHandle> m_Handles;
+
+	// Held by the entry in the name map and by iterators over the handles, freed when it drops to 0
+	int m_nRefCount;
+};
+
 class CEntitySystem : public IEntityResourceManifestBuilder
 {
 private:
@@ -301,7 +309,7 @@ public:
 	CUtlOrderedMap<const char*, CEntityClass*, CDefFastCaselessStringLess, uint16> m_entClassesByCPPClassname;
 	CUtlOrderedMap<const char*, CEntityClass*, CDefFastCaselessStringLess, uint16> m_entClassesByClassname;
 	CUtlOrderedMap<const char*, CEntityComponentHelper*, CDefFastCaselessStringLess, uint16> m_entityComponentHelpers;
-	CUtlOrderedMap<CUtlSymbolLarge, CUtlVector<CEntityHandle>*, CDefLess<CUtlSymbolLarge>, uint16> m_entityNames;
+	CUtlOrderedMap<CUtlSymbolLarge, EntityNameHandles_t*, CDefLess<CUtlSymbolLarge>, uint16> m_entityNames;
 
 	CEventQueue m_EventQueue;
 	CUtlVectorFixedGrowable<IEntityIONotify*, 2> m_entityIONotifiers;
@@ -314,13 +322,17 @@ public:
 	int m_nEntityKeyValuesAllocatorRefCount;
 	float m_flChangeCallbackSpewThreshold;
 
-	bool m_Unk1;
-	bool m_Unk2;
-	bool m_Unk3;
-	bool m_bEnableAutoDeletionExecution;
-	bool m_Unk4;
-	bool m_Unk5;
-	bool m_Unk6;
+	bool m_bPerformDeletionPostCreation;
+	bool m_bPerformDeallocationPostCreation;
+	bool m_bInvokePostDataUpdates;
+	bool m_bAutoExecuteQueuedDeletion;
+	bool m_bProfilingResourceSystem;
+	bool m_bInRestoreActivation;
+
+	// AMNOTE: Write-only: set with m_bInRestoreActivation while restored entities are activated and restored afterwards, true when they come from an adjacent level
+	bool m_unk101;
+
+	bool m_bProcessingQueuedActivatesAndPostDataUpdates;
 
 	CUtlVector<CreationInfo_t> m_queuedCreations;
 	CUtlVector<PostDataUpdateInfo_t> m_queuedPostDataUpdates;
