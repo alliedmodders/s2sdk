@@ -106,7 +106,7 @@ struct alignas(8) CPulseArgumentPack
 struct CPulseInputParamMap
 {
 	KeyValues3 m_KV3;
-	KeyValues3::Data_t m_KV3Data;
+	bool m_bForwardAllArgs;
 };
 
 struct EntityIOQueuePrioritizedEvent_t
