@@ -101,6 +101,9 @@ class CCLCMsg_Move;
 template <typename T>
 class CNetMessagePB;
 class CCLCMsg_Diagnostic;
+class CNetMessage;
+class CGameInfo;
+enum SignonState_t : int;
 
 namespace google
 {
@@ -148,6 +151,23 @@ private:
 	unsigned short _index;
 };
 
+// Times are in seconds, relative to the current time
+struct HltvReplayParams_t
+{
+	int m_nPrimaryTargetEntIndex = -1;
+	float m_flDelay = 0.0f;
+	float m_flStopAt = 0.0f;
+	float m_flPlaybackSpeed = 1.0f;
+	float m_flSlowdownBeginAt = 0.0f;
+	float m_flSlowdownEndAt = 0.0f;
+	float m_flSlowdownRate = 1.0f;
+	bool m_bAbortCurrentReplay = false;
+	int m_nReason = 0;
+	// AMNOTE: Flags: 1 = replay the stash m_nStashId, 2 = replay all of the stash instead of its last m_flDelay seconds
+	uint32 m_unk101 = 0;
+	uint32 m_nStashId = 0;
+};
+
 //-----------------------------------------------------------------------------
 // Purpose: Interface the engine exposes to the game DLL and client DLL
 //-----------------------------------------------------------------------------
@@ -178,12 +198,14 @@ abstract_class IVEngineServer2 : public ISource2Engine
 public:
 	virtual EUniverse	GetSteamUniverse() const = 0;
 
-	virtual void		unk001() = 0;
-	virtual void		unk002() = 0;
-	virtual void		unk003() = 0;
-	virtual void		unk004() = 0;
-	virtual void		unk005() = 0;
-	virtual void		unk006() = 0;
+	virtual WorldGroupId_t	FindWorldGroupByName( const char *pszName ) = 0;
+	virtual const char	*GetWorldGroupName( WorldGroupId_t hWorldGroup ) = 0;
+	virtual WorldGroupId_t	GetFirstWorldGroupId( bool bClient ) = 0;
+	virtual WorldGroupId_t	GetLastWorldGroupId( bool bClient ) = 0;
+	virtual bool		IsWorldGroupValid( WorldGroupId_t hWorldGroup ) = 0;
+
+	// Points to two floats for the last main loop iteration: the time it took before running its frame, and the frame's time
+	virtual float		*GetMainLoopTimes() = 0;
 
 	virtual void		SetFrameTimeAmnesty( const char *amnesty, int, float frametime ) = 0;
 	virtual const char *GetFrameTimeAmnesty( bool check_cvar ) = 0;
@@ -194,8 +216,8 @@ public:
 
 	virtual void		DumpNetStats( void *, void (*pfnPrint)( const char * ) ) = 0;
 
-	virtual void		unk201() = 0;
-	virtual void		unk202() = 0;
+	virtual bool		ShouldForceMaxFrametimeToTickInterval() = 0;
+	virtual uint32		GetLongFrameCount() = 0;
 
 	// Tell engine to change level ( "changelevel s1\n" or "changelevel2 s1 s2\n" )
 	virtual void		ChangeLevel( const char *s1, const char *s2 ) = 0;
@@ -222,8 +244,10 @@ public:
 	// Get stats info interface for a client netchannel
 	virtual INetChannelInfo* GetPlayerNetInfo( CPlayerSlot nSlot ) = 0;
 
-	virtual bool		IsUserIDInUse( int userID ) = 0;	// TERROR: used for transitioning
-	virtual int			GetLoadingProgressForUserID( int userID ) = 0;	// TERROR: used for transitioning
+	// AMNOTE: Returns a pointer into the client's frame for its acknowledged delta tick, or nullptr
+	virtual void		*unk201( CPlayerSlot nSlot ) = 0;
+	// Returns -1 for an invalid slot
+	virtual int			GetClientDeltaTick( CPlayerSlot nSlot ) = 0;
 
 	// Given the current PVS(or PAS) and origin, determine which players should hear/receive the message
 	virtual void		Message_DetermineMulticastRecipients( bool usepas, const Vector& origin, CPlayerBitVec& playerbits ) = 0;
@@ -237,7 +261,7 @@ public:
 	virtual void		ClientPrintf( CPlayerSlot nSlot, const char *szMsg ) = 0;
 
 	virtual bool		IsLowViolence() = 0;
-	virtual bool		SetHLTVChatBan( int tvslot, bool bBanned ) = 0;
+	virtual void		SetHLTVChatBan( const CSteamID &steamID, bool bBanned ) = 0;
 	virtual bool		IsAnyClientLowViolence() = 0;
 
 	// Get the current game directory (hl2, tf2, hl1, cstrike, etc.)
@@ -318,54 +342,52 @@ public:
 	// Kicks the slot with the specified NetworkDisconnectionReason
 	virtual void DisconnectClient( CPlayerSlot nSlot, ENetworkDisconnectionReason reason, const char *szInternalReason = nullptr ) = 0;
 
-#if 0 // Don't really match the binary
+	virtual void DisconnectAllClients( ENetworkDisconnectionReason reason ) = 0;
 	virtual void GetAllSpawnGroupsWithPVS( CUtlVector<SpawnGroupHandle_t> *spawnGroups, CUtlVector<IPVS *> *pOut ) = 0;
 
-	virtual void P2PGroupChanged() = 0;
-#endif
-
-	virtual void DisconnectAllClients( ENetworkDisconnectionReason reason ) = 0;
-	virtual void unk302() = 0;
-	
 	// Use these to setup who can hear whose voice.
 	// Pass in client indices (which are their ent indices - 1).
 	virtual bool GetClientListening(CPlayerSlot iReceiver, CPlayerSlot iSender) = 0;
 	virtual bool SetClientListening(CPlayerSlot iReceiver, CPlayerSlot iSender, bool bListen) = 0;
 	virtual bool SetClientProximity(CPlayerSlot iReceiver, CPlayerSlot iSender, bool bUseProximity) = 0;
 
-	virtual void unk401() = 0;
-	virtual void unk402() = 0;
-    virtual void unk403() = 0;
+	// AMNOTE: Creates or reuses a client without a connection, returns its slot
+	virtual CPlayerSlot CreateClient( CPlayerSlot nSlot, CSteamID steamID, const char *pszName ) = 0;
+	// AMNOTE: Sets a client state to !bool unless it is 2 or higher, which CreateClient sets
+	virtual void unk301( CPlayerSlot nSlot, bool ) = 0;
+	virtual SignonState_t GetClientSignonState( CPlayerSlot nSlot ) = 0;
 
 	virtual void KickClient( CPlayerSlot nSlot, const char *szInternalReason, ENetworkDisconnectionReason reason ) = 0;
 	virtual void BanClient( CPlayerSlot nSlot, float flDuration, bool bKick ) = 0;
 	virtual void BanClient( CSteamID steamId, float flDuration, bool bKick ) = 0;
 
-	virtual void unk500() = 0;
-	virtual void unk501() = 0;
-	virtual void unk502() = 0;
-	virtual void unk503() = 0;
-	virtual void unk504() = 0;
-	virtual void unk505() = 0;
-	virtual void unk506() = 0;
-	virtual void unk507() = 0;
+	virtual bool StartHltvReplay( CPlayerSlot nSlot, const HltvReplayParams_t &params ) = 0;
+	virtual void ForceStopHltvReplay( CPlayerSlot nSlot ) = 0;
+	virtual void StopAllHltvReplays() = 0;
+	virtual int GetClientHltvReplayDelay( CPlayerSlot nSlot ) = 0;
+	virtual bool IsHltvReplayBufferAvailable() = 0;
+	virtual bool CanStartHltvReplay( CPlayerSlot nSlot, int nDelay ) = 0;
+	virtual void ResetHltvReplayRequestTime( CPlayerSlot nSlot ) = 0;
+	virtual bool IsAnyHltvReplayActive() = 0;
 
 	virtual void SetClientUpdateRate( CPlayerSlot nSlot, float flUpdateRate ) = 0;
 
-	virtual void unk600() = 0;
-	virtual void unk601() = 0;
-	virtual void unk602() = 0;
-	virtual void unk603() = 0;
-	virtual void unk604() = 0;
-	virtual void unk605() = 0;
-	virtual void unk606() = 0;
-	virtual void unk607() = 0;
-	virtual void unk608() = 0;
-	virtual void unk609() = 0;
-	virtual void unk610() = 0;
-	virtual void unk611() = 0;
-	virtual void unk612() = 0;
-	virtual void unk613() = 0;
+	virtual void SetClientJitterBadThresholdUp( CPlayerSlot nSlot, float flThreshold ) = 0;
+	virtual bool StashHltvReplay( uint32 nStashId, float flSeconds ) = 0;
+	virtual void AddHltvRelayProxyWhitelist( uint32 a, uint32 b, uint32 c, uint32 d, uint32 numbits ) = 0;
+	virtual bool WasShutDownRequested() const = 0;
+	// AMNOTE: Extends the queued matchmaking reservation timeout and sends the data in a connectionless packet to every reservation entry, or only to the entry matching the int when it is non-zero
+	virtual void unk401( int, uint8, uint8, uint32 nDataSize, const void *pData ) = 0;
+	virtual bool IsTvRecording() = 0;
+	virtual void StartAutoRecording() = 0;
+	virtual void RecordDemo( const char *pszFilename ) = 0;
+	virtual void StopRecordingDemo( const CGameInfo *pGameInfo ) = 0;
+	virtual void unk501() = 0;
+	// Returns an empty string when not recording
+	virtual const char *GetTvRecordingDemoFilename() = 0;
+	virtual const char *GetMapName() = 0;
+	virtual ConVarUserInfoSet_t GetClientUserInfo( CPlayerSlot nSlot ) = 0;
+	virtual bool IsRecordingDemo() = 0;
 };
 
 abstract_class IServerGCLobby
