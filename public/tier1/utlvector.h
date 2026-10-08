@@ -166,7 +166,7 @@ public:
 
 protected:
 	// Can't copy this unless we explicitly do it!
-	CUtlVectorBase( CUtlVectorBase const& vec ) { Assert(0); }
+	CUtlVectorBase( CUtlVectorBase const& vec ) = delete;
 
 	// Grows the vector
 	void GrowVector( I num = 1 );
