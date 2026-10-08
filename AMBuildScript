@@ -47,6 +47,7 @@ class SDKConfig(object):
   def configure_gcc(self, cxx):
     cxx.cflags += [
       '-Wall',
+      '-Werror',
       '-Wno-overloaded-virtual',
       '-Wno-non-virtual-dtor',
       '-Wno-delete-non-virtual-dtor',
