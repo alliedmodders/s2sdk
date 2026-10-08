@@ -29,12 +29,19 @@ struct EventClientOutput_t
 	bool m_bRenderOnly;
 };
 
+enum EngineServiceActivateType_t
+{
+	ENGINE_SERVICE_ACTIVATE_NEVER = 0,
+	ENGINE_SERVICE_ACTIVATE_ALWAYS,
+	ENGINE_SERVICE_ACTIVATE_IF_ADDED_BY_LOOP_MODE,
+};
+
 abstract_class IEngineService : public IAppSystem
 {
 public:
 	virtual void		*GetServiceDependencies( void ) = 0;
 	virtual const char	*GetName( void ) const = 0;
-	virtual bool		ShouldActivate( const char * ) = 0;
+	virtual EngineServiceActivateType_t ShouldActivate( const char * ) = 0;
 	virtual void		OnLoopActivate( const EngineLoopState_t &loopState, CEventDispatcher<CEventIDManager_Default> *pEventDispatcher) = 0;
 	virtual void		OnLoopDeactivate( const EngineLoopState_t &loopState, CEventDispatcher<CEventIDManager_Default> *pEventDispatcher) = 0;
 	virtual bool		IsActive( void ) const = 0;
@@ -74,7 +81,7 @@ public:
 	virtual bool		IsLoopSwitchQueued(void) const = 0;
 	virtual bool		IsLoopSwitchRequested(void) const = 0;
 
-	virtual bool		unk001(void) const = 0;
+	virtual bool		unk101(void) const = 0;
 
 	virtual CEventDispatcher<CEventIDManager_Default>* GetEventDispatcher(void) = 0;
 	virtual void		*GetDebugVisualizerMgr( void ) = 0;
@@ -90,9 +97,12 @@ public:
 	virtual const char	*GetAddon( int ) const = 0;
 	virtual bool		IsAddonMounted( const char * ) const = 0;
 	virtual const char	*GetAddonsString( void ) const = 0;
-	virtual void		unk101( void ) = 0;
-	virtual void		unk102( void ) = 0;
-	virtual void		unk103( void ) = 0;
+	// AMNOTE: Adds the name to a list kept apart from the mounted addons
+	virtual void		unk201( const char * ) = 0;
+	// AMNOTE: True if unk201 added the name, compared case-insensitively
+	virtual bool		unk202( const char * ) = 0;
+	// AMNOTE: True if a mounted addon (GetAddon) is missing from the unk201 list
+	virtual bool		unk203( void ) = 0;
 	virtual void		InstallSwitchLoopModeStatusNotify( ISwitchLoopModeStatusNotify * ) = 0;
 	virtual void		UninstallSwitchLoopModeStatusNotify( ISwitchLoopModeStatusNotify * ) = 0;
 	virtual void		InstallAddonListChangeNotify( IAddonListChangeNotify * ) = 0;
@@ -101,7 +111,8 @@ public:
 	virtual void		AddLogCaptureString( const char * ) = 0;
 	virtual void		AddLogCaptureStringV( const char *pFormat, va_list args ) = 0;
 	virtual void		AddLogCaptureStringF( const char *pFormat, ... ) = 0;
-	virtual void		unk201( void ) = 0;
+	// AMNOTE: The number of prerequisites (RegisterPrerequisite) the queued loop switch still waits for
+	virtual int			unk301( void ) = 0;
 	virtual void		ExitMainLoop( void ) = 0;
 	virtual void		RegisterPrerequisite( IPrerequisite * ) = 0;
 	
@@ -111,8 +122,8 @@ public:
 	// Same methods as IVEngineServer2 
 	virtual void		SetFrameTimeAmnesty( const char *amnesty, int, float frametime ) = 0;
 	virtual const char *GetFrameTimeAmnesty( bool check_cvar ) = 0;
-	virtual void		unk301( const char *, int, int, float ) = 0;
-#ifdef _LINUX
+	virtual void		unk401( const char *, int, int, float ) = 0;
+#ifdef PLATFORM_LINUX
 	virtual void		UnregisterPrerequisite( IPrerequisite * ) = 0;
 #endif
 };
