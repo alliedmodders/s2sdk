@@ -11,11 +11,6 @@
 #include "entity2/entityidentity.h"
 #include "scenesystem/iscenesystem.h"
 
-// Entities can span this many clusters before we revert to a slower area checking algorithm
-#define	MAX_FAST_ENT_CLUSTERS	4
-#define	MAX_ENT_CLUSTERS	64
-#define MAX_WORLD_AREAS		8
-
 class CCheckTransmitInfo
 {
 public:
@@ -27,31 +22,6 @@ public:
 	vis_info_t m_VisInfo; // filled by ISource2GameClients::ClientSetupVisibility
 	CPlayerSlot m_nPlayerSlot;
 	bool m_bFullUpdate; // the client gets a full update instead of a delta
-};
-
-//-----------------------------------------------------------------------------
-// Stores information necessary to perform PVS testing.
-//-----------------------------------------------------------------------------
-struct PVSInfo_t
-{
-	// headnode for the entity's bounding box
-	short		m_nHeadNode;			
-
-	// number of clusters or -1 if too many
-	short		m_nClusterCount;		
-
-	// cluster indices
-	unsigned short *m_pClusters;	
-
-	// For dynamic "area portals"
-	short		m_nAreaNum;
-	short		m_nAreaNum2;
-
-	// current position
-	float		m_vCenter[3];
-
-private:
-	unsigned short m_pClustersInline[MAX_FAST_ENT_CLUSTERS];
 };
 
 
