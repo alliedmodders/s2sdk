@@ -29,8 +29,12 @@ typedef void* (*CreateInterfaceFn)(const char *pName, int *pReturnCode);
 // The factory for that module should be passed on to dependent components for
 // proper versioning.
 //-----------------------------------------------------------------------------
-PLATFORM_INTERFACE HMODULE			Plat_LoadModule( const char *pModuleName );
+// pLastError receives the OS error code. bQuiet doesn't log dlopen failures on Linux, and does nothing on Windows.
+PLATFORM_INTERFACE HMODULE			Plat_LoadModule( const char *pModuleName, int *pLastError = NULL, bool bQuiet = false );
+// Returns the OS error code, or 0 on success. On Linux nFlags are dlopen flags, with -1 for the default; Windows ignores nFlags and bQuiet.
+PLATFORM_INTERFACE int				Plat_LoadModuleRaw( const char *pModuleName, HMODULE *pModule, int nFlags, bool bQuiet );
 PLATFORM_INTERFACE void				Plat_UnloadModule( HMODULE module );
+PLATFORM_INTERFACE void *			Plat_GetModuleProcAddress( HMODULE module, const char *pName );
 
 // Determines if current process is running with any debug modules
 PLATFORM_INTERFACE bool				Plat_RunningWithDebugModules();
