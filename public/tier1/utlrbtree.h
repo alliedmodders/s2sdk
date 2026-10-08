@@ -445,8 +445,16 @@ template < class T, class I, typename L, class M >
 inline void CUtlRBTree<T, I, L, M>::CopyFrom( const CUtlRBTree<T, I, L, M> &other )
 {
 	Purge();
-	m_Elements.EnsureCapacity( other.m_Elements.Count() );
-	memcpy( (void *)m_Elements.Base(), (void *)other.m_Elements.Base(), other.m_Elements.Count() * sizeof( UtlRBTreeNode_t< T, I > ) );
+	m_Elements.SetCount( other.m_Elements.Count() );
+	for ( I i = 0; i < other.m_Elements.Count(); ++i )
+	{
+		Links( i ) = other.Links( i );
+
+		if ( other.IsValidIndex( i ) )
+			Element( i ) = other.Element( i );
+		else
+			Destruct( &Element( i ) );
+	}
 	m_LessFunc = other.m_LessFunc;
 	m_Root = other.m_Root;
 	m_NumElements = other.m_NumElements;
@@ -719,11 +727,17 @@ I  CUtlRBTree<T, I, L, M>::NewNode( bool bConstructElement )
 
 		elem = m_Elements.GetIndex( m_LastAlloc );
 		Assert( m_Elements.IsValidIterator( m_LastAlloc ) );
+
+		if ( !bConstructElement )
+			Destruct( &Element( elem ) );
 	}
 	else
 	{
 		elem = m_FirstFree;
 		m_FirstFree = Links( m_FirstFree ).m_Right;
+
+		if ( bConstructElement )
+			Construct( &Element( elem ) );
 	}
 
 #ifdef _DEBUG
@@ -731,9 +745,6 @@ I  CUtlRBTree<T, I, L, M>::NewNode( bool bConstructElement )
 	Links_t &node = Links( elem );
 	node.m_Left = node.m_Right = node.m_Parent = InvalidIndex();
 #endif
-
-	if ( bConstructElement )
-		Construct( &Element( elem ) );
 
 	return elem;
 }
@@ -1165,21 +1176,21 @@ void CUtlRBTree<T, I, L, M>::RemoveAll()
 	for ( typename M::Iterator_t it = m_Elements.First(); it != m_Elements.InvalidIterator(); it = m_Elements.Next( it ) )
 	{
 		I i = m_Elements.GetIndex( it );
-		if ( IsValidIndex( i ) ) // skip elements in the free list
-		{
-			Destruct( &Element( i ) );
-			SetRightChild( i, m_FirstFree );
-			SetLeftChild( i, i );
-			m_FirstFree = i;
-		}
+		// m_Elements destructs every node, including those on the free list
+		if ( !IsValidIndex( i ) )
+			Construct( &Element( i ) );
 
 		if ( it == m_LastAlloc )
-			break; // don't destruct elements that haven't ever been constucted
+			break;
 	}
+
+	m_Elements.RemoveAll();
 
 	// Clear everything else out
 	m_Root = InvalidIndex(); 
 	m_NumElements = 0;
+	m_FirstFree = InvalidIndex();
+	m_LastAlloc = m_Elements.InvalidIterator();
 
 	Assert( IsValid() );
 }
