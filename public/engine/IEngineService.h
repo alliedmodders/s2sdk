@@ -122,7 +122,7 @@ public:
 	// Same methods as IVEngineServer2 
 	virtual void		SetFrameTimeAmnesty( const char *amnesty, int, float frametime ) = 0;
 	virtual const char *GetFrameTimeAmnesty( bool check_cvar ) = 0;
-	virtual void		unk401( const char *, int, int, float ) = 0;
+	virtual void		SetFramePerformanceTag( const char *pszTag, int nValue, int, float flDuration ) = 0;
 #ifdef PLATFORM_LINUX
 	virtual void		UnregisterPrerequisite( IPrerequisite * ) = 0;
 #endif
