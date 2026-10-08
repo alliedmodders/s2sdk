@@ -47,6 +47,7 @@ class C2S_CONNECT_Message;
 class CMsgVoiceAudio;
 class CSteamID;
 class ISceneViewDebugOverlays;
+class IEntityReport;
 enum SignonState_t : int;
 
 typedef int ChallengeType_t;
@@ -238,7 +239,7 @@ public:
 	virtual void	AddServerPrerequisites( const GameSessionConfiguration_t &, const char *, ILoopModePrerequisiteRegistry *, bool ) = 0;
 	//virtual void	SetServerSocket( int ) = 0;
 	virtual bool	IsServerRunning( void ) const = 0;
-	virtual void	DisconnectGameNow( /*ENetworkDisconnectionReason*/ int ) = 0;
+	virtual void	DisconnectGameNow( ENetworkDisconnectionReason reason ) = 0;
 	virtual void	PrintSpawnGroupStatus( void ) const = 0;
 	//virtual int		GetTickInterval( void ) const = 0;
 	//virtual void	ProcessSocket( void ) = 0;
@@ -254,13 +255,18 @@ public:
 	virtual void	*GetServerSerializersMsg( void ) = 0;
 	virtual IGameSpawnGroupMgr *GetGameSpawnGroupMgr( void ) = 0;
 	virtual bool	IsSaveRestoreAllowed( CUtlString *pReason ) = 0;
-	virtual bool	unk101( void ) = 0;
-	virtual void	*unk102( int ) = 0;
-	virtual void	unk103( void ) = 0;
-	virtual void	unk104( void ) = 0;
-	virtual bool	unk105( void ) = 0;
-	virtual void	unk106( void ) = 0;
-	virtual void	unk107( bool ) = 0;
+	virtual bool	IsEntityReportActive( void ) = 0;
+	// Returns nullptr unless the entity report is active and targets this slot or every slot
+	virtual IEntityReport *GetEntityReport( int nSlot ) = 0;
+	// AMNOTE: Does nothing
+	virtual void	unk101( void ) = 0;
+	// AMNOTE: Does nothing
+	virtual void	unk102( void ) = 0;
+	virtual bool	ThreadInPrimaryOrSecondaryMainThread( void ) = 0;
+	// AMNOTE: Ends the per-client state the next method starts with true, releasing each client's queued messages
+	virtual void	unk201( void ) = 0;
+	// AMNOTE: Starts a per-client state on every client not already in one; the bool picks which of two
+	virtual void	unk202( bool ) = 0;
 };
 
 typedef CNetworkGameServerBase IServer;
