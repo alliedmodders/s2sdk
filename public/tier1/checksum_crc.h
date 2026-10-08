@@ -15,7 +15,7 @@
 #define CRC32_INIT_VALUE 0xFFFFFFFFUL
 #define CRC32_XOR_VALUE  0xFFFFFFFFUL
 
-typedef unsigned long CRC32_t;
+typedef uint32 CRC32_t;
 
 inline void CRC32_Init( CRC32_t *pulCRC )
 {
