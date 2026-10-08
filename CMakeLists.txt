@@ -2,20 +2,21 @@ cmake_minimum_required(VERSION 3.16)
 project(s2sdk LANGUAGES C CXX)
 
 # Consumers link s2sdk (or s2sdk::s2sdk): the SDK's include paths, the defines
-# its headers expect, C++17, and tier0, interfaces, mathlib and protobuf.
+# its headers expect, C++20, and tier0, interfaces, mathlib and protobuf.
 #
 #   add_subdirectory(path/to/s2sdk)
 #   target_link_libraries(my_plugin PRIVATE s2sdk::s2sdk)
 #
-# interfaces and mathlib are the prebuilt ones in lib/ unless S2SDK_BUILD_LIBS
-# is on, which builds them from interfaces/ and mathlib/ like the AMBuilders.
+# interfaces, mathlib and libprotobuf are the prebuilt ones in lib/ unless
+# S2SDK_BUILD_LIBS is on, which builds them from interfaces/, mathlib/ and
+# thirdparty/protobuf-3.21.8 like the AMBuilders.
 # S2SDK_PROTOC is the protoc for the host, and s2sdk_protobufs() generates and
 # compiles the SDK's protos a target uses.
 #
 # With MSVC the libraries use the static runtime (/MT), so the consumer has to
 # as well: set CMAKE_MSVC_RUNTIME_LIBRARY to MultiThreaded before adding s2sdk.
 
-option(S2SDK_BUILD_LIBS "Build interfaces and mathlib from source instead of linking the prebuilt ones in lib/" OFF)
+option(S2SDK_BUILD_LIBS "Build interfaces, mathlib and libprotobuf from source instead of linking the prebuilt ones in lib/" OFF)
 
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
 	message(FATAL_ERROR "s2sdk only supports 64-bit targets")
@@ -53,7 +54,7 @@ endif()
 add_library(s2sdk_headers INTERFACE)
 add_library(s2sdk::headers ALIAS s2sdk_headers)
 
-target_compile_features(s2sdk_headers INTERFACE cxx_std_17)
+target_compile_features(s2sdk_headers INTERFACE cxx_std_20)
 
 target_include_directories(s2sdk_headers INTERFACE
 	"${S2SDK_DIR}/thirdparty/protobuf-3.21.8/src"
@@ -72,7 +73,11 @@ target_include_directories(s2sdk_headers INTERFACE
 target_compile_definitions(s2sdk_headers INTERFACE X64BITS PLATFORM_64BITS)
 
 if(MSVC)
-	target_compile_definitions(s2sdk_headers INTERFACE COMPILER_MSVC COMPILER_MSVC64 WIN32 WIN64)
+	target_compile_definitions(s2sdk_headers INTERFACE COMPILER_MSVC COMPILER_MSVC64 WIN32 WIN64
+		# The game is built without iterator debugging, which changes the layout of STL
+		# types, like the strings in protobuf messages that plugins share with the game
+		_ITERATOR_DEBUG_LEVEL=0
+	)
 else()
 	target_compile_definitions(s2sdk_headers INTERFACE
 		COMPILER_GCC _LINUX LINUX POSIX GNUC
@@ -113,33 +118,54 @@ if(S2SDK_BUILD_LIBS)
 		mathlib/vmatrix.cpp
 	)
 
+	# libprotobuf: the sources its own CMake build compiles, like its AMBuilder
+	set(_protobuf_dir "${S2SDK_DIR}/thirdparty/protobuf-3.21.8")
+	set(_protobuf_sources)
+	foreach(_list libprotobuf-lite libprotobuf)
+		file(READ "${_protobuf_dir}/cmake/${_list}.cmake" _content)
+		string(REPLACE "-" "_" _var "${_list}_files")
+		string(REGEX MATCH "set\\(${_var}[^)]*\\)" _files "${_content}")
+		string(REGEX MATCHALL "\\$\\{protobuf_SOURCE_DIR\\}/[^ \t\r\n)]+\\.cc" _cc "${_files}")
+		string(REPLACE "\${protobuf_SOURCE_DIR}" "${_protobuf_dir}" _cc "${_cc}")
+		list(APPEND _protobuf_sources ${_cc})
+	endforeach()
+	add_library(s2sdk_libprotobuf STATIC ${_protobuf_sources})
+	target_include_directories(s2sdk_libprotobuf PRIVATE "${_protobuf_dir}/src")
+	# Third-party code, so its warnings are left to upstream
+	if(MSVC)
+		target_compile_options(s2sdk_libprotobuf PRIVATE /w /EHsc /utf-8 /bigobj)
+	else()
+		target_compile_options(s2sdk_libprotobuf PRIVATE -w)
+	endif()
+
 	# The same settings as AMBuildScript
-	foreach(lib s2sdk_interfaces s2sdk_mathlib)
+	foreach(lib s2sdk_interfaces s2sdk_mathlib s2sdk_libprotobuf)
 		target_link_libraries(${lib} PRIVATE s2sdk_headers)
 		target_compile_definitions(${lib} PRIVATE _LIB)
 		set_target_properties(${lib} PROPERTIES
 			POSITION_INDEPENDENT_CODE ON
 			PREFIX ""
-			MSVC_RUNTIME_LIBRARY MultiThreaded
+			MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 		)
 		if(MSVC)
 			target_compile_definitions(${lib} PRIVATE _WINDOWS WINDOWS _CRT_SECURE_NO_DEPRECATE _CRT_NONSTDC_NO_DEPRECATE)
 		else()
-			target_compile_definitions(${lib} PRIVATE NO_MALLOC_OVERRIDE)
 			target_compile_options(${lib} PRIVATE
-				-Wall -Wno-overloaded-virtual -Wno-non-virtual-dtor -Wno-delete-non-virtual-dtor
+				-Wall -Werror -Wno-overloaded-virtual -Wno-non-virtual-dtor -Wno-delete-non-virtual-dtor
 				-Wno-invalid-offsetof -Wno-unknown-pragmas -Wno-unused -Wno-narrowing -Wno-register
-				-fno-strict-aliasing -march=nocona -mmmx -msse -msse2
+				-march=nocona -mmmx -msse -msse2
 			)
 		endif()
 	endforeach()
 
 	set_target_properties(s2sdk_interfaces PROPERTIES OUTPUT_NAME interfaces)
 	set_target_properties(s2sdk_mathlib PROPERTIES OUTPUT_NAME mathlib)
+	set_target_properties(s2sdk_libprotobuf PROPERTIES OUTPUT_NAME libprotobuf)
 	target_include_directories(s2sdk_mathlib PRIVATE "${S2SDK_DIR}/public/mathlib")
 
 	set(S2SDK_INTERFACES s2sdk_interfaces)
 	set(S2SDK_MATHLIB s2sdk_mathlib)
+	set(S2SDK_PROTOBUF s2sdk_libprotobuf)
 endif()
 
 add_library(s2sdk INTERFACE)
