@@ -1267,7 +1267,7 @@ void KeyValues3::CopyFrom( const KeyValues3* pSrc )
 		case KV3_TYPE_TABLE:
 		{
 			SetToEmptyTable();
-			m_Data.m_pTable->CopyFrom( this, pSrc->m_Data.m_pTable );
+			m_Data.m_pTable->CopyFrom( this, pSrc, pSrc->m_Data.m_pTable );
 			break;
 		}
 		default:
@@ -1783,7 +1783,7 @@ void CKeyValues3Table::StoreKeyName( KeyValues3 *parent, Name_t &out_buffer, Fla
 	out_flags = flags;
 }
 
-void CKeyValues3Table::CopyFrom( KeyValues3 *parent, const CKeyValues3Table* src )
+void CKeyValues3Table::CopyFrom( KeyValues3 *parent, const KeyValues3 *src_parent, const CKeyValues3Table* src )
 {
 	int new_size = src->GetMemberCount();
 
@@ -1791,6 +1791,7 @@ void CKeyValues3Table::CopyFrom( KeyValues3 *parent, const CKeyValues3Table* src
 	EnsureMemberCapacity( new_size, true, true );
 
 	auto context = parent->GetContext();
+	auto src_context = src_parent->GetContext();
 
 	Hash_t *hashes_base = HashesBase();
 	Member_t *members_base = MembersBase();
@@ -1806,8 +1807,12 @@ void CKeyValues3Table::CopyFrom( KeyValues3 *parent, const CKeyValues3Table* src
 
 	for(int i = 0; i < new_size; i++)
 	{
-		if(context && (src_flags_base[i] & MEMBER_FLAG_LARGE_SYMBOL) != 0)
-			StoreKeyName( parent, names_base[i], flags_base[i], context->LookupString( src_names_base[i].m_SymId ), src_names_base[i].m_SymId );
+		if((src_flags_base[i] & MEMBER_FLAG_LARGE_SYMBOL) != 0)
+		{
+			// Symbol ids are only valid in the arena that made them
+			UtlSymLargeId_t sym_id = src_names_base[i].m_SymId;
+			StoreKeyName( parent, names_base[i], flags_base[i], src_context->LookupString( sym_id ), context == src_context ? sym_id : UTL_INVAL_SYMBOL_LARGE );
+		}
 		else
 			StoreKeyName( parent, names_base[i], flags_base[i], src_names_base[i].m_String );
 
