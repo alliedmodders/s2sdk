@@ -23,6 +23,7 @@
 #include "gametime.h"
 
 class CKV3Arena;
+class CPulseCallContextInfo;
 class CEntityClass;
 class CEntityComponentHelper;
 class CEntityKeyValues;
@@ -98,9 +99,13 @@ enum EntityDormancyType_t
 
 // Event queue //
 
-struct alignas(8) CPulseArgumentPack
+struct CPulseArgumentPack
 {
-	uint8 pad_0000[144];
+	// The data of each argument's value
+	CUtlVectorFixed<void*, 16> m_Values;
+
+	// AMNOTE: Holds the argument names, types and values
+	CPulseCallContextInfo* m_pInfo;
 };
 
 struct CPulseInputParamMap
