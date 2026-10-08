@@ -32,6 +32,9 @@ public:
 	CUtlStack( int growSize = 0, int initSize = 0 );
 	~CUtlStack();
 
+	CUtlStack( const CUtlStack<T, M> &from ) = delete;
+	CUtlStack<T, M> &operator=( const CUtlStack<T, M> &from ) = delete;
+
 	void CopyFrom( const CUtlStack<T, M> &from );
 
 	// element access
