@@ -39,7 +39,11 @@ class ConCommand;
 class CCommandContext;
 class ConVarRefAbstract;
 
-typedef uint8 *ConVarUserInfoSet_t;
+class ConVarUserInfoSet_t
+{
+public:
+	uint8 *m_pData;
+};
 
 struct CSplitScreenSlot
 {
