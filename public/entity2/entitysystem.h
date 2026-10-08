@@ -40,6 +40,7 @@ class ISpawnGroupEntityFilter;
 class IHandleEntity;
 struct ComponentUnserializerFieldInfo_t;
 
+// Null before ISource2Server::Init and after its Shutdown
 extern CGameEntitySystem* GameEntitySystem();
 
 typedef void (*EntityResourceManifestCreationCallback_t)(IEntityResourceManifest *, void *);

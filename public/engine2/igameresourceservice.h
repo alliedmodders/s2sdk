@@ -46,4 +46,14 @@ public:
 	virtual bool AppendToAndCreateGameResourceManifest( HGameResourceManifest hManifest, SpawnGroupHandle_t hSpawnGroup, int nCount, const EntitySpawnInfo_t *pEntities, const matrix3x4a_t *pWorldOffset ) = 0;
 };
 
+class CGameResourceService : public CBaseEngineService<IGameResourceService>
+{
+public:
+	// AMNOTE: The engine never reads or writes it
+	bool m_unk001;
+	bool m_bIsServer;
+	CUtlVector<void *> m_unk101;
+	IEntityResourceManifestBuilder *m_pEntityResourceManifestHandler;
+};
+
 #endif // IGAMERESOURCESERVICE_H
