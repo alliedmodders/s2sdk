@@ -39,7 +39,6 @@ PLATFORM_INTERFACE void *			Plat_GetModuleProcAddress( HMODULE module, const cha
 // Determines if current process is running with any debug modules
 PLATFORM_INTERFACE bool				Plat_RunningWithDebugModules();
 
-PLATFORM_INTERFACE HMODULE Plat_FindModuleByAddress( void *pAddress );
 PLATFORM_INTERFACE CreateInterfaceFn Plat_GetModuleInterfaceFactory( HMODULE module, int *pReturnCode = NULL );
 
 // This is a helper function to load a module, get its factory, and get a specific interface.
