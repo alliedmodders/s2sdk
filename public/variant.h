@@ -548,7 +548,7 @@ inline void CVariantBase<CValueAllocator>::CopyData( const char *src, bool bForc
 
 	if(src && (CValueAllocator::ALWAYS_COPY || bForceCopy))
 	{
-		int len = strlen( src ) + 1;
+		int len = V_strlen( src ) + 1;
 		m_pszString = (char *)Allocate( len );
 		memcpy( (void *)m_pszString, src, len );
 
