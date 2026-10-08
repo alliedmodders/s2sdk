@@ -17,6 +17,7 @@
 #include <tier1/convar.h>
 #include <engine2/iprerequisite_registry.h>
 #include <rendersystem/rendersystemtypes.h>
+#include <engine2/engineevents.h>
 
 class ISource2WorldSession;
 class ISceneView;
@@ -39,17 +40,6 @@ struct RHBackColorBuffer_t
 	HSceneViewRenderTarget m_hBackColorBuffer;
 };
 
-
-struct EngineLoopState_t
-{
-	PlatWindow_t m_hWnd;
-	SwapChainHandle_t m_hSwapChain;
-	InputContextHandle_t m_hInputContext;
-	int m_nPlatWindowWidth;
-	int m_nPlatWindowHeight;
-	int m_nRenderWidth;
-	int m_nRenderHeight;
-};
 
 enum LoopModeType_t : int32
 {

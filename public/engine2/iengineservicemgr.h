@@ -20,15 +20,6 @@
 class IAddonListChangeNotify;
 struct RenderDeviceInfo_t;
 
-struct EventClientOutput_t
-{
-	EngineLoopState_t m_LoopState;
-	float m_flRenderTime;
-	float m_flRealTime;
-	float m_flRenderFrameTimeUnbounded;
-	bool m_bRenderOnly;
-};
-
 enum EngineServiceActivateType_t
 {
 	ENGINE_SERVICE_ACTIVATE_NEVER = 0,
