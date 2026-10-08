@@ -2090,7 +2090,7 @@ void CKV3Arena::FreeKV( KeyValues3* kv )
 	if ( metadata )
 		metadata->Clear();
 
-	// Free<KeyValues3, CKeyValues3Cluster>( kv, &m_KV3BaseCluster, m_pKV3FreeCluster );
+	Free( kv, m_KV3PartialClusters, m_KV3FullClusters );
 }
 
 #include "tier0/memdbgoff.h"
