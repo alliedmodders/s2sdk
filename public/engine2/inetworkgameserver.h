@@ -13,6 +13,7 @@
 
 #include "playerslot.h"
 #include "tier1/utlstring.h"
+#include "engine2/gameshareddefs.h"
 #include "tier1/netadr.h"
 #include "tier1/utlvector.h"
 #include "entity2/entityidentity.h"
@@ -20,7 +21,6 @@
 
 class GameSessionConfiguration_t;
 class IGameSpawnGroupMgr;
-class CGlobalVars;
 struct EventServerAdvanceTick_t;
 struct EventServerPollNetworking_t;
 struct EventServerProcessNetworking_t;

@@ -17,6 +17,7 @@
 #include "inetchannelinfo.h"
 #include "tier1/KeyValues.h"
 #include "tier1/bufferstring.h"
+#include "engine2/gameshareddefs.h"
 #include "const.h"
 #include "playerslot.h"
 #include "mathlib/vector.h"
@@ -29,7 +30,6 @@
 
 class IAchievementMgr;
 class CGamestatsData;
-class CGlobalVars;
 class CSharedEdictChangeInfo;
 class IPVS;
 class CGameInfo;

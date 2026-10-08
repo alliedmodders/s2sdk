@@ -1,5 +1,5 @@
-#ifndef GLOBALVARS_H
-#define GLOBALVARS_H
+#ifndef GAMESHAREDDEFS_H
+#define GAMESHAREDDEFS_H
 
 #ifdef _WIN32
 #pragma once
@@ -49,4 +49,4 @@ inline CGlobalVars::CGlobalVars() :
 	serverCount = 0;
 }
 
-#endif // GLOBALVARS_H
+#endif // GAMESHAREDDEFS_H

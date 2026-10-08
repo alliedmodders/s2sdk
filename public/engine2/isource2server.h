@@ -23,6 +23,7 @@
 #include "ihltv.h"
 #include "engine2/inetworkgameserver.h"
 #include "engine2/isource2engine.h"
+#include "engine2/gameshareddefs.h"
 #include "bitvec.h"
 #include "playerslot.h"
 #include "tier1/convar.h"
@@ -33,7 +34,6 @@
 #include "resourcefile/resourcetype.h"
 #include "network_connection.pb.h"
 
-class CGlobalVars;
 class KeyValues3;
 class CUtlBuffer;
 class CSteamID;
