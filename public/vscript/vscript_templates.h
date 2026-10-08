@@ -324,6 +324,15 @@ inline FUNCPTR_TYPE ScriptConvertFuncPtrFromVoid( void *p )
 #define	SCRIPT_BINDING_ARGS_13 pArguments[0], pArguments[1], pArguments[2], pArguments[3], pArguments[4], pArguments[5], pArguments[6], pArguments[7], pArguments[8], pArguments[9], pArguments[10], pArguments[11], pArguments[12]
 #define	SCRIPT_BINDING_ARGS_14 pArguments[0], pArguments[1], pArguments[2], pArguments[3], pArguments[4], pArguments[5], pArguments[6], pArguments[7], pArguments[8], pArguments[9], pArguments[10], pArguments[11], pArguments[12], pArguments[13]
 
+template <typename T>
+inline void ScriptSetReturnValue( ScriptVariant_t *pReturn, const T &value )
+{
+	// The variant would otherwise point at the returned temporary
+	if constexpr ( ScriptDeduceType( T ) == FIELD_VECTOR )
+		*pReturn = ScriptVariant_t( value, true );
+	else
+		*pReturn = value;
+}
 
 #define DEFINE_SCRIPT_BINDINGS(N) \
 	template <typename FUNC_TYPE, typename FUNCTION_RETTYPE FUNC_TEMPLATE_FUNC_PARAMS_##N> \
@@ -340,9 +349,7 @@ inline FUNCPTR_TYPE ScriptConvertFuncPtrFromVoid( void *p )
 			{ \
 				return false; \
 			} \
-			*pReturn = ((FUNC_TYPE)pFunction)( SCRIPT_BINDING_ARGS_##N ); \
-			if ( pReturn->GetType() == FIELD_VECTOR ) \
-				pReturn->ConvertToCopiedData(); \
+			ScriptSetReturnValue( pReturn, ((FUNC_TYPE)pFunction)( SCRIPT_BINDING_ARGS_##N ) ); \
  			return true; \
  		} \
 	}; \
@@ -380,9 +387,7 @@ inline FUNCPTR_TYPE ScriptConvertFuncPtrFromVoid( void *p )
 			{ \
 				return false; \
 			} \
-			*pReturn = (((OBJECT_TYPE_PTR)(pContext))->*ScriptConvertFuncPtrFromVoid<FUNC_TYPE>(pFunction))( SCRIPT_BINDING_ARGS_##N ); \
-			if ( pReturn->GetType() == FIELD_VECTOR ) \
-				pReturn->ConvertToCopiedData(); \
+			ScriptSetReturnValue( pReturn, (((OBJECT_TYPE_PTR)(pContext))->*ScriptConvertFuncPtrFromVoid<FUNC_TYPE>(pFunction))( SCRIPT_BINDING_ARGS_##N ) ); \
  			return true; \
  		} \
 	}; \
