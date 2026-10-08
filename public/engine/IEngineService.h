@@ -14,7 +14,7 @@
 #include <inputsystem/InputEnums.h>
 #include <iloopmode.h>
 #include <localize/ilocalize.h>
-#include <tier4/tier4.h>
+#include <engine2/tier4.h>
 
 class ISwitchLoopModeStatusNotify;
 class IAddonListChangeNotify;

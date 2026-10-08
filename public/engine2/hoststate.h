@@ -1,7 +1,7 @@
 #include "tier1/utlstring.h"
 #include "tier1/KeyValues.h"
 #include "appframework/IAppSystem.h"
-#include "tier4/tier4.h"
+#include "engine2/tier4.h"
 
 struct ResourceManifestDesc_t;
 
