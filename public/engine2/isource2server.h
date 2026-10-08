@@ -21,6 +21,7 @@
 #include "game/entitynetworkable.h"
 #include "networkstringtabledefs.h"
 #include "ihltv.h"
+#include "engine2/inetworkgameserver.h"
 #include "bitvec.h"
 #include "playerslot.h"
 #include "tier1/convar.h"
@@ -49,7 +50,6 @@ class CSVCMsg_UserCommands;
 template <typename T>
 class CNetMessagePB;
 class INetChannel;
-class INetworkGameServer;
 class CCheckTransmitInfo;
 struct vis_info_t;
 class CCLCMsg_Move;
