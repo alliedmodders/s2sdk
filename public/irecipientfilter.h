@@ -12,7 +12,7 @@
 #endif
 
 #include "const.h"
-#include "eiface.h"
+#include "playerslot.h"
 #include "inetchannel.h"
 
 //-----------------------------------------------------------------------------

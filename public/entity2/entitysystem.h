@@ -15,7 +15,6 @@
 #include "tier1/utlstring.h"
 #include "networksystem/inetworkserializer.h"
 #include "vscript/ivscript.h"
-#include "eiface.h"
 #include "resourcefile/resourcetype.h"
 #include "entityhandle.h"
 #include "concreteentitylist.h"

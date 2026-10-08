@@ -5,7 +5,7 @@
 #pragma once
 #endif
 
-#include <eiface.h>
+#include <appframework/IAppSystem.h>
 
 #include <networksystem/inetworkserializer.h>
 #include <networksystem/netmessage.h>

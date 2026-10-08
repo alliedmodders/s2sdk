@@ -17,6 +17,9 @@
 #include "networksystem/inetworkmessages.h"
 #include "icvar.h"
 #include <netadr.h>
+#include "networksystem/inetworksystem.h"
+#include "entity2/entityidentity.h"
+#include "playerslot.h"
 
 enum server_state_t : int
 {
@@ -27,6 +30,9 @@ enum server_state_t : int
 	SS_Paused,
 };
 
+class IRecipientFilter;
+class ServerClass;
+class CGlobalVars;
 class IGameSpawnGroupMgr;
 struct EventServerAdvanceTick_t;
 struct EventServerPollNetworking_t;

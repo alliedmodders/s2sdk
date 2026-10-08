@@ -4,7 +4,6 @@
 #pragma once
 #endif
 
-#include "eiface.h"
 #include "iserver.h"
 #include "igamesystem.h"
 #include "entity2/entitysystem.h"
@@ -18,6 +17,8 @@
 #define MAX_SPAWN_GROUP_WORLD_NAME_LENGTH 4096
 
 class matrix3x4a_t;
+class CCompressedResourceManifest;
+class IPVS;
 class CKV3Arena;
 class CEntityKeyValues;
 class ILoadingSpawnGroup;
