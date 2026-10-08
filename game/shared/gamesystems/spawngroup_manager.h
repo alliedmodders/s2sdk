@@ -56,54 +56,55 @@ enum SpawnGroupState_t
 struct SpawnGroupDesc_t
 {
 public:
-	SpawnGroupDesc_t(CUtlString worldPath, bool active) :
-		m_sWorldName(worldPath),
-		m_Unk01(0),
-		m_Unk02(0),
-		m_sWorldMountName("mapload"),
-		m_Unk03(0),
-		m_Unk04(0),
+	SpawnGroupDesc_t() :
+		m_pWorldOffsetCallback(nullptr),
+		m_sWorldGroupName("default"),
 		m_hOwner(0),
 		m_iPriorityLoader(-2),
-		m_manifestLoadPriority(RESOURCE_MANIFEST_LOAD_PRIORITY_DEFAULT),
-		m_flTimeoutInterval(90.0f),
-		m_bCreateClientEntitiesOnLaterConnectingClients(true),
+		m_nManifestLoadPriority((uint8)RESOURCE_MANIFEST_LOAD_PRIORITY_DEFAULT),
+		m_flTimeoutInterval(0.0f),
+		m_bCreateClientEntitiesOnLaterConnectingClients(false),
 		m_bDontSpawnEntities(false),
 		m_bBlockUntilLoaded(false),
 		m_bLoadStreamingData(true),
 		m_bCreateNewSceneWorld(false),
 		m_bManualCompletion(false),
-		m_bUnk(true),
-		m_bSetActivePostLoad(active)
+		m_bSetActivePostLoad(false),
+		m_unk101(true),
+		m_bLevelTransition(false),
+		m_unk201(false),
+		m_unk202(false)
 	{
 		SetIdentityMatrix(m_vecWorldOffset);
 	}
 
 	CUtlString m_sWorldName; // map path eg. 'maps/prefabs/de_dust2/de_dust2_skybox' or 'de_mirage'
-	uint64_t m_Unk01; // only seen 0
-	uint64_t m_Unk02; // only seen 0
-	CUtlString m_sWorldMountName;	// set to 'mapload' when loading a map and it's dependencies
-	CUtlString m_sEntityLumpName; // originator class name? usually 'point_prefab'
-	CUtlString m_sEntityFilterName; // might not be accurate, only seen this empty.
-	CUtlString m_sDescriptiveName; // might not be accurate, only seen this empty.
-	uint64_t m_Unk03; // only seen 0
+	CUtlString m_sWorldMountName;
+	CUtlString m_sEntityLumpName;
+	CUtlString m_sEntityFilterName;
+	CUtlString m_sDescriptiveName;
+	CUtlString m_sParentNameFixup;
+	CUtlString m_sLocalNameFixup;
+	IComputeWorldOriginCallback *m_pWorldOffsetCallback;
 	matrix3x4a_t m_vecWorldOffset;
-	CUtlString m_sWorldGroupname; // seems to be usually nothing, 'default' or 'skyboxWorldGroup0' for skyboxes
-	uint64_t m_Unk04; // only seen 0
+	CUtlString m_sWorldGroupName;
+	CUtlString m_sSaveFileName;
 	SpawnGroupHandle_t m_hOwner;
-	int m_iPriorityLoader; // for map load this is set to -2
-	ResourceManifestLoadPriority_t m_manifestLoadPriority;
+	int m_iPriorityLoader;
+	uint8 m_nManifestLoadPriority; // ResourceManifestLoadPriority_t
 	float m_flTimeoutInterval;
 
-	// these might not be accurate, the following comments apply to observations during main map load:
-	bool m_bCreateClientEntitiesOnLaterConnectingClients; // true
-	bool m_bDontSpawnEntities; // false
-	bool m_bBlockUntilLoaded; // false
-	bool m_bLoadStreamingData; // true
-	bool m_bCreateNewSceneWorld; // false (true only seemingly for skybox)
-	bool m_bManualCompletion; // false
-	bool m_bUnk; // false
-	bool m_bSetActivePostLoad; // true (false for skybox and other prefabs) (likely only set for main spawngroup)
+	bool m_bCreateClientEntitiesOnLaterConnectingClients;
+	bool m_bDontSpawnEntities;
+	bool m_bBlockUntilLoaded;
+	bool m_bLoadStreamingData;
+	bool m_bCreateNewSceneWorld;
+	bool m_bManualCompletion;
+	bool m_bSetActivePostLoad;
+	bool m_unk101; // AMNOTE: Spawn groups created by point_prefab clear it
+	bool m_bLevelTransition;
+	bool m_unk201;
+	bool m_unk202;
 };
 
 struct SpawnGroupDescReceive_t
