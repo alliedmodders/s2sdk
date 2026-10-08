@@ -5,7 +5,7 @@
 #pragma once
 #endif
 
-#include "globalvars_base.h"
+#include "entity2/globalvars_base.h"
 #include "string_t.h"
 
 
