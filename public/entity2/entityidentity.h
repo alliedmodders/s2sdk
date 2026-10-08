@@ -15,6 +15,7 @@
 #include "entityhandle.h"
 #include "edict.h"
 
+class CEntityAttributeTable;
 class CEntityClass;
 class CEntityInstance;
 
@@ -120,7 +121,7 @@ public:
 	uint32 m_fDataObjectTypes;
 	ChangeAccessorFieldPathIndex_t m_PathIndex;
 private:
-	void* m_pAttributes; // CUtlObjectAttributeTable<CEntityIdentity, CUtlStringToken>
+	CEntityAttributeTable* m_pAttributes;
 public:
 	CEntityIdentity* m_pPrev;
 	CEntityIdentity* m_pNext;
