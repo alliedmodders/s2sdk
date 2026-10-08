@@ -110,6 +110,7 @@ class INetworkGameServer;
 struct FlattenedSerializerSpewField_t;
 class INetworkMessageInternal;
 class CNetMessage;
+struct NetMessageInfo_t;
 class CGameInfo;
 enum SignonState_t : int;
 
@@ -664,6 +665,23 @@ public:
 
 #define INTERFACEVERSION_SERVERGAMECLIENTS		"Source2GameClients001"
 
+struct ClientReplayEventParams_t
+{
+	int m_nEventType = 0; // ReplayEventType_t
+	float m_flSlowdownLength = 0.0f;
+	float m_flSlowdownRate = 1.0f;
+	int m_nPrimaryTargetEntIndex = -1;
+	float m_flEventTime = 0.0f;
+	bool m_bForceUseTheseSettings = false;
+};
+
+enum EncryptedMessageKeyType_t
+{
+	kEncryptedMessageKeyType_None = 0, // not encrypted
+	kEncryptedMessageKeyType_Private = 1, // tv_encryptdata_key
+	kEncryptedMessageKeyType_Public = 2, // tv_encryptdata_key_pub
+};
+
 //-----------------------------------------------------------------------------
 // Purpose: Player / Client related functions
 //-----------------------------------------------------------------------------
@@ -745,21 +763,27 @@ public:
 
 	virtual IHLTVDirector	*GetHLTVDirector( void ) = 0;
 
-	virtual int				GetPlayerTickBase( CPlayerSlot slot ) = 0;
-	virtual void			unk101( CPlayerSlot slot ) = 0;
+	virtual uint32			GetPlayerTickBase( CPlayerSlot slot ) = 0;
+	// AMNOTE: Fills a 60-byte structure from the player's controller
+	virtual void			unk101( CPlayerSlot slot, void *pOut ) = 0;
 
 	// Handles incoming usermessages from the client
 	virtual void			ClientSvcUserMessage( CPlayerSlot slot, int um_type, uint32 size, const void *buf ) = 0;
 
-	// Returns this player hltv delay in seconds
-	virtual float			GetPlayerHltvDelay( CPlayerSlot slot, CEntityIndex &replay_ent ) = 0;
-	virtual bool			ReplayLastPlayerKill( CPlayerSlot slot, void *kill_info ) = 0;
+	// Returns this player hltv delay in ticks
+	virtual int				GetPlayerHltvDelay( CPlayerSlot slot, CEntityIndex &replay_ent ) = 0;
+	virtual bool			ClientReplayEvent( CPlayerSlot slot, const ClientReplayEventParams_t &params ) = 0;
 
-	virtual void			unk201() = 0;
-	virtual void			unk202() = 0;
-	virtual void			unk203() = 0;
-	virtual bool			unk204( const char *, CBufferString * ) = 0;
-	virtual bool			unk205( CPlayerSlot, int ) = 0;
+	// True when the server password is empty or "none", or matches the client's password
+	virtual bool			CheckHltvPasswordMatch( const char *pszClientPassword, const char *pszServerPassword, const CSteamID &steamID, void * ) = 0;
+	// While a client watches an HLTV replay, it is only sent the messages this returns true for:
+	// chat, text, radio and raw audio messages, and user messages carrying radio, audio, rank, XP, quest progress or lobby disconnects
+	virtual bool			ShouldSendMessageDuringHltvReplay( const NetMessageInfo_t *pInfo, const CNetMessage *pData ) = 0;
+	virtual EncryptedMessageKeyType_t GetMessageEncryptionKey( const NetMessageInfo_t *pInfo, CNetMessage *pData ) = 0;
+	// Returns false when the config text uses commands or convars that workshop configs may not use, listing them in pErrors
+	virtual bool			ValidateConfigCommands( const char *pszConfig, CBufferString *pErrors ) = 0;
+	// Returns false to not kick the client right away for failing Steam authentication; CS2 then stores the reason on its pawn
+	virtual bool			ShouldKickClientForSteamAuthFailure( CPlayerSlot slot, ENetworkDisconnectionReason reason ) = 0;
 };
 
 typedef IVEngineServer2 IVEngineServer;
