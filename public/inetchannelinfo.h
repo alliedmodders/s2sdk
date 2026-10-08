@@ -16,12 +16,14 @@
 #pragma once
 #endif
 
+#include "tier0/platform.h"
 
 #define FLOW_OUTGOING	0		
 #define FLOW_INCOMING	1
 #define MAX_FLOWS		2		// in & out
 
 struct SNetChannelLatencyStats;
+class CMsgSource2NetworkFlowQuality;
 struct netadr_t;
 
 struct NetChanStat_t
@@ -71,21 +73,20 @@ public:
 	
 	virtual float		GetAvgLoss( int flow ) const = 0;	 // avg packet loss[0..1]
 	virtual float		GetAvgChoke(int flow) const = 0;
+	virtual float		unk101( int flow ) const = 0;
 	virtual float		GetAvgData( int flow ) const = 0;	 // data flow in bytes/sec
-	
-	virtual float		GetAvgPacketBytes( int flow ) const = 0; //avg packet bytes/sec // flow=0: m_flOutBytesPerSec //flow=0: m_flInBytesPerSec
-
 	virtual float		GetAvgPackets( int flow ) const = 0; // avg packets/sec
-	virtual int			GetTotalData( int flow ) const = 0;	 // total flow in/out in bytes
+	virtual uint64		GetTotalData( int flow ) const = 0;	 // total flow in/out in bytes
 	virtual int			GetTotalPackets( int flow ) const = 0;
 	virtual int			GetSequenceNr( int flow ) const = 0;	// last send seq number
 	virtual float		GetTimeSinceLastReceived( void ) const = 0;	// get time since last recieved packet in seconds
-	virtual void		GetRemoteFramerate( float *pflFrameTime, float *pflFrameTimeStdDeviation, float *pflFrameStartTimeStdDeviation ) const = 0;
+	virtual void		GetRemoteFramerate( float *pflFrameTime, float *pflFrameTimeStdDeviation, float *pflUnfilteredFrameTime ) const = 0;
 
 	virtual float		GetTimeoutSeconds( void ) const = 0;
 	virtual float		GetTimeUntilTimeout( void ) const = 0;
 	
-	virtual void		unk101() = 0;
+	// AMNOTE: Returns the value INetChannel::unk211 sets
+	virtual float		unk201() const = 0;
 	
 	virtual void		ResetLatencyStats( int channel ) = 0;
 	virtual SNetChannelLatencyStats *GetLatencyStats( int channel ) const = 0;
@@ -95,9 +96,9 @@ public:
 	virtual void		SetNumPredictionErrors( int num ) = 0;
 	virtual void		SetShowNetMessages( bool show ) = 0;
 
-	virtual void		unk201() = 0;
-	virtual void		unk202() = 0;
-	virtual void		unk203() = 0;
+	virtual int			unk301( int flow, int nSeqNr, float *pflLatency = nullptr ) const = 0;
+	virtual int			unk302( int flow, int16 *pOut, int nMaxEntries ) const = 0;
+	virtual void		unk303( int flow, CMsgSource2NetworkFlowQuality *pMsg, bool ) = 0;
 };
 
 #endif // INETCHANNELINFO_H
