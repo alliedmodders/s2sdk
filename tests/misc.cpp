@@ -20,7 +20,7 @@
 #include "tier0/eventdispatcher.h"
 #include "schemasystem/schematypes.h"
 #include "networksystem/netmessage.h"
-#include "iloopmode.h"
+#include "engine2/iengineservicemgr.h"
 #include "source2_steam_stats.pb.h"
 
 template class CBufferStringN<MAX_PATH>;

@@ -21,7 +21,6 @@ class CNetworkGameServerBase;
 class GameSessionConfiguration_t;
 class ISource2WorldSession;
 class IGameSpawnGroupMgr;
-class ILoopModePrerequisiteRegistry;
 class IEntityReport;
 
 abstract_class INetworkServerService : public IEngineService
