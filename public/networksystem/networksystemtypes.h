@@ -9,6 +9,12 @@
 #include "tier1/utlleanvector.h"
 #include "tier1/utlvector.h"
 
+enum NetworkFieldChangeCallbackPerformType_t
+{
+	NETWORK_FIELD_CHANGE_CALLBACK_PERFORM_ON_CHANGE,
+	NETWORK_FIELD_CHANGE_CALLBACK_PERFORM_ON_CHANGE_OR_CREATE
+};
+
 struct OffsetIgnore_t
 {
 	typedef uint16 OffsetIgnoreValueType_t;

@@ -9,6 +9,7 @@
 
 #include <networksystem/inetworkserializer.h>
 #include <networksystem/netmessage.h>
+#include <networksystem/networksystemtypes.h>
 #include <tier1/bitbuf.h>
 #include <tier1/utlstring.h>
 #include <tier1/utlsymbol.h>
@@ -26,12 +27,6 @@ struct NetworkableData_t;
 struct NetworkFieldInfo_t;
 struct FieldMetaInfo_t;
 class CSchemaType;
-
-enum NetworkFieldChangeCallbackPerformType_t
-{
-	NETWORK_FIELD_CHANGE_CALLBACK_PERFORM_ON_CHANGE,
-	NETWORK_FIELD_CHANGE_CALLBACK_PERFORM_ON_CHANGE_OR_CREATE
-};
 
 enum NetworkFieldChangedDelegateType_t
 {
