@@ -27,24 +27,24 @@ enum StringPoolCase_t
 	StringPoolCaseSensitive
 };
 
-class CStringPool
+class CStringPool_CI
 {
 public:
-	DLL_CLASS_IMPORT CStringPool( StringPoolCase_t caseSensitivity = StringPoolCaseInsensitive );
-	DLL_CLASS_IMPORT ~CStringPool();
+	DLL_CLASS_IMPORT CStringPool_CI();
+	DLL_CLASS_IMPORT ~CStringPool_CI();
 
 	DLL_CLASS_IMPORT unsigned int Count() const;
 
 	DLL_CLASS_IMPORT const char * Allocate( const char *pszValue );
-	DLL_CLASS_IMPORT void FreeAll();
+	DLL_CLASS_IMPORT void Purge();
 
 	// searches for a string already in the pool
 	DLL_CLASS_IMPORT const char * Find( const char *pszValue );
 
 protected:
-	typedef CUtlRBTree<const char *, unsigned short> CStrSet;
-
 	CThreadFastMutex m_Mutex;
+
+	typedef CUtlRBTree< const char *, uint16, CDefFastCaselessStringLess > CStrSet;
 	CStrSet m_Strings;
 };
 
