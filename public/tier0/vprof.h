@@ -262,16 +262,14 @@ class PLATFORM_CLASS CVProfNode
 public:
 	CVProfNode( const char *pszName, CVProfNode *pParent, VProfBudgetGroupCallSite &pBudgetGroupName, const CUtlSourceLocation &location );
 	~CVProfNode();
-	
-	CVProfNode &operator=( const CVProfNode & );
 
-	CVProfNode *GetVParent();
-	const CVProfNode *GetVParent() const;
-	CVProfNode *GetVSibling();
+	CVProfNode *GetVParent() { return m_pParent; }
+	const CVProfNode *GetVParent() const { return m_pParent; }
+	CVProfNode *GetVSibling() { return m_pSibling; }
 	const CVProfNode *GetVPrevSibling() const;
-	const CVProfNode *GetVSibling() const;
-	CVProfNode *GetVChild();
-	const CVProfNode *GetVChild() const;
+	const CVProfNode *GetVSibling() const { return m_pSibling; }
+	CVProfNode *GetVChild() { return m_pChild; }
+	const CVProfNode *GetVChild() const { return m_pChild; }
 	
 	void MarkFrame();
 	void ResetPeak();
@@ -285,105 +283,72 @@ public:
 
 	CVProfNode *FindOrCreateChild( const char *, VProfBudgetGroupCallSite &, const CUtlSourceLocation & );
 
-	const char *GetName() const;
+	const char *GetName() const { return m_pszName; }
 
 	// Only used by the record/playback stuff.
-	void SetBudgetGroupID( int id );
-	int GetBudgetGroupID() const;
+	void SetBudgetGroupID( int id ) { m_BudgetGroupID = id; }
+	int GetBudgetGroupID() const { return m_BudgetGroupID; }
 
-	int	GetCurCalls() const;
-	double GetCurTime() const;
-	int GetPrevCalls() const;
-	double GetPrevTime() const;
-	int	GetTotalCalls() const;
-	double GetTotalTime() const;
-	double GetPeakTime() const;
+	// Times are in milliseconds
+	int	GetCurCalls() const { return m_nCurFrameCalls; }
+	double GetCurTime() const { return CyclesToMilliseconds( m_CurFrameTime ); }
+	int GetPrevCalls() const { return m_nPrevFrameCalls; }
+	double GetPrevTime() const { return CyclesToMilliseconds( m_PrevFrameTime ); }
+	int	GetTotalCalls() const { return m_nTotalCalls; }
+	double GetTotalTime() const { return CyclesToMilliseconds( m_TotalTime ); }
+	double GetPeakTime() const { return CyclesToMilliseconds( m_PeakTime ); }
 
-	const CUtlSourceLocation &GetSourceLocation() const;
+	const CUtlSourceLocation &GetSourceLocation() const { return m_SourceLocation; }
 
 	double GetCurTimeLessChildren() const;
 	double GetPrevTimeLessChildren() const;
 	double GetTotalTimeLessChildren() const;
 
-	void ClearPrevTime();
+	void ClearPrevTime() { m_PrevFrameTime.Init(); m_unk301 = 0; }
 
 	// Not used in the common case...
 	void SetCurFrameTime( unsigned long milliseconds );
 	
-	void SetClientData( int iClientData );
-	int GetClientData() const;
-
-#ifdef DBGFLAG_VALIDATE
-	void Validate( CValidator &validator, tchar *pchName );		// Validate our internal structures
-#endif // DBGFLAG_VALIDATE
-
+	void SetClientData( int iClientData ) { m_iClientData = iClientData; }
+	int GetClientData() const { return m_iClientData; }
 
 // Used by vprof record/playback.
 protected:
 	CVProfNode( const char *, VProfBudgetGroupCallSite &, double, const CUtlSourceLocation & );
 
-	void SetUniqueNodeID( int id );
-	int GetUniqueNodeID() const;
+	void SetUniqueNodeID( int id ) { m_iUniqueNodeID = id; }
+	int GetUniqueNodeID() const { return m_iUniqueNodeID; }
 
-	static int s_iCurrentUniqueNodeID;
 private:
+	static double CyclesToMilliseconds( const CCycleCount &cycles ) { return cycles.GetLongCycles() * ( 1000.0 / Plat_CPUTickFrequency() ); }
+
 	const tchar *m_pszName;
 	CFastTimer	m_Timer;
-
-	// L2 Cache data.
-	int			m_iPrevL2CacheMiss;
-	int			m_iCurL2CacheMiss;
-	int			m_iTotalL2CacheMiss;
-
-#ifndef _X360	
-	// L2 Cache data.
-	CL2Cache	m_L2Cache;
-#else // 360:
-	
-	unsigned int m_iBitFlags; // see enum below for settings
-	CPMCData	m_PMCData;
-	int			m_iPrevLoadHitStores;
-	int			m_iCurLoadHitStores;
-	int			m_iTotalLoadHitStores;
-
-	public:
-	enum FlagBits
-	{
-		kRecordL2 = 0x01,
-		kCPUTrace = 0x02, ///< cause a PIX trace inside this node.
-	};
-	// call w/ true to enable L2 and LHS recording; false to turn it off
-	inline void EnableL2andLHS(bool enable)
-	{
-		if (enable)
-			m_iBitFlags |= kRecordL2;
-		else
-			m_iBitFlags &= (~kRecordL2);
-	}
-
-	inline bool IsL2andLHSEnabled( void )
-	{
-		return (m_iBitFlags & kRecordL2) != 0;
-	}
-
-	int GetLoadHitStores();
-
-	private:
-	
-#endif
+	// AMNOTE: The first is zeroed whenever m_Timer starts, tier0 never reads either
+	int			m_unk101;
+	// AMNOTE: Only the constructor writes it, zeroing it together with m_unk101, so the two may be one 8-byte field
+	int			m_unk102;
 
 	int			m_nRecursions;
 	
 	unsigned	m_nCurFrameCalls;
 	CCycleCount	m_CurFrameTime;
+	// AMNOTE: tier0 only zeroes it or copies it along with the time before it, as with the ones below
+	uint64		m_unk201;
 	
 	unsigned	m_nPrevFrameCalls;
 	CCycleCount	m_PrevFrameTime;
+	uint64		m_unk301;
 
 	unsigned	m_nTotalCalls;
 	CCycleCount	m_TotalTime;
+	uint64		m_unk401;
 
 	CCycleCount	m_PeakTime;
+	uint64		m_unk501;
+
+	unsigned	m_nMergedCurFrameCalls;
+	CCycleCount	m_MergedCurFrameTime;
 
 	CVProfNode *m_pParent;
 	CVProfNode *m_pChild;
@@ -393,7 +358,48 @@ private:
 	
 	int m_iClientData;
 	int m_iUniqueNodeID;
+
+	CUtlSourceLocation m_SourceLocation;
 };
+
+inline const CVProfNode *CVProfNode::GetVPrevSibling() const
+{
+	if ( !m_pParent )
+		return NULL;
+
+	const CVProfNode *pNode = m_pParent->m_pChild;
+	while ( pNode && pNode->m_pSibling != this )
+		pNode = pNode->m_pSibling;
+
+	return pNode;
+}
+
+inline double CVProfNode::GetCurTimeLessChildren() const
+{
+	double result = GetCurTime();
+	for ( const CVProfNode *pChild = m_pChild; pChild; pChild = pChild->m_pSibling )
+		result -= pChild->GetCurTime();
+
+	return result;
+}
+
+inline double CVProfNode::GetPrevTimeLessChildren() const
+{
+	double result = GetPrevTime();
+	for ( const CVProfNode *pChild = m_pChild; pChild; pChild = pChild->m_pSibling )
+		result -= pChild->GetPrevTime();
+
+	return result;
+}
+
+inline double CVProfNode::GetTotalTimeLessChildren() const
+{
+	double result = GetTotalTime();
+	for ( const CVProfNode *pChild = m_pChild; pChild; pChild = pChild->m_pSibling )
+		result -= pChild->GetTotalTime();
+
+	return result;
+}
 
 //-----------------------------------------------------------------------------
 //
