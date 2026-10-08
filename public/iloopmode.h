@@ -15,6 +15,7 @@
 #include <KeyValues.h>
 #include <tier0/eventdispatcher.h>
 #include <tier1/convar.h>
+#include <engine2/iprerequisite_registry.h>
 
 class ISource2WorldSession;
 class ISceneView;
@@ -95,12 +96,6 @@ class GameSessionConfiguration_t;
 /*class GameSessionConfiguration_t : CBaseCmdKeyValues<CSVCMsg_GameSessionConfiguration>
 {
 };*/
-
-abstract_class IPrerequisiteRegistry
-{
-public:
-	virtual void RegisterPrerequisite( IPrerequisite * ) = 0;
-};
 
 abstract_class ILoopModePrerequisiteRegistry : public IPrerequisiteRegistry
 {
