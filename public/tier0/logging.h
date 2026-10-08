@@ -86,6 +86,10 @@
 
 class CLoggingSystem;
 class CAtomicMutex;
+class CMiniDumpComment;
+class CUtlString;
+template< class T, class I, size_t UNK > class CUtlVectorMemory_Growable;
+template< class T, class I, class A > class CUtlVector;
 
 //-----------------------------------------------------------------------------
 // Maximum length of a sprintf'ed logging message.
@@ -889,5 +893,22 @@ PLATFORM_INTERFACE LoggingTagHandle_t LoggingSystem_FirstTag();
 PLATFORM_INTERFACE LoggingTagHandle_t LoggingSystem_NextTag( LoggingTagHandle_t currentTag );
 PLATFORM_INTERFACE LoggingTagHandle_t LoggingSystem_InvalidTag();
 PLATFORM_INTERFACE const char *LoggingSystem_TagName( LoggingTagHandle_t tag );
+
+//-----------------------------------------------------------------------------
+// Log capture: keeps the latest logged lines for crash reports.
+//-----------------------------------------------------------------------------
+PLATFORM_OVERLOAD void LoggingSystem_GetLogCapture( CUtlVector< CUtlString, int, CUtlVectorMemory_Growable< CUtlString, int, 0 > > *pLines, bool bReversed );
+PLATFORM_OVERLOAD void LoggingSystem_GetLogCapture( CMiniDumpComment *pComment, bool bReversed );
+PLATFORM_OVERLOAD bool LoggingSystem_GetLogCaptureForMiniDump( CMiniDumpComment *pComment, bool bReversed, const char *pMessage );
+
+PLATFORM_INTERFACE void LoggingSystem_AddLogCapture( const char *pFormat, ... ) FMTFUNCTION( 1, 2 );
+PLATFORM_INTERFACE void LoggingSystem_AddLogCaptureString( const char *pString );
+PLATFORM_INTERFACE void LoggingSystem_AddLogCaptureV( const char *pFormat, va_list args );
+PLATFORM_INTERFACE void LoggingSystem_ClearLogCapture();
+// Calls are counted, so capture stays enabled until it is disabled as often as enabled. Returns whether it is enabled.
+PLATFORM_INTERFACE bool LoggingSystem_EnableLogCapture( bool bEnable );
+PLATFORM_INTERFACE void LoggingSystem_EnableLogCaptureInMiniDumpComment( bool bEnable );
+PLATFORM_INTERFACE int LoggingSystem_GetMaxLogCaptureLines();
+PLATFORM_INTERFACE void LoggingSystem_SetMaxLogCaptureLines( int nLines );
 
 #endif // LOGGING_H
