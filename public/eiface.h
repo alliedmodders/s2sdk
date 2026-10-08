@@ -103,26 +103,6 @@ namespace google
 
 #define INTERFACEVERSION_VENGINESERVER	"Source2EngineToServer001"
 
-class CPlayerUserId
-{
-public:
-	CPlayerUserId( int index )
-	{
-		_index = index;
-	}
-
-	int Get() const
-	{
-		return _index;
-	}
-
-	bool operator==( const CPlayerUserId &other ) const { return other._index == _index; }
-	bool operator!=( const CPlayerUserId &other ) const { return other._index != _index; }
-
-private:
-	unsigned short _index;
-};
-
 // Times are in seconds, relative to the current time
 struct HltvReplayParams_t
 {
