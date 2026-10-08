@@ -19,6 +19,8 @@ class CKV3TransferSaveContext;
 class CNetworkSerializerClassInfo;
 struct ComponentUnserializerClassInfo_t;
 
+FORWARD_DECLARE_HANDLE( HSCRIPT );
+
 struct ComponentUnserializerKeyNamesChunk_t
 {
 	CUtlStringToken m_keyNames[4];
@@ -115,10 +117,23 @@ public:
 
 class CScriptComponent : public CEntityComponent
 {
-private:
-	uint8 unknown[0x28]; // 0x8
 public:
-	CUtlSymbolLarge m_scriptClassName; // 0x30
+	virtual const char* GetComponentName() = 0;
+
+public:
+	HSCRIPT m_hScope;
+
+	// AMNOTE: The storage of a CUtlVectorUltraConservative<HSCRIPT*>, an int count followed by the elements,
+	// but null rather than CUtlVectorUltraConservative's static block when empty
+	void* m_FuncHandles;
+
+	int m_flags;
+	CEntityInstance* m_pOwner;
+
+	// AMNOTE: The storage of a CUtlVectorUltraConservative<CEntityIOOutput>, null when empty like m_FuncHandles
+	void* m_Outputs;
+
+	CUtlSymbolLarge m_scriptClassName;
 };
 
 #endif // ENTITYCOMPONENT_H
