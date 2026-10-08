@@ -13,6 +13,9 @@
 
 class CEntityIdentity;
 class CEntityComponentHelper;
+class CKV3TransferLoadContext;
+class CKV3TransferSaveContext;
+class CNetworkSerializerClassInfo;
 struct ComponentUnserializerClassInfo_t;
 struct EntOutput_t;
 
@@ -87,8 +90,13 @@ public:
 
 class CEntityComponent
 {
-private:
-	uint8 unknown[0x8]; // 0x0
+public:
+	virtual SchemaMetaInfoHandle_t<CSchemaClassInfo> Schema_DynamicBinding() = 0;
+	virtual datamap_t* GetDataDescMap() = 0;
+	virtual CNetworkSerializerClassInfo* GetNetworkSerializerInfo() = 0;
+	virtual void KV3TransferSave( CKV3TransferSaveContext* pContext ) const = 0;
+	virtual void KV3TransferLoad( CKV3TransferLoadContext* pContext ) = 0;
+	virtual CEntityComponentHelper* GetComponentHelper() = 0;
 };
 
 class CScriptComponent : public CEntityComponent
