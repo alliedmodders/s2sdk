@@ -61,6 +61,7 @@ struct ResourceNameInfo_t
 
 typedef const ResourceNameInfo_t *ResourceNameHandle_t;
 typedef uint16 LoadingResourceIndex_t;
+typedef uint16 StreamingResourceDataIndex_t;
 typedef char ResourceTypeIndex_t;
 typedef uint32 ExtRefIndex_t;
 
@@ -68,9 +69,11 @@ struct ResourceBindingBase_t
 {
 	void* m_pData;
 	ResourceNameHandle_t m_Name;
+	ResourceId_t m_ResourceId;
 	uint16 m_nFlags;
-	uint16 m_nReloadCounter;
-	ResourceTypeIndex_t m_nTypeIndex;
+	StreamingResourceDataIndex_t m_nStreamingResource;
+	ResourceTypeIndex_t m_nResourceType;
+	uint8 m_nReloadCounter;
 	LoadingResourceIndex_t m_nLoadingResource;
 	CInterlockedInt m_nRefCount;
 	ExtRefIndex_t m_nExtRefHandle;
