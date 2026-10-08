@@ -30,11 +30,6 @@ struct edict_t;
 #define FL_EDICT_PVSCHECK	(1<<4)	// always transmit entity, but cull against PVS
 
 
-// Max # of variable changes we'll track in an entity before we treat it
-// like they all changed.
-#define MAX_CHANGE_OFFSETS	19
-#define MAX_EDICT_CHANGE_INFOS	100
-
 struct OffsetIgnore_t
 {
 	typedef uint16 OffsetIgnoreValueType_t;
@@ -78,32 +73,5 @@ struct VarChangeInfo_t
 	uint32 m_bResolved : 1;
 };
 
-
-class CEdictChangeInfo
-{
-public:
-	ChangeAccessorFieldPathIndexInfo_t *m_pChangeAccessorFieldPathInfo;
-	// Edicts remember the offsets of properties that change 
-	VarChangeInfo_t m_ChangeOffsets[MAX_CHANGE_OFFSETS];
-	uint32 m_nChangeOffsets;
-};
-
-// Shared between engine and game DLL.
-class CSharedEdictChangeInfo
-{
-public:
-	CSharedEdictChangeInfo()
-	{
-		m_iSerialNumber = 1;
-	}
-
-	// Matched against edict_t::m_iChangeInfoSerialNumber to determine if its
-	// change info is valid.
-	unsigned short m_iSerialNumber;
-
-	CEdictChangeInfo m_ChangeInfos[MAX_EDICT_CHANGE_INFOS];
-	unsigned short m_nChangeInfos;	// How many are in use this frame.
-};
-extern CSharedEdictChangeInfo *g_pSharedChangeInfo;
 
 #endif // EDICT_H
