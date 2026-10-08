@@ -81,3 +81,17 @@ for sdk_target in SdkHelpers.sdk_targets:
   ])]
 
 builder.Add(project)
+
+# Runs KeyValues3 against tier0, so it needs the game's tier0 to start
+kv3test = builder.ProgramProject('keyvalues3_test')
+kv3test.sources = [
+  os.path.join('tests', 'run', 'keyvalues3.cpp'),
+  os.path.join('tier1', 'keyvalues3.cpp'),
+  os.path.join('public', 'tier0', 'memoverride.cpp'),
+]
+
+for sdk_target in SdkHelpers.sdk_targets:
+  binary = kv3test.Configure(sdk_target.cxx, 'keyvalues3_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
+  SdkHelpers.configureCxx(builder, binary, sdk)
+
+builder.Add(kv3test)
