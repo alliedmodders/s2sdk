@@ -4,7 +4,6 @@
 #pragma once
 #endif
 
-#include "iserver.h"
 #include "igamesystem.h"
 #include "entity2/entitysystem.h"
 #include "entity2/entityidentity.h"
@@ -19,6 +18,7 @@
 class matrix3x4a_t;
 class CCompressedResourceManifest;
 class IPVS;
+class IGameSpawnGroupMgr;
 class CKV3Arena;
 class CEntityKeyValues;
 class ILoadingSpawnGroup;

@@ -10,7 +10,6 @@ Deadlock:
 Engine:
   - changed-files:
     - any-glob-to-any-file:
-      - public/iserver.h
       - public/igameevents.h
       - public/iloopmode.h
       - public/engine/**
