@@ -33,6 +33,7 @@
 #include "engine2/iscreenshotcallback.h"
 #include "networksystem/inetworksystem.h"
 #include "resourcefile/resourcetype.h"
+#include "engine2/isource2engine.h"
 
 //-----------------------------------------------------------------------------
 // forward declarations
@@ -118,28 +119,6 @@ struct HltvReplayParams_t
 	// AMNOTE: Flags: 1 = replay the stash m_nStashId, 2 = replay all of the stash instead of its last m_flDelay seconds
 	uint32 m_unk101 = 0;
 	uint32 m_nStashId = 0;
-};
-
-//-----------------------------------------------------------------------------
-// Purpose: Interface the engine exposes to the game DLL and client DLL
-//-----------------------------------------------------------------------------
-abstract_class ISource2Engine : public IAppSystem
-{
-public:
-	// Is the game paused?
-	virtual bool		IsPaused() = 0;
-
-	// What is the game timescale multiplied with the host_timescale?
-	virtual float		GetTimescale( void ) const = 0;
-
-	virtual void		*FindOrCreateWorldSession( const char *pszWorldName, const char *, void * ) = 0;
-
-	virtual CEntityLump	*GetEntityLumpForTemplate( const char *, bool, const char *, const char *, bool ) = 0;
-
-	virtual uint32		GetStatsAppID() const = 0;
-
-	virtual void		WriteJpegScreenshot( const char *pszFilename, int nQuality, int nWidth, int nHeight, bool bAsyncWrite ) = 0;
-	virtual void		RequestScreenshot( IScreenshotCallback *pCallback, void *pContext ) = 0;
 };
 
 //-----------------------------------------------------------------------------
