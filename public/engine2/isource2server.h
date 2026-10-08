@@ -35,7 +35,7 @@
 #include "network_connection.pb.h"
 #include "scenesystem/iscenesystem.h"
 #include "const.h"
-#include "edict.h"
+#include "networksystem/networksystemtypes.h"
 
 class KeyValues3;
 class CUtlBuffer;

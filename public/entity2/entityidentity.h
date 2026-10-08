@@ -13,7 +13,7 @@
 #include "tier1/utlsymbollarge.h"
 #include "entity2/entitycomponent.h"
 #include "entityhandle.h"
-#include "edict.h"
+#include "networksystem/networksystemtypes.h"
 
 class CEntityAttributeTable;
 class CEntityClass;
