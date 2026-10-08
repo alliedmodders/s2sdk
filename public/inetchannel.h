@@ -157,7 +157,7 @@ public:
 	// AMNOTE: Returns the queue of received messages that ProcessMessages dispatches
 	virtual void	*unk411() = 0;
 	virtual void	unk412( CNetMessagePB<CNETMsg_Tick> *pMsg ) = 0;
-	virtual void	unk413() = 0;
+	virtual void	unk413( CConVar<int> *pQueuedMessageLimit ) = 0;
 };
 
 
