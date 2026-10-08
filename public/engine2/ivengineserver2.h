@@ -32,7 +32,6 @@ class CGamestatsData;
 class CGlobalVars;
 class CSharedEdictChangeInfo;
 class IPVS;
-struct SpawnGroupDesc_t;
 class CGameInfo;
 class INetworkMessageInternal;
 class CNetMessage;

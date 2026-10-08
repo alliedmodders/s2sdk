@@ -22,6 +22,7 @@
 #include "networkstringtabledefs.h"
 #include "ihltv.h"
 #include "engine2/inetworkgameserver.h"
+#include "engine2/isource2engine.h"
 #include "bitvec.h"
 #include "playerslot.h"
 #include "tier1/convar.h"
@@ -41,7 +42,6 @@ class CNavData;
 class INavListener;
 class IToolGameSimulationAPI;
 class CCreateGameServerLoadInfo;
-class ILoadingSpawnGroup;
 struct SaveGameParams_t;
 class ISceneViewDebugOverlays;
 class CEntityClass;
