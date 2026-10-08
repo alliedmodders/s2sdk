@@ -657,10 +657,12 @@ public:
 	virtual bool		IsCommandQueueEnabled() = 0;
 	virtual float		GetCommandQueueDilationPercentage() = 0;
 
-	virtual bool		unk201() = 0;
-	virtual bool		unk202() = 0;
-	virtual bool		unk203() = 0;
-	virtual bool 		unk204() = 0;
+	// When true, the map command changes level instead of loading the map while a server is running
+	virtual bool		ShouldMapCommandChangeLevel() = 0;
+	// When true, a connecting client gets a new client object while below the limit instead of reusing a free one
+	virtual bool		ShouldAllocateNewClients() = 0;
+	virtual bool		Uses64TickInterval() = 0;
+	virtual bool		InitGameEvents( CreateInterfaceFn factory ) = 0;
 };
 
 #define INTERFACEVERSION_SERVERGAMECLIENTS		"Source2GameClients001"
