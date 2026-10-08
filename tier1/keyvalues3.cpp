@@ -1447,7 +1447,7 @@ CKeyValues3Array::Element_t* CKeyValues3Array::InsertMultipleBefore( KeyValues3 
 	Element_t *base = Base();
 	if(from < m_nCount)
 	{
-		memmove( (void *)base[from + num], (void *)base[from], sizeof(Element_t) * (m_nCount - from) );
+		memmove( &base[from + num], &base[from], sizeof(Element_t) * (m_nCount - from) );
 	}
 
 	for ( int i = 0; i < num; ++i )
