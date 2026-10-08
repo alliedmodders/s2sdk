@@ -529,7 +529,7 @@ public:
 
 protected:
 	// Can't copy this unless we explicitly do it!
-	CUtlLeanVectorImpl( CUtlLeanVectorImpl const& vec ) { Assert(0); }
+	CUtlLeanVectorImpl( CUtlLeanVectorImpl const& vec ) = delete;
 
 	// Shifts elements....
 	void ShiftElements( T* pDest, const T* pSrc, const T* pSrcEnd );
