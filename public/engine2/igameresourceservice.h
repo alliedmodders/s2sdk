@@ -13,7 +13,12 @@
 
 class CCompressedResourceManifest;
 class CGameResourceManifestLock;
-class IGameResourceManifestLoadCompletionCallback;
+
+abstract_class IGameResourceManifestLoadCompletionCallback
+{
+public:
+	virtual void OnGameResourceManifestLoaded( HGameResourceManifest hManifest, int nResourceCount, ResourceHandle_t * pResourceHandles ) = 0;
+};
 
 abstract_class IGameResourceService : public IEngineService
 {

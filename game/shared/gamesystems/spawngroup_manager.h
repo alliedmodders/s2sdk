@@ -12,6 +12,7 @@
 #include "tier1/utlstring.h"
 #include "tier1/utlscratchmemory.h"
 #include "tier1/utlvector.h"
+#include "engine2/igameresourceservice.h"
 
 #define MAX_SPAWN_GROUP_WORLD_NAME_LENGTH 4096
 
@@ -26,12 +27,6 @@ class CGameResourceManifest;
 class ISpawnGroupPrerequisiteRegistry;
 class IWorld;
 class IWorldReference;
-
-abstract_class IGameResourceManifestLoadCompletionCallback
-{
-public:
-	virtual void OnGameResourceManifestLoaded( HGameResourceManifest hManifest, int nResourceCount, ResourceHandle_t * pResourceHandles ) = 0;
-};
 
 abstract_class IComputeWorldOriginCallback
 {
