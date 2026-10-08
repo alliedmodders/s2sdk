@@ -13,7 +13,7 @@
 #include <appframework/IAppSystem.h>
 #include <inputsystem/InputEnums.h>
 #include <KeyValues.h>
-#include <engine/eventdispatcher.h>
+#include <tier0/eventdispatcher.h>
 #include <tier1/convar.h>
 
 class ISource2WorldSession;

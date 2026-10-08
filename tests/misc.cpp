@@ -17,7 +17,7 @@
 #include "tier1/tier1.h"
 #include "entity2/entityinstance.h"
 #include "entity2/entitykeyvalues.h"
-#include "engine/eventdispatcher.h"
+#include "tier0/eventdispatcher.h"
 #include "schemasystem/schematypes.h"
 #include "networksystem/netmessage.h"
 #include "iloopmode.h"
