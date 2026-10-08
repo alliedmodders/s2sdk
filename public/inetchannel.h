@@ -31,6 +31,10 @@ class	INetworkMessageInternal;
 class	INetMessageDispatcher;
 class	InstantReplayMessage_t;
 class	CUtlSlot;
+class	CNETMsg_Tick;
+
+template<typename PROTO_TYPE>
+class CNetMessagePB;
 
 #ifndef NET_PACKET_ST_DEFINED
 #define NET_PACKET_ST_DEFINED
@@ -59,7 +63,7 @@ enum NetChannelBufType_t : int8
 abstract_class INetworkChannelNotify
 {
 public:
-	virtual void OnShutdownChannel( INetChannel *pChannel ) = 0;
+	virtual void OnShutdownChannel( INetChannel *pChannel, bool ) = 0;
 };
 
 abstract_class INetworkMessageProcessingPreFilter
@@ -83,13 +87,13 @@ public:
 	virtual bool	SendNetMessage( const CNetMessage *pData, NetChannelBufType_t bufType ) = 0;
 	virtual bool	SendData( bf_write &msg, NetChannelBufType_t bufferType ) = 0;
 	virtual int		Transmit( const char *pDebugName, bf_write *data ) = 0;
-	virtual void	SetBitsToSend( void ) = 0;
-	virtual int		SendMessages( const char *pDebugName, bf_write *data ) = 0;
-	virtual void	ClearBitsToSend( void ) = 0;
+	virtual void	SetCheckpoint( void ) = 0;
+	virtual int		TransmitUpToCheckpoint( const char *pDebugName, bf_write *data ) = 0;
+	virtual void	ClearCheckpoint( void ) = 0;
 
 	virtual void	UpdateMessageStats( int msggroup, int bits, bool ) = 0;
 	
-	virtual void	unk011() = 0;
+	virtual void	unk111() = 0;
 	
 	virtual bool	CanPacket( void ) const = 0;
 	virtual bool	IsOverflowed( void ) const = 0;
@@ -108,8 +112,10 @@ public:
 	virtual bool	IsTimedOut( void ) const = 0;
 	virtual void	UpdateLastReceivedTime( void ) = 0;
 
-	virtual void	unk111() = 0;
-	virtual void	unk112() = 0;
+	// AMNOTE: Latency in seconds above which packets are flagged and counted in the flow stats
+	virtual void	unk211( float ) = 0;
+	// AMNOTE: Also sets the outgoing flow's loss and choke from the message
+	virtual void	SetRemoteFramerate( const CNetMessagePB<CNETMsg_Tick> *pMsg ) = 0;
 	
 	virtual bool	IsRemoteDisconnected( ENetworkDisconnectionReason &reason ) const = 0;
 
@@ -127,14 +133,14 @@ public:
 	virtual void	SetInstantReplayIntercept( IInstantReplayIntercept *pInstantReplayIntercept ) = 0;
 	virtual bool	IsNull( void ) const = 0;
 	virtual bool	ProcessDemoPacket( NetPacket_t *packet ) = 0;
-	virtual void	ProcessMessages() = 0;
+	virtual bool	ProcessMessages() = 0;
 	
 	virtual void	InstallMessageFilter( INetworkMessageProcessingPreFilter *pFilter ) = 0;
 	virtual void	UninstallMessageFilter( INetworkMessageProcessingPreFilter *pFilter ) = 0;
 	
 	virtual void	PostReceivedNetMessage( CNetMessage *pData ) = 0;
 	// AMNOTE: Same as PostReceivedNetMessage, but adds the message to the front of the queue
-	virtual void	unk211( CNetMessage *pData ) = 0;
+	virtual void	unk311( CNetMessage *pData ) = 0;
 	virtual void	InsertReplayMessage( InstantReplayMessage_t &msg ) = 0;
 	virtual bool	HasQueuedNetMessages( int nMessageId ) const = 0;
 
@@ -144,12 +150,14 @@ public:
 	virtual void	SuppressTransmit( bool suppress ) = 0;
 	virtual bool	IsSuppressingTransmit( void ) const = 0;
 	
-	virtual EResult	SendRawMessage( const void *pData, uint32 cbData, int nSendFlags ) = 0;
+	// nSendFlags are k_nSteamNetworkingSend_* flags
+	virtual EResult	SendMessageRaw( const void *pData, uint32 cbData, int nSendFlags ) = 0;
 	
-	virtual void	unk311() = 0;
-	virtual void	unk312() = 0;
-	virtual void	unk313() = 0;
-	virtual void	unk314() = 0;
+	virtual void	NotifyOutboundTick( int nTick ) = 0;
+	// AMNOTE: Returns the queue of received messages that ProcessMessages dispatches
+	virtual void	*unk411() = 0;
+	virtual void	unk412( CNetMessagePB<CNETMsg_Tick> *pMsg ) = 0;
+	virtual void	unk413() = 0;
 };
 
 
