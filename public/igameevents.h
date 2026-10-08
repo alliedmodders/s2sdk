@@ -131,8 +131,8 @@ public:
 
 	virtual bool HasKey( const GameEventKeySymbol_t &keySymbol ) = 0;
 
-	// Something script vm related
-	virtual void unk001() = 0;
+	// Returns a script table with the event's keys
+	virtual CVariant CreateVMTable() = 0;
 
 	virtual KeyValues3* GetDataKeys() const = 0;
 };
