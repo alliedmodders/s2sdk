@@ -101,6 +101,12 @@ class CCLCMsg_Move;
 template <typename T>
 class CNetMessagePB;
 class CCLCMsg_Diagnostic;
+class CUtlBuffer;
+class ISceneViewDebugOverlays;
+class CEntityClass;
+class INetChannel;
+class INetworkGameServer;
+struct FlattenedSerializerSpewField_t;
 class INetworkMessageInternal;
 class CNetMessage;
 class CGameInfo;
@@ -410,9 +416,10 @@ public:
 abstract_class ISource2Server : public IAppSystem
 {
 public:
-	virtual bool			unk_001() const = 0;
+	virtual bool			IsValveDS() const = 0;
 
-	virtual void			SetGlobals( CGlobalVars *pGlobals ) = 0;
+	// Returns the previous globals, or nullptr if they were the defaults
+	virtual CGlobalVars		*SetGlobals( CGlobalVars *pGlobals ) = 0;
 
 	// Let the game .dll allocate it's own network/shared string tables
 	virtual void			GameCreateNetworkStringTables( void ) = 0;
@@ -423,7 +430,7 @@ public:
 
 	virtual CUtlOrderedMap<int, Entity2Networkable_t, CDefLess<int>, unsigned short>	*GetEntity2Networkables( void ) const = 0;
 
-	virtual void			*GetEntityInfo() = 0;
+	virtual bool			GetEntity2Networkable( CEntityIndex nIndex, Entity2Networkable_t *pOut ) = 0;
 
 	// Called to apply lobby settings to a dedicated server
 	virtual void			ApplyGameSettings( KeyValues *pKV ) = 0;
@@ -436,7 +443,7 @@ public:
 	// Used by commentary system to hide multiplayer commentary servers from the master.
 	virtual bool			ShouldHideFromMasterServer( bool bServerHasPassword ) = 0;
 
-	virtual void			GetMatchmakingTags( char *buf, size_t bufSize ) = 0;
+	virtual void			GetMatchmakingTags( CBufferString &buf ) = 0;
 
 	virtual void			ServerHibernationUpdate( bool bHibernating ) = 0;
 
@@ -466,7 +473,7 @@ public:
 	virtual void			SetNavMeshData( const CNavData *navMeshData ) = 0;
 	virtual void			RegisterNavListener( INavListener *pNavListener ) = 0;
 	virtual void			UnregisterNavListener( INavListener *pNavListener ) = 0;
-	virtual void			*GetSpawnDebugInterface( void ) = 0;
+	virtual bool			GetBugReportAttachment( int nIndex, CUtlBuffer &buf, CUtlString &sName, CUtlString &sDescription ) = 0;
 
 	virtual IToolGameSimulationAPI *GetToolGameSimulationAPI( void ) = 0;
 	virtual void			GetAnimationActivityList( CUtlVector<CUtlString> &activityList ) = 0;
@@ -489,22 +496,86 @@ public:
 	// Returns a list of values and names corresponding to HitGroup_t enum
 	virtual void			GetHitGroupEnumInfo( CUtlVector<int> &values, CUtlVector<CUtlString> &names ) = 0;
 
-	virtual void			unk_101( KeyValues3 *pKV ) = 0;
+	// Adds the game's fields to the server section of the status_json output
+	virtual void			WriteStatusJson( KeyValues3 *pServer ) = 0;
 
-	virtual bool			unk_102( const char *pszSaveName, CUtlString &fileName ) = 0;
-	virtual bool			unk_103( const char *pszSaveName, CUtlString &requiredAddons ) = 0;
+	virtual bool			SaveGame_CalcFileName( const char *pszSaveName, CUtlString &fileName ) = 0;
+	virtual bool			GetRequiredAddonsFromSaveFile( const char *pszSaveName, CUtlString &requiredAddons ) = 0;
 	virtual void			GetLevelsFromSaveFile( const char *pszSaveName, CUtlVector<CCreateGameServerLoadInfo> &levels, bool bWipeAndExtract, int, CUtlString *pComment ) = 0;
-	virtual void			unk_201( void ) = 0;
+	virtual void			ClearSaveDirectory( void ) = 0;
 	virtual void			PreSaveGameLoaded( const char *pszSaveName ) = 0;
 	virtual void			AppendSaveGameResources( HGameResourceManifest hManifest, ILoadingSpawnGroup *pLoadingSpawnGroup, SpawnGroupHandle_t hSpawnGroup, const void * ) = 0;
 	virtual void			AppendTransitionResources( HGameResourceManifest hManifest, ILoadingSpawnGroup *pLoadingSpawnGroup, SpawnGroupHandle_t hSpawnGroup, const void * ) = 0;
 	virtual /*SaveGameResult_t*/ int SaveGame( const SaveGameParams_t &params ) = 0;
-	virtual bool			unk_301( void ) = 0;
-	virtual bool			unk_302( void ) = 0;
-	virtual bool			unk_303( void ) = 0;
+	virtual bool			IsAsyncSaveInProgress( void ) = 0;
+	virtual bool			ProcessPendingSaveRequest( void ) = 0;
+	virtual bool			HasPendingSaveRequest( void ) = 0;
 	virtual void			FinishAsyncSave( void ) = 0;
 
 	virtual const char		*GetEntityUniqueHammerID( CEntityIndex nEntityIndex ) = 0;
+
+	// AMNOTE: A scope is one subclass VData file, matched by its file path or, in the ByDataType variants,
+	// by its generic data type. A null or empty scope matches any scope.
+	virtual const char		*GetVDataClassName( const char *pszName, const char *pszScopeFile ) = 0;
+	virtual const char		*GetVDataClassNameByDataType( const char *pszName, const char *pszGenericDataType ) = 0;
+	virtual const CUtlVector<CUtlString> &GetSubclassNamesInScope( const char *pszScopeFile ) = 0;
+	virtual const CUtlVector<CUtlString> &GetSubclassNamesInScopeByDataType( const char *pszGenericDataType ) = 0;
+	virtual void			GetAllSubclassNames( CUtlVector<CUtlString> &names ) = 0;
+	virtual const char		*GetSubclassDesignerName( const char *pszSubclassName ) = 0;
+
+	virtual void			UpdateGCInformation( bool, bool ) = 0;
+
+	virtual const CUtlVector<CUtlString> &GetDesignerNamesForClass( const char *pszClassName ) = 0;
+	// AMNOTE: Does nothing in CS2
+	virtual void			unk_101( void *, void * ) = 0;
+
+	virtual bool			ReportGCQueuedMatchStart( int32 iReservationStage, uint32 *puiConfirmedAccounts, int numConfirmedAccounts ) = 0;
+
+	// AMNOTE: Forwards to the game rules, which do nothing with it in CS2
+	virtual void			unk_201( void * ) = 0;
+	virtual ISceneViewDebugOverlays *GetDebugOverlays( void ) = 0;
+
+	virtual const char		*GetNativeClassForScriptClass( const char *pszScriptClassName ) = 0;
+	virtual CEntityClass	*GetScriptClassForDesignerName( const char *pszDesignerName ) = 0;
+	virtual bool			IsScriptClassDerivedFrom( const char *pszDesignerName, const char *pszBaseName ) = 0;
+
+	virtual bool			ShouldHoldGameServerReservation( float flTimeElapsedWithoutClients ) = 0;
+
+	virtual void			OnBroadcastRelayRequestSucceeded( void * ) = 0;
+	virtual void			SendServerFrameTime( float flFrameTime ) = 0;
+	virtual void			OnClientHltvReplayStart( CPlayerSlot slot, int ) = 0;
+	virtual void			OnClientHltvReplayStop( CPlayerSlot slot ) = 0;
+
+	virtual bool			FormatSerializerFieldValue( CEntityIndex nEntityIndex, FlattenedSerializerSpewField_t &field ) = 0;
+
+	virtual bool			ProcessClientStringCommand( CPlayerSlot slot, const CCommand &args, uint32 nPredictionSync ) = 0;
+	virtual void			OnPreMatchInterfaceCommand( uint32 uiAccountID, int, const char *pszCommand ) = 0;
+	virtual void			SetPlayerTeammatePreferredColor( uint32 uiAccountID, int nColor ) = 0;
+	virtual void			UpdateCompTeammateColors( void ) = 0;
+
+	// A reason other than NETWORK_DISCONNECT_INVALID rejects the connecting client
+	virtual ENetworkDisconnectionReason GetClientConnectRejectReason( const CSteamID &steamID ) = 0;
+	virtual const char		*ClientConnectionValidatePreNetChan( const CSteamID &steamID, const char *pszPlayerName ) = 0;
+
+	virtual bool			LogForHTTPListeners( const char *pszLogLine ) = 0;
+
+	// AMNOTE: These four do nothing in CS2
+	virtual void			unk_301( void ) = 0;
+	virtual void			unk_302( void ) = 0;
+	virtual void			unk_303( void ) = 0;
+	virtual void			unk_304( void ) = 0;
+
+	virtual void			RegisterClientNetMessageHandlers( INetChannel *pNetChannel, CPlayerSlot slot, int nAction ) = 0;
+	virtual bool			GetAddonForMap( const char *pszMapName, CUtlString &addonName ) = 0;
+	virtual uint64			GetMatchID( void ) = 0;
+	virtual void			OnSteamAuthWarning( const char *pszMessage ) = 0;
+	virtual void			OnNetworkGameServerActivated( INetworkGameServer *pNetworkGameServer ) = 0;
+	virtual uint32			GetSteamGroupAccountID( void ) = 0;
+
+#ifdef PLATFORM_LINUX
+	// AMNOTE: Does nothing in CS2
+	virtual void			unk_401( void ) = 0;
+#endif
 };
 
 //-----------------------------------------------------------------------------
