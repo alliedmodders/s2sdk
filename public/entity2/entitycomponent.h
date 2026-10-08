@@ -12,12 +12,12 @@
 #include "schemasystem/schematypes.h"
 
 class CEntityIdentity;
+class CEntityInstance;
 class CEntityComponentHelper;
 class CKV3TransferLoadContext;
 class CKV3TransferSaveContext;
 class CNetworkSerializerClassInfo;
 struct ComponentUnserializerClassInfo_t;
-struct EntOutput_t;
 
 struct ComponentUnserializerKeyNamesChunk_t
 {
@@ -69,6 +69,20 @@ struct EntComponentInfo_t
 	ComponentUnserializerClassInfo_t m_componentUnserializerClassInfo;
 	void* m_pScriptDesc;
 	CEntityComponentHelper* m_pBaseClassComponentHelper;
+};
+
+struct EntOutput_t
+{
+	typedef void* (*GetOutputOwnerFn_t)( CEntityInstance* pEntity );
+
+	const char* m_pName;
+	uint32 m_nFlags;
+
+	// Returns the object that holds the output, the entity itself when null
+	GetOutputOwnerFn_t m_pfnGetOutputOwner;
+
+	// Offset of the CEntityIOOutput in its owner, 0x7FFFFFFF when there is none
+	uint32 m_nOutputOffset;
 };
 
 class CEntityComponentHelper

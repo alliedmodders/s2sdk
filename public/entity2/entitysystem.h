@@ -20,6 +20,7 @@
 #include "entityhandle.h"
 #include "concreteentitylist.h"
 #include "entitydatainstantiator.h"
+#include "entity2/ientity2_entityio.h"
 #include "gametime.h"
 
 class CKV3Arena;
@@ -40,24 +41,12 @@ class IEntityResourceManifestBuilder;
 class ISpawnGroupEntityFilter;
 class IHandleEntity;
 struct ComponentUnserializerFieldInfo_t;
+struct EntOutput_t;
 
 // Null before ISource2Server::Init and after its Shutdown
 extern CGameEntitySystem* GameEntitySystem();
 
 typedef void (*EntityResourceManifestCreationCallback_t)(IEntityResourceManifest *, void *);
-
-enum EntityIOTargetType_t
-{
-	ENTITY_IO_TARGET_INVALID = -1,
-	ENTITY_IO_TARGET_CLASSNAME = 0,
-	ENTITY_IO_TARGET_CLASSNAME_DERIVES_FROM = 1,
-	ENTITY_IO_TARGET_ENTITYNAME = 2,
-	ENTITY_IO_TARGET_CONTAINS_COMPONENT = 3,
-	ENTITY_IO_TARGET_SPECIAL_ACTIVATOR = 4,
-	ENTITY_IO_TARGET_SPECIAL_CALLER = 5,
-	ENTITY_IO_TARGET_EHANDLE = 6,
-	ENTITY_IO_TARGET_ENTITYNAME_OR_CLASSNAME = 7,
-};
 
 enum EntityIterType_t
 {
@@ -106,12 +95,6 @@ struct CPulseArgumentPack
 
 	// AMNOTE: Holds the argument names, types and values
 	CPulseCallContextInfo* m_pInfo;
-};
-
-struct CPulseInputParamMap
-{
-	KeyValues3 m_KV3;
-	bool m_bForwardAllArgs;
 };
 
 struct EntityIOQueuePrioritizedEvent_t
@@ -381,6 +364,16 @@ public:
 	CUtlVector<IEntityListener*> m_entityListeners;
 	IEntity2SaveRestore* m_pEntity2SaveRestore;
 	IEntity2Networkables* m_pEntity2Networkables;
+};
+
+abstract_class IEntityIONotify
+{
+public:
+	virtual void OnEntityIOOutput( CEntityInstance* pActivator, CEntityInstance* pCaller, const EntityIOConnection_t* pConnection, const CPulseArgumentPack* pArgs ) = 0;
+	// Called after the target handled the input
+	virtual void OnEntityIOInput( CEntityInstance* pTarget, const char* pszInput, CEntityInstance* pActivator, CEntityInstance* pCaller, const CVariant* pValue, const CPulseArgumentPack* pArgs ) = 0;
+	virtual void OnEntityIOConnectionRemoved( CEntityInstance* pActivator, CEntityInstance* pCaller, const EntityIOConnection_t* pConnection ) = 0;
+	virtual void OnOutputFired( CEntityInstance* pActivator, CEntityInstance* pCaller, float flDelay, const EntOutput_t* pOutput, const CPulseArgumentPack* pArgs ) = 0;
 };
 
 abstract_class IEntityFindFilter
