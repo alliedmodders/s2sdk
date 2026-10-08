@@ -104,6 +104,7 @@ class CCLCMsg_Diagnostic;
 class CUtlBuffer;
 class ISceneViewDebugOverlays;
 class CEntityClass;
+class CSVCMsg_UserCommands;
 class INetChannel;
 class INetworkGameServer;
 struct FlattenedSerializerSpewField_t;
@@ -547,6 +548,9 @@ public:
 	virtual void			OnClientHltvReplayStop( CPlayerSlot slot ) = 0;
 
 	virtual bool			FormatSerializerFieldValue( CEntityIndex nEntityIndex, FlattenedSerializerSpewField_t &field ) = 0;
+
+	virtual void			CaptureUserCommands( void ) = 0;
+	virtual CNetMessagePB<CSVCMsg_UserCommands> *CreateUserCommandsMessage( void ) = 0;
 
 	virtual bool			ProcessClientStringCommand( CPlayerSlot slot, const CCommand &args, uint32 nPredictionSync ) = 0;
 	virtual void			OnPreMatchInterfaceCommand( uint32 uiAccountID, int, const char *pszCommand ) = 0;
