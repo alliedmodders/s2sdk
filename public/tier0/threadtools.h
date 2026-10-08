@@ -858,14 +858,24 @@ protected:
 	CThreadSyncObject();
 	void AssertUseable();
 
+#ifdef PLATFORM_POSIX
+	virtual bool WaitImpl( uint32 dwTimeout );
+#endif
+
 #ifdef _WIN32
 	HANDLE m_hSyncObject;
+	bool m_bCreatedHandle;
 #elif defined(POSIX)
+	char *m_pszSemName;
+	int m_pSemaphore;
+	bool m_bSemOwner;
+	bool m_bSemAutoUndo;
 	pthread_mutex_t	m_Mutex;
 	pthread_cond_t	m_Condition;
 	bool m_bInitalized;
-	CInterlockedInt m_cSet;
 	bool m_bManualReset;
+	CInterlockedInt m_cSet;
+	int m_nBroadcastCount;
 #else
 #error "Implement me"
 #endif
