@@ -8,7 +8,7 @@
 #include <tier1/utldelegate.h>
 #include <tier1/utlmap.h>
 
-class ISchemaBinding;
+struct SchemaClassInfoData_t;
 
 struct CEventDispatcher_Base
 {
@@ -51,7 +51,7 @@ struct CEventIDManager_Default : CEventIDManager_SchemaBinding
 template <typename T>
 struct CEventDispatcher_Identified : CEventDispatcher_Base
 {
-	CUtlOrderedMap< const ISchemaBinding*, CCopyableUtlVector<CEventDispatcher_Base::EventListenerInfo_t>, CDefLess<const ISchemaBinding*>, unsigned int> m_EventListenerMap;
+	CUtlOrderedMap< const SchemaClassInfoData_t*, CCopyableUtlVector<CEventDispatcher_Base::EventListenerInfo_t>, CDefLess<const SchemaClassInfoData_t*>, unsigned int> m_EventListenerMap;
 };
 
 template <typename T>
