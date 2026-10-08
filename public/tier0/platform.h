@@ -1093,6 +1093,7 @@ PLATFORM_INTERFACE uint64			Plat_MSTime64();		// Time in milliseconds.
 PLATFORM_INTERFACE uint64			Plat_USTime();			// Time in microseconds.
 PLATFORM_INTERFACE char *			Plat_ctime64( const time_t *timep, char *buf, size_t bufsize );
 PLATFORM_INTERFACE uint64			Plat_GetClockStart();	// Snapshot of the clock when app started.
+PLATFORM_INTERFACE time_t			Plat_GetTime();			// Same as time().
 
 // Get the local calendar time.
 // Same as time() followed by localtime(), but non-crash-prone and threadsafe.
@@ -1116,6 +1117,10 @@ PLATFORM_INTERFACE int				Plat_GetExecutablePathUTF8( CBufferString *buf );
 PLATFORM_INTERFACE const char *		Plat_GetGameDirectory( int unknown=0 );
 
 PLATFORM_INTERFACE bool				Plat_FileExists( const char *pFileName, int flags );
+PLATFORM_INTERFACE bool				Plat_FileIsReadOnly( const char *pFileName );
+// bDontFollowLinks checks a symbolic link itself rather than its target. Returns -1 when the file doesn't exist.
+PLATFORM_INTERFACE int64			Plat_FileSize( const char *pFileName, bool bDontFollowLinks );
+PLATFORM_INTERFACE bool				Plat_IsDirectory( const char *pPath, bool bDontFollowLinks );
 
 PLATFORM_INTERFACE char const *		Plat_GetEnv( char const *pEnvVarName );
 
