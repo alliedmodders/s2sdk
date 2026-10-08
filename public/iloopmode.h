@@ -16,12 +16,12 @@
 #include <tier0/eventdispatcher.h>
 #include <tier1/convar.h>
 #include <engine2/iprerequisite_registry.h>
+#include <rendersystem/rendersystemtypes.h>
 
 class ISource2WorldSession;
 class ISceneView;
 class IPrerequisite;
 
-DECLARE_POINTER_HANDLE(SwapChainHandle_t);
 DECLARE_POINTER_HANDLE(HSceneViewRenderTarget);
 DECLARE_POINTER_HANDLE(ActiveLoop_t);
 
@@ -31,17 +31,6 @@ enum ClientServerMode_t : int32
 	CLIENTSERVERMODE_SERVER,
 	CLIENTSERVERMODE_CLIENT,
 	CLIENTSERVERMODE_LISTENSERVER,
-};
-
-struct RenderViewport_t
-{
-	int m_nVersion;
-	int m_nTopLeftX;
-	int m_nTopLeftY;
-	int m_nWidth;
-	int m_nHeight;
-	float m_flMinZ;
-	float m_flMaxZ;
 };
 
 struct RHBackColorBuffer_t
