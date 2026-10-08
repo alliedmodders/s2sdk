@@ -74,6 +74,13 @@ jobs:
           python3 ../configure.py --hl2sdk-manifests ../../hl2sdk-manifests ${{ matrix.configure_args }}
           ambuild
 
+      - name: Test
+        if: startsWith(runner.os, 'Linux')
+        shell: bash
+        working-directory: repository
+        run: |
+          LD_LIBRARY_PATH=lib/linux64 build/check/keyvalues3_test/linux-x86_64/keyvalues3_test
+
       - name: Upload artifact
         if: matrix.cc != 'gcc'
         uses: actions/upload-artifact@v7
