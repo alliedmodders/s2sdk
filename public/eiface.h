@@ -37,6 +37,7 @@
 #include "engine2/ivengineserver2.h"
 #include "engine2/isource2server.h"
 #include "engine2/isource2serverconfig.h"
+#include "rendersystem/rendersystemtypes.h"
 
 //-----------------------------------------------------------------------------
 // forward declarations
@@ -56,18 +57,6 @@ struct Entity2Networkable_t;
 class CCreateGameServerLoadInfo;
 class INavListener;
 class CNavData;
-
-enum RenderMultisampleType_t : uint8
-{
-	RENDER_MULTISAMPLE_INVALID = 0xFF,
-	RENDER_MULTISAMPLE_NONE = 0,
-	RENDER_MULTISAMPLE_2X,
-	RENDER_MULTISAMPLE_4X,
-	RENDER_MULTISAMPLE_6X,
-	RENDER_MULTISAMPLE_8X,
-	RENDER_MULTISAMPLE_16X,
-	RENDER_MULTISAMPLE_TYPE_COUNT
-};
 
 struct vis_info_t;
 class IHLTVServer;
