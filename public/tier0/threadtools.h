@@ -892,8 +892,6 @@ private:
 //
 //-----------------------------------------------------------------------------
 
-#if defined( _WIN32 )
-
 //-----------------------------------------------------------------------------
 //
 // CThreadSemaphore
@@ -903,7 +901,9 @@ private:
 class PLATFORM_CLASS CThreadSemaphore : public CThreadSyncObject
 {
 public:
-	CThreadSemaphore(int32 initialValue, int32 maxValue);
+	// bAllUsers lets other users open a named semaphore on Linux, and does nothing on Windows
+	CThreadSemaphore(int32 initialValue, int32 maxValue, const char *pszName = NULL, bool bAllUsers = false);
+	~CThreadSemaphore();
 
 	//-----------------------------------------------------
 	// Increases the count of the semaphore object by a specified
@@ -911,11 +911,17 @@ public:
 	//-----------------------------------------------------
 	bool Release(int32 releaseCount = 1, int32 * pPreviousCount = NULL );
 
+#ifdef PLATFORM_POSIX
+protected:
+	bool WaitImpl( uint32 dwTimeout ) override;
+#endif
+
 private:
 	CThreadSemaphore(const CThreadSemaphore &);
 	CThreadSemaphore &operator=(const CThreadSemaphore &);
 };
 
+#if defined( _WIN32 )
 
 //-----------------------------------------------------------------------------
 //
