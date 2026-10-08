@@ -1058,6 +1058,58 @@ private:
 
 //-----------------------------------------------------------------------------
 //
+// CThreadRWLock_FastRead
+//
+//-----------------------------------------------------------------------------
+
+enum RWLockTranstionResult_t
+{
+	// Another writer had the lock in between
+	RWLTR_STATE_INVALIDATED = 0,
+	RWLTR_STATE_REMAINED_VALID = 1,
+};
+
+// AMNOTE: Incomplete, tier0 doesn't export LockForRead, UnlockRead and LockForWrite
+class CThreadRWLock_FastRead
+{
+public:
+	enum WriteLockTransition_t
+	{
+		// AMNOTE: Blocks reads with HaveWriteLock_BlockReadsNow( true )
+		TRANSITION_UNK001,
+		// AMNOTE: Blocks reads with HaveWriteLock_BlockReadsNow( false )
+		TRANSITION_UNK002,
+		// AMNOTE: Doesn't block reads
+		TRANSITION_UNK003
+	};
+
+	DLL_CLASS_IMPORT CThreadRWLock_FastRead();
+
+	DLL_CLASS_IMPORT void UnlockWrite( const char *pFileName = NULL, int nLine = -1 );
+	DLL_CLASS_IMPORT RWLockTranstionResult_t UnlockRead_LockForWrite( const char *pFileName, int nLine, WriteLockTransition_t transition );
+	DLL_CLASS_IMPORT RWLockTranstionResult_t UnlockWrite_LockForRead( const char *pFileName = NULL, int nLine = -1 );
+	DLL_CLASS_IMPORT bool TryUnlockRead_LockForWrite( const char *pFileName, int nLine, bool bForce, WriteLockTransition_t transition );
+	DLL_CLASS_IMPORT bool TryUnlockWrite_LockForRead( const char *pFileName = NULL, int nLine = -1 );
+	DLL_CLASS_IMPORT void HaveWriteLock_BlockReadsNow( bool bBlock );
+	DLL_CLASS_IMPORT void HaveWriteLock_UnblockReads();
+
+protected:
+	DLL_CLASS_IMPORT bool EncounteredComplexReadLockOperation( uint32 nInterlock, bool bWait, const char *pFileName, int nLine );
+	DLL_CLASS_IMPORT void UnlockReadAccounting( const char *pFileName, int nLine, uint32 nInterlock );
+
+private:
+	CInterlockedUInt m_Interlock;
+	CInterlockedInt m_ReadlockAccounting;
+	CThreadSemaphore m_WriteLockQueue;
+	CThreadEvent m_WriteLockUnblocked;
+	CThreadEvent m_ReadLockUnblocked;
+
+	ThreadId_t m_WritingThreadID;
+	int m_nWritingThreadLockCount;
+};
+
+//-----------------------------------------------------------------------------
+//
 // CThreadSpinRWLock
 //
 //-----------------------------------------------------------------------------
