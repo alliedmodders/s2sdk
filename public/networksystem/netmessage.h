@@ -48,9 +48,13 @@ public:
 	}
 
 private:
-	char unk001[24];
+	double m_flRecvTime;
+	int m_nTick;
+	NetChannelBufType_t m_nBufType;
+	int m_nBits;
+	int m_nInSequenceNr;
 	float m_flMargin;
-	char unk002[12];
+	int64 m_unk101;
 };
 
 // AMNOTE: This is a stub class over real CNetMessagePB!
