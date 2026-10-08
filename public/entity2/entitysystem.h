@@ -174,6 +174,38 @@ struct SecondaryPrecacheMemberCallback_t
 	void (CEntityInstance::*pfnPrecache)(ResourceHandle_t hResource, const CEntityPrecacheContext* pContext);
 };
 
+// Called with each added resource once it's loaded, to add the resources it uses
+typedef void (*SecondaryPrecacheCallback_t)(ResourceHandle_t hResource, const CEntityPrecacheContext* pContext);
+
+abstract_class IEntityResourceManifest
+{
+public:
+	virtual void AddResource(const char* pszResourceName) = 0;
+	virtual void AddResource(const char* pszResourceName, SecondaryPrecacheCallback_t pfnCallback) = 0;
+	virtual void AddResource(const char* pszResourceName, CEntityInstance* pEntity, SecondaryPrecacheMemberCallback_t callback) = 0;
+
+	// Adds the compiled resource of a "file://{resources}/" panorama path
+	virtual void AddPanoramaResource(const char* pszPath) = 0;
+
+	virtual void AddPrecachedSubclass(const CUtlStringToken& subclassId) = 0;
+	virtual bool IsSubclassPrecached(const CUtlStringToken& subclassId) = 0;
+
+	// AMNOTE: Writes "<p2>/<p1>/<p3>/<pszFilter or __nofilter__>.ventl" to pOut
+	virtual void ConstructEntityLumpResourceName(const char* p1, const char* p2, const char* p3, const char* pszFilter, CBufferString* pOut) = 0;
+
+	// Logs each added resource when enabled
+	virtual void SetVerbose(bool bVerbose) = 0;
+
+	// AMNOTE: True when the game resource manifest that owns this one was allocated with RESOURCE_MANIFEST_LOAD_DEFAULT load behavior
+	virtual bool unk101() = 0;
+
+	virtual int GetResourceCount() = 0;
+	virtual const char* const* GetResourceNames() = 0;
+
+	// Sets the entity whose resources are being added, returns the previous one
+	virtual EntitySpawnInfo_t SetCurrentPrecacheEntity(const EntitySpawnInfo_t& info) = 0;
+};
+
 class IEntityListener
 {
 public:
