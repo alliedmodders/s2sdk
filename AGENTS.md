@@ -5,7 +5,8 @@ alliedmodders/s2sdk holds the Source 2 SDKs, one branch per game: `cs2`, `dota` 
 ## Scope
 
 - The SDK declares what the engine has, mainly for server plugins. Client-only interfaces generally aren't added.
-- Add only what the engine has: convenience methods, operators, iteration helpers, macros and access changes belong in the consumer's code.
+- Validate added classes/struct to match the game in terms of layout & its functionality, you can add convenience methods, operators, iteration helpers, macros but only if they make sense in a given context, are still matching the engine and actually bring value to the end user.
+- Write production-grade code, be mindful about end user usage of the code you write.
 - Game classes, enums and flags the schema exposes come from schema dumps; don't copy them in by hand.
 - Don't reference game DLL classes the SDK doesn't define (like `CBaseEntity`) in signatures; use `CEntityInstance` or a forward declaration.
 - Correctness comes before downstream builds: don't fake a removed API to keep Metamod or plugins compiling; let the compiler point at what changed.
@@ -64,19 +65,24 @@ SteamFileDownloader get 1422450 all --output <dir> -- "regex:\.(dll|so)$"
 ## Naming and code
 
 - Use the engine's name when strings or symbols give it, even when it breaks the SDK's style. Otherwise name something only when the binary leaves no doubt about what it does; if in doubt it stays unknown, even with its full signature known. Don't rename without such evidence; a name proven wrong becomes unknown.
-- Unknown virtuals are `unkNNN` (`unk_NNN` where the file already uses that), each run of them between named methods taking the next hundred (`unk001`, `Foo`, `unk101`, `unk102`, `Bar`, `unk201`). When a run disappears, renumber the runs after it. Unknown members follow the same scheme as `m_unkNNN`, and an unknown vtable is declared as `unk` virtuals, not stored as a pointer.
-- Name members in Valve's Hungarian style (`m_n`, `m_p`, `m_b`, ...), replacing placeholder names from reverse engineering.
+- Unknown virtuals are `unkXYZ` (`unk_XYZ` where the file already uses that), each `X` in them is a group index (starting with 0), `Y` is inheritance depth (starting from 0 at a first `unk`), `Z` is virtual index within the group of `unk`'s (starting from 1) (Example: `Base1::unk001`, `Base1::Foo`, `Base1::unk101`, `Base1::unk102`, `Base2::Bar`, `Base2::unk111`). When an `unk` virtual disappears, renumber `unk`'s after it.
+- Unknown members follow the same as virtuals scheme, like `m_unkXYZ`.
+- Name only the fields you are certain are there and of the correct type, try to deduce its name by its usage/engine strings/rtti info and come up with the name if you are certain with its meaning, else leave as unknown.
+- Look for common hl2sdk utl class structures (`CUtlVector`, `CUtlMap`, `CUtlLeanVector`, etc) within other structs/classes, try to use these over plain types if applicable and is matching target struct/class layout.
+- For any unknown flag like type try to find all possible flags, their name/meaning and a value it corresponds to. Create an enum if you are certain in it's name and type size, and provide short 1-5 word comment above the flag if it adds any description to its meaning, else leave a short comment above the place where it's used at with a list of found flags and their expected meaning in 1-5 words.
+- When naming members try to match its style with surrounding code, else use Hungarian notation without type prefix (`m_SomeVar`), replacing placeholder names from reverse engineering.
 - Use Source 2's typed wrappers where the engine does: `CPlayerSlot`, `CEntityIndex`, `CSplitScreenSlot`, `CEntityHandle`.
+- For primitives prefer hl2sdk defined types, `uint8` instead of `std::uint8_t`, `uint16`, `uint32`, etc. You can use plain `int`, `float`, `double` where applicable. Don't use `long`, `uint`.
 - Match the file's style, line endings and encoding, and don't restyle code you're only touching.
 - A method's name and arguments should say what it does. Comment only a catch or caveat users need to know, never where something is called from or how it was found; no vtable indices, IDA names or addresses.
 - Comments that describe or guess what something does, to help others work it out later, start with `AMNOTE: `, like `// AMNOTE: Called only when gpGlobals->maxplayer == 1 on player_connect_full`. Mark stubbed or incomplete classes the same way. Don't remove such notes until they're verified.
-- Keep Valve's comments while they're still true.
+- Keep comments while they're still true.
 - When the engine removes an API, use what replaced it instead of keeping a compatibility wrapper. Delete removed virtuals rather than commenting them out or wrapping them in `#if 0`. A renamed type may keep a `using` alias with `// AMNOTE: Deprecated, use X instead`.
-- Update Source 1 leftovers that a game still has (found by RTTI, exports or strings) for Source 2 in place instead of deleting them; delete only what no game has.
+- Update Source 1 leftovers that a game still has (found by RTTI, exports or strings) for Source 2 in place instead of deleting them; Attempt to preserve all the functionality it previously had where applicable. delete only what no game has.
 - New classes the game doesn't export are header-only, without extra .cpp files. Don't move code that's already in a .cpp into a header.
 - Prefer plain getters to reimplementing removed virtuals. Use typedefs for function pointers, and bitfields where the engine packs bits.
 - No `static_assert`s for sizes or offsets, and no explicit padding the compiler adds anyway.
-- Use the SDK's platform and compiler macros (`PLATFORM_LINUX`, `PLATFORM_64BITS`, `COMPILER_MSVC64`, `COMPILER_GCC`, `ALIGN8`), and no `long` in layouts: it's 32 bits on Windows and 64 on Linux.
+- Use the SDK's platform and compiler macros (`PLATFORM_LINUX`, `PLATFORM_64BITS`, `COMPILER_MSVC64`, `COMPILER_GCC`).
 - Protobufs and the libs in `lib/` are per game; use the branch's own. Don't commit updated `lib/` binaries (like tier0.lib and libtier0.so); maintainers update them by hand.
 
 ## Checking
