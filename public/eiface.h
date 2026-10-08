@@ -101,6 +101,7 @@ class CCLCMsg_Move;
 template <typename T>
 class CNetMessagePB;
 class CCLCMsg_Diagnostic;
+class INetworkMessageInternal;
 class CNetMessage;
 class CGameInfo;
 enum SignonState_t : int;
@@ -210,7 +211,7 @@ public:
 	virtual void		SetFrameTimeAmnesty( const char *amnesty, int, float frametime ) = 0;
 	virtual const char *GetFrameTimeAmnesty( bool check_cvar ) = 0;
 
-	virtual void		unk101( const char *, int, int, float ) = 0;
+	virtual void		SetFramePerformanceTag( const char *pszTag, int nValue, int, float flDuration ) = 0;
 
 	virtual void		ShowFrameTimeReport( void *, bool, LoggingChannelID_t channel = -1 ) = 0;
 
@@ -245,7 +246,7 @@ public:
 	virtual INetChannelInfo* GetPlayerNetInfo( CPlayerSlot nSlot ) = 0;
 
 	// AMNOTE: Returns a pointer into the client's frame for its acknowledged delta tick, or nullptr
-	virtual void		*unk201( CPlayerSlot nSlot ) = 0;
+	virtual void		*unk101( CPlayerSlot nSlot ) = 0;
 	// Returns -1 for an invalid slot
 	virtual int			GetClientDeltaTick( CPlayerSlot nSlot ) = 0;
 
@@ -354,7 +355,7 @@ public:
 	// AMNOTE: Creates or reuses a client without a connection, returns its slot
 	virtual CPlayerSlot CreateClient( CPlayerSlot nSlot, CSteamID steamID, const char *pszName ) = 0;
 	// AMNOTE: Sets a client state to !bool unless it is 2 or higher, which CreateClient sets
-	virtual void unk301( CPlayerSlot nSlot, bool ) = 0;
+	virtual void unk201( CPlayerSlot nSlot, bool ) = 0;
 	virtual SignonState_t GetClientSignonState( CPlayerSlot nSlot ) = 0;
 
 	virtual void KickClient( CPlayerSlot nSlot, const char *szInternalReason, ENetworkDisconnectionReason reason ) = 0;
@@ -377,12 +378,12 @@ public:
 	virtual void AddHltvRelayProxyWhitelist( uint32 a, uint32 b, uint32 c, uint32 d, uint32 numbits ) = 0;
 	virtual bool WasShutDownRequested() const = 0;
 	// AMNOTE: Extends the queued matchmaking reservation timeout and sends the data in a connectionless packet to every reservation entry, or only to the entry matching the int when it is non-zero
-	virtual void unk401( int, uint8, uint8, uint32 nDataSize, const void *pData ) = 0;
+	virtual void unk301( int, uint8, uint8, uint32 nDataSize, const void *pData ) = 0;
 	virtual bool IsTvRecording() = 0;
 	virtual void StartAutoRecording() = 0;
 	virtual void RecordDemo( const char *pszFilename ) = 0;
 	virtual void StopRecordingDemo( const CGameInfo *pGameInfo ) = 0;
-	virtual void unk501() = 0;
+	virtual void BroadcastEvent( INetworkMessageInternal *pEvent, const CNetMessage *pData ) = 0;
 	// Returns an empty string when not recording
 	virtual const char *GetTvRecordingDemoFilename() = 0;
 	virtual const char *GetMapName() = 0;
