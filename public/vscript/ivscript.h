@@ -130,6 +130,7 @@ enum ScriptLanguage_t
 {
 	SL_NONE,
 	SL_LUA,
+	SL_NOP,
 
 	SL_DEFAULT = SL_LUA
 };
