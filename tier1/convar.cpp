@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits>
 #include "basetypes.h"
 #include "tier1/convar.h"
 #include "tier1/strtools.h"
@@ -343,6 +344,9 @@ void CCommand::Reset()
 	m_nArgv0Size = 0;
 	m_ArgSBuffer.Base()[0] = '\0';
 	m_Args.RemoveAll();
+	m_unk101 = false;
+	m_flInputTime = std::numeric_limits<double>::quiet_NaN();
+	m_unk201 = 0;
 }
 
 characterset_t* CCommand::DefaultBreakSet()
