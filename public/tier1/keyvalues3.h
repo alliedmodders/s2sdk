@@ -1107,7 +1107,7 @@ protected:
 	bool m_bFormatConverted: 1;
 	bool m_bRootAvailabe: 1;
 
-	IParsingErrorListener* m_pParsingErrorListener;
+	IErrorListener* m_pParsingErrorListener;
 
 	friend class KeyValues3;
 };
@@ -1136,8 +1136,8 @@ public:
 	// filled in after loading via LoadKV3* in binary encoding
 	CUtlBuffer& GetBinaryData() { return m_BinaryData; }
 
-	IParsingErrorListener* GetParsingErrorListener() const { return m_pParsingErrorListener; }
-	void SetParsingErrorListener( IParsingErrorListener* listener ) { m_pParsingErrorListener = listener; }
+	IErrorListener* GetParsingErrorListener() const { return m_pParsingErrorListener; }
+	void SetParsingErrorListener( IErrorListener* listener ) { m_pParsingErrorListener = listener; }
 
 	const char* AllocString( const char* pString, UtlSymLargeId_t *symid = NULL );
 	const char *LookupString( UtlSymLargeId_t symid ) const;
