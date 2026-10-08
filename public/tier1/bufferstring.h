@@ -158,6 +158,7 @@ public:
 
 	// Does string end with 'pSuffix'? (case sensitive/insensitive variants)
 	DLL_CLASS_IMPORT bool EndsWith(const char *pSuffix) const;
+	DLL_CLASS_IMPORT bool EndsWith(const CBufferString &suffix) const;
 	DLL_CLASS_IMPORT bool EndsWith_FastCaseInsensitive(const char *pSuffix) const;
 
 	// Ensures the nCapacity condition is met and grows the local buffer if needed.
@@ -261,6 +262,7 @@ public:
 	DLL_CLASS_IMPORT const char *ShortenPath(bool);
 
 	DLL_CLASS_IMPORT bool StartsWith(const char *pMatch) const;
+	DLL_CLASS_IMPORT bool StartsWith(const CBufferString &match) const;
 	DLL_CLASS_IMPORT bool StartsWith_FastCaseInsensitive(const char *pMatch) const;
 
 	DLL_CLASS_IMPORT const char *StrAppendFormat(const char *pFormat, ...) FMTFUNCTION(2, 3);
