@@ -70,10 +70,6 @@ for sdk_target in SdkHelpers.sdk_targets:
   SdkHelpers.configureCxx(builder, binary, sdk)
   compiler = binary.compiler
 
-  # Plugins use the SDK's allocator overrides
-  if 'NO_MALLOC_OVERRIDE' in compiler.defines:
-    compiler.defines.remove('NO_MALLOC_OVERRIDE')
-
   # Fail on symbols the libraries don't have, which shared libraries allow by default
   if compiler.target.platform == 'linux':
     compiler.linkflags += ['-Wl,-z,defs']
