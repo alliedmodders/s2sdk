@@ -166,6 +166,9 @@ struct CEntityPrecacheContext
 	IEntityResourceManifest* m_pManifest;
 };
 
+// Keeps the member function pointers below as small as the engine's
+class SINGLE_INHERITANCE CEntityInstance;
+
 struct SecondaryPrecacheMemberCallback_t
 {
 	void (CEntityInstance::*pfnPrecache)(ResourceHandle_t hResource, const CEntityPrecacheContext* pContext);
