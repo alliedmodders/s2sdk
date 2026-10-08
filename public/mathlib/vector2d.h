@@ -110,11 +110,11 @@ public:
 	vec_t	Dot(const Vector2D& vOther) const;			
 
 	// assignment
-	Vector2D& operator=(const Vector2D &vOther);
+	Vector2D& operator=(const Vector2D &vOther) = default;
 
 #ifndef VECTOR_NO_SLOW_OPERATIONS
 	// copy constructors
-	Vector2D(const Vector2D &vOther);
+	Vector2D(const Vector2D &vOther) = default;
 
 	// arithmetic operations
 	Vector2D	operator-(void) const;
@@ -218,16 +218,6 @@ inline Vector2D::Vector2D(const float *pFloat)
 
 
 //-----------------------------------------------------------------------------
-// copy constructor
-//-----------------------------------------------------------------------------
-
-inline Vector2D::Vector2D(const Vector2D &vOther)					
-{ 
-	Assert( vOther.IsValid() );
-	x = vOther.x; y = vOther.y;
-}
-
-//-----------------------------------------------------------------------------
 // initialization
 //-----------------------------------------------------------------------------
 
@@ -246,17 +236,6 @@ inline void Vector2D::Random( float minVal, float maxVal )
 inline void Vector2DClear( Vector2D& a )
 {
 	a.x = a.y = 0.0f;
-}
-
-//-----------------------------------------------------------------------------
-// assignment
-//-----------------------------------------------------------------------------
-
-inline Vector2D& Vector2D::operator=(const Vector2D &vOther)	
-{
-	Assert( vOther.IsValid() );
-	x=vOther.x; y=vOther.y;
-	return *this; 
 }
 
 //-----------------------------------------------------------------------------
