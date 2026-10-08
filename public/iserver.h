@@ -59,14 +59,6 @@ enum SignonState_t : int;
 typedef int ChallengeType_t;
 typedef int PauseGroup_t;
 
-class IConnectionlessPacketHandler
-{
-public:
-	virtual	~IConnectionlessPacketHandler( void ) {};
-
-	virtual bool ProcessConnectionlessPacket( const ns_address *addr, bf_read *bf ) = 0;	// process a connectionless packet
-};
-
 abstract_class INetworkGameServer 
 {
 public:

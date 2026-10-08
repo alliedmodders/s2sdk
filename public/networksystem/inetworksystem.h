@@ -59,6 +59,14 @@ private:
 	ENSAddressType m_AddressType;
 };
 
+class IConnectionlessPacketHandler
+{
+public:
+	virtual	~IConnectionlessPacketHandler( void ) {};
+
+	virtual bool ProcessConnectionlessPacket( const ns_address *addr, bf_read *bf ) = 0;	// process a connectionless packet
+};
+
 enum
 {
 	NS_CLIENT = 0,	// client socket
