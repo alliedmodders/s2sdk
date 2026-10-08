@@ -555,6 +555,8 @@ int KeyValues3::GetArrayElementCount() const
 
 KeyValues3** KeyValues3::GetArrayBase()
 {
+	NormalizeArray();
+
 	if ( GetTypeEx() != KV3_TYPEEX_ARRAY )
 		return nullptr;
 
@@ -563,6 +565,8 @@ KeyValues3** KeyValues3::GetArrayBase()
 
 KeyValues3* KeyValues3::GetArrayElement( int elem )
 {
+	NormalizeArray();
+
 	if ( GetTypeEx() != KV3_TYPEEX_ARRAY )
 		return nullptr;
 
@@ -574,6 +578,8 @@ KeyValues3* KeyValues3::GetArrayElement( int elem )
 
 KeyValues3* KeyValues3::ArrayInsertElementBefore( int elem )
 {
+	NormalizeArray();
+
 	if ( GetTypeEx() != KV3_TYPEEX_ARRAY )
 		PrepareForType( KV3_TYPEEX_ARRAY, KV3_SUBTYPE_ARRAY );
 
@@ -582,6 +588,8 @@ KeyValues3* KeyValues3::ArrayInsertElementBefore( int elem )
 
 KeyValues3* KeyValues3::ArrayAddElementToTail()
 {
+	NormalizeArray();
+
 	if ( GetTypeEx() != KV3_TYPEEX_ARRAY )
 		PrepareForType( KV3_TYPEEX_ARRAY, KV3_SUBTYPE_ARRAY );
 
@@ -608,6 +616,8 @@ void KeyValues3::ArraySwapItems( int idx1, int idx2 )
 
 void KeyValues3::SetArrayElementCount( int count, KV3TypeEx_t type, KV3SubType_t subtype )
 {
+	NormalizeArray();
+
 	if ( GetTypeEx() != KV3_TYPEEX_ARRAY )
 		PrepareForType( KV3_TYPEEX_ARRAY, KV3_SUBTYPE_ARRAY );
 
