@@ -31,7 +31,7 @@ class IGameSpawnGroupMgr;
 struct EventServerAdvanceTick_t;
 struct EventServerPollNetworking_t;
 struct EventServerProcessNetworking_t;
-struct EventServerSimulate_t;
+struct EventServerBeginSimulate_t;
 struct EventServerEndSimulate_t;
 struct EventServerPostSimulate_t;
 struct SpawnGroupDesc_t;
@@ -45,6 +45,9 @@ class CSVCMsg_ServerInfo_t;
 class CServerSideClientBase;
 class C2S_CONNECT_Message;
 class CMsgVoiceAudio;
+class CSteamID;
+class ISceneViewDebugOverlays;
+enum SignonState_t : int;
 
 typedef int ChallengeType_t;
 typedef int PauseGroup_t;
@@ -87,7 +90,7 @@ public:
 	virtual void	ServerPollNetworking( const EventServerPollNetworking_t & ) = 0;
 	virtual void	ServerProcessNetworking( const EventServerProcessNetworking_t & ) = 0;
 
-	virtual void	ServerSimulate( const EventServerSimulate_t & ) = 0;
+	virtual void	ServerBeginSimulate( const EventServerBeginSimulate_t & ) = 0;
 	virtual void	ServerEndSimulate( const EventServerEndSimulate_t & ) = 0;
 	virtual void	ServerPostSimulate( const EventServerPostSimulate_t & ) = 0;
 
@@ -121,12 +124,12 @@ public:
 
 	virtual void	SetServerState( server_state_t eNewState ) = 0;
 	virtual server_state_t GetServerState( void ) = 0;
-	virtual void	SpawnServer( const char * ) = 0;
+	virtual bool	SpawnServer( const char * ) = 0;
 
 	virtual int 	GetSpawnGroupLoadingStatus( SpawnGroupHandle_t ) = 0;
 	virtual void	SetSpawnGroupDescription( SpawnGroupHandle_t, const char * ) = 0;
 
-	virtual CUtlVector<INetworkGameClient *> *StartChangeLevel( const char *, const char *pszLandmark, void * ) = 0;
+	virtual CServerChangelevelState *StartChangeLevel( const char *pszMap, const char *pszLandmark, void * ) = 0;
 	virtual void	FinishChangeLevel( CServerChangelevelState * ) = 0;
 	virtual bool	IsChangelevelPending( void ) const = 0;
 
@@ -138,27 +141,30 @@ public:
 
 	virtual void	ReserveServerForQueuedGame( const char *pszReason ) = 0;
 
-	virtual void	unk201() = 0;
-	virtual void	unk202() = 0;
-	virtual void	unk203() = 0;
+	virtual bool	IsReserved() = 0;
+	// is_multiplayer of the GameSessionConfiguration_t the server was started with
+	virtual bool	IsMultiplayer() = 0;
+	virtual bool	IsPlayingSoloAgainstBots() = 0;
 
 	virtual void	BroadcastPrintf( const char *pszFmt, ... ) FMTFUNCTION( 2, 3 ) = 0;
 
-	virtual void	unk301() = 0;
-	virtual void	unk302() = 0;
-	virtual void	unk303() = 0;
+	// AMNOTE: Sets a client state to !bool unless it is 2 or higher, which CNetworkGameServerBase::CreateClient sets
+	virtual void	unk101( CPlayerSlot slot, bool ) = 0;
+	virtual SignonState_t GetClientSignonState( CPlayerSlot slot ) = 0;
+	// Adds the server to the overlays' listeners to broadcast what they draw, or removes it
+	virtual void	SetBroadcastDebugOverlays( ISceneViewDebugOverlays *pOverlays, bool bBroadcast ) = 0;
 
 	virtual void	BroadcastMessage( INetworkMessageInternal *pNetMessage, const CNetMessage *pData, IRecipientFilter *filter ) = 0;
 	virtual bool	IsRecordingDemo() = 0;
 
 	virtual uint8	GetClientConnectionType( CPlayerSlot slot ) = 0;
-	virtual bool	unk401() = 0;
-	virtual float	unk402() = 0;
+	virtual bool	HasReplayDirector() = 0;
+	virtual float	GetAverageFrameTime() = 0;
 
 	virtual void	PreWorldUpdate() = 0;
 	virtual void 	DirectUpdate() = 0;
 
-	virtual int64	unk501() = 0;
+	virtual CSteamID GetGameServerSteamID() = 0;
 	virtual void	BroadcastEntityVoice( int entity, CMsgVoiceAudio *data, uint64 xuid ) = 0;
 };
 
@@ -169,7 +175,8 @@ public:
 
 	virtual void	SetMaxClients( int nMaxClients ) = 0;
 	
-	virtual void	unk011() = 0;
+	// AMNOTE: Creates or reuses a client without a connection, returns its slot
+	virtual CPlayerSlot CreateClient( CPlayerSlot slot, CSteamID steamID, const char *pszName ) = 0;
 
 	virtual bool	ProcessConnectionlessPacket( const ns_address *addr, bf_read *bf ) = 0; // process a connectionless packet
 
