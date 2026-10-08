@@ -16,10 +16,18 @@
 #include "appframework/IAppSystem.h"
 #include "tier1/utlstring.h"
 #include "tier1/KeyValues.h"
-#include "iloopmode.h"
 #include "entity2/entityidentity.h"
 #include <steam/steamclientpublic.h>
 
+
+enum HostStateLoopModeType_t
+{
+	HOST_STATE_LOOP_MODE_IDLE = 0,
+	HOST_STATE_LOOP_MODE_GAME,
+	HOST_STATE_LOOP_MODE_SOURCETV_RELAY,
+
+	HOST_STATE_LOOP_MODE_COUNT
+};
 
 #define INTERFACEVERSION_SERVERCONFIG			"Source2ServerConfig001"
 

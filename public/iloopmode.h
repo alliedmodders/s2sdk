@@ -55,15 +55,6 @@ struct RHBackColorBuffer_t
 	HSceneViewRenderTarget m_hBackColorBuffer;
 };
 
-enum HostStateLoopModeType_t
-{
-	HOST_STATE_LOOP_MODE_IDLE = 0,
-	HOST_STATE_LOOP_MODE_GAME,
-	HOST_STATE_LOOP_MODE_SOURCETV_RELAY,
-
-	HOST_STATE_LOOP_MODE_COUNT
-};
-
 
 struct EngineLoopState_t
 {
