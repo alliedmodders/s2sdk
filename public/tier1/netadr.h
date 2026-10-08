@@ -44,7 +44,7 @@ public:
 	void   SetIPAndPort( uint unIP, unsigned short usPort ) { SetIP( unIP ); SetPort( usPort ); }
 
 	// if bUseDNS is true then do a DNS lookup if needed
-	DLL_CLASS_IMPORT void	SetFromString( const char *pch, bool bUseDNS = false );
+	DLL_CLASS_IMPORT bool	SetFromString( const char *pch, bool bUseDNS = false );
 
 	DLL_CLASS_IMPORT bool	CompareAdr( const netadr_t &a, bool onlyBase = false ) const;
 	DLL_CLASS_IMPORT bool	CompareClassBAdr( const netadr_t &a ) const;
