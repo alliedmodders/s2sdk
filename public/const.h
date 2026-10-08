@@ -333,6 +333,8 @@ enum RenderFx_t : unsigned char
 	kRenderFxMax
 };
 
+typedef uint32 SpawnGroupHandle_t;
+
 enum BuiltInInteractionLayer_t
 {
 	LAYER_INDEX_CONTENTS_SOLID = 0,

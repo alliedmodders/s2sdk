@@ -6,7 +6,7 @@
 #endif
 
 #include "bitvec.h"
-#include "entity2/entityidentity.h"
+#include "const.h"
 
 struct vis_info_t
 {

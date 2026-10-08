@@ -19,8 +19,6 @@ class CEntityAttributeTable;
 class CEntityClass;
 class CEntityInstance;
 
-typedef uint32 SpawnGroupHandle_t;
-
 // AMNOTE: Index into the engine's world group table, with the high bit set for client-side groups; -1 is invalid
 class WorldGroupId_t
 {

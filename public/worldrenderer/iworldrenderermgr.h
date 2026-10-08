@@ -6,7 +6,7 @@
 #endif
 
 #include "mathlib/mathlib.h"
-#include "entity2/entityidentity.h"
+#include "const.h"
 
 class IWorld;
 
