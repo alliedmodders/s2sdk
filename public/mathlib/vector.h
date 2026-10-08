@@ -191,7 +191,7 @@ public:
 	vec_t	Dot(const Vector& vOther) const;			
 
 	// assignment
-	Vector& operator=(const Vector &vOther);
+	Vector& operator=(const Vector &vOther) = default;
 
 	// returns 0, 1, 2 corresponding to the component with the largest absolute value
 	inline int LargestComponent() const;
@@ -681,18 +681,6 @@ inline void VectorClear( Vector& a )
 {
 	a.x = a.y = a.z = 0.0f;
 }
-
-//-----------------------------------------------------------------------------
-// assignment
-//-----------------------------------------------------------------------------
-
-inline Vector& Vector::operator=(const Vector &vOther)	
-{
-	CHECK_VALID(vOther);
-	x=vOther.x; y=vOther.y; z=vOther.z; 
-	return *this; 
-}
-
 
 //-----------------------------------------------------------------------------
 // Array access
@@ -2040,7 +2028,7 @@ public:
 	//void	Negate(); 
 
 	// No assignment operators either...
-	QAngle& operator=( const QAngle& src );
+	QAngle& operator=( const QAngle& src ) = default;
 
 #ifndef VECTOR_NO_SLOW_OPERATIONS
 	// copy constructors
@@ -2160,17 +2148,6 @@ inline QAngle RadianEuler::ToQAngle( void) const
 		y * 180.f / 3.14159265358979323846f,
 		z * 180.f / 3.14159265358979323846f,
 		x * 180.f / 3.14159265358979323846f );
-}
-
-
-//-----------------------------------------------------------------------------
-// assignment
-//-----------------------------------------------------------------------------
-inline QAngle& QAngle::operator=(const QAngle &vOther)	
-{
-	CHECK_VALID(vOther);
-	x=vOther.x; y=vOther.y; z=vOther.z; 
-	return *this; 
 }
 
 
