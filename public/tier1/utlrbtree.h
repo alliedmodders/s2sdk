@@ -12,8 +12,6 @@
 #include "dbg.h"
 #include "tier1/strtools.h"
 #include "tier1/utlleanvector.h"
-#include "tier1/utlfixedmemory.h"
-#include "tier1/utlblockmemory.h"
 #include <type_traits>
 
 
@@ -402,53 +400,6 @@ protected:
 	{
 		return m_Elements;
 	}
-};
-
-// this is kind of ugly, but until C++ gets templatized typedefs in C++0x, it's our only choice
-template < class T, class I = int, typename L = bool (*)( const T &, const T & )  >
-class CUtlFixedRBTree : public CUtlRBTree< T, I, L, CUtlFixedMemory< UtlRBTreeNode_t< T, I > > >
-{
-public:
-
-	typedef L LessFunc_t;
-
-	CUtlFixedRBTree( int growSize = 0, int initSize = 0, const LessFunc_t &lessfunc = 0 )
-		: CUtlRBTree< T, I, L, CUtlFixedMemory< UtlRBTreeNode_t< T, I > > >( growSize, initSize, lessfunc ) {}
-	CUtlFixedRBTree( const LessFunc_t &lessfunc )
-		: CUtlRBTree< T, I, L, CUtlFixedMemory< UtlRBTreeNode_t< T, I > > >( lessfunc ) {}
-
-	typedef CUtlRBTree< T, I, L, CUtlFixedMemory< UtlRBTreeNode_t< T, I > > > BaseClass;
-	bool IsValidIndex( I i ) const
-	{
-		if ( !BaseClass::Elements().IsIdxValid( i ) )
-			return false;
-
-#ifdef _DEBUG // it's safe to skip this here, since the only way to get indices after m_LastAlloc is to use MaxElement()
-		if ( BaseClass::Elements().IsIdxAfter( i, this->m_LastAlloc ) )
-		{
-			Assert( 0 );
-			return false; // don't read values that have been allocated, but not constructed
-		}
-#endif
-
-		return LeftChild(i) != i; 
-	}
-
-private:
-	// this doesn't make sense for fixed rbtrees, since there's no useful max pointer, and the index space isn't contiguous anyways
-	I  MaxElement() const;
-};
-
-// this is kind of ugly, but until C++ gets templatized typedefs in C++0x, it's our only choice
-template < class T, class I = unsigned short, typename L = bool (*)( const T &, const T & )  >
-class CUtlBlockRBTree : public CUtlRBTree< T, I, L, CUtlBlockMemory< UtlRBTreeNode_t< T, I >, I > >
-{
-public:
-	typedef L LessFunc_t;
-	CUtlBlockRBTree( int growSize = 0, int initSize = 0, const LessFunc_t &lessfunc = 0 )
-		: CUtlRBTree< T, I, L, CUtlBlockMemory< UtlRBTreeNode_t< T, I >, I > >( growSize, initSize, lessfunc ) {}
-	CUtlBlockRBTree( const LessFunc_t &lessfunc )
-		: CUtlRBTree< T, I, L, CUtlBlockMemory< UtlRBTreeNode_t< T, I >, I > >( lessfunc ) {}
 };
 
 
