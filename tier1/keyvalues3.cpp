@@ -71,6 +71,8 @@ void KeyValues3::Alloc( int initial_size, Data_t data, int preallocated_size, bo
 		case KV3_TYPEEX_ARRAY_INT32:
 		case KV3_TYPEEX_ARRAY_UINT8_SHORT:
 		case KV3_TYPEEX_ARRAY_INT16_SHORT:
+		case KV3_TYPEEX_ARRAY_UINT32:
+		case KV3_TYPEEX_ARRAY_UINT64:
 		{
 			m_bFreeArrayMemory = false;
 			m_nNumArrayElements = 0;
@@ -283,6 +285,8 @@ void KeyValues3::Free( bool bClearingContext )
 		case KV3_TYPEEX_ARRAY_INT32:
 		case KV3_TYPEEX_ARRAY_UINT8_SHORT:
 		case KV3_TYPEEX_ARRAY_INT16_SHORT:
+		case KV3_TYPEEX_ARRAY_UINT32:
+		case KV3_TYPEEX_ARRAY_UINT64:
 		{
 			if ( m_bFreeArrayMemory )
 				free( m_Data.m_pMemory );
@@ -351,6 +355,8 @@ void KeyValues3::PrepareForType( KV3TypeEx_t type, KV3SubType_t subtype )
 			case KV3_TYPEEX_ARRAY_INT32:
 			case KV3_TYPEEX_ARRAY_UINT8_SHORT:
 			case KV3_TYPEEX_ARRAY_INT16_SHORT:
+			case KV3_TYPEEX_ARRAY_UINT32:
+			case KV3_TYPEEX_ARRAY_UINT64:
 			{
 				Free();
 				break;
@@ -416,6 +422,11 @@ const char* KeyValues3::GetString( const char* defaultValue ) const
 			return m_Data.m_pString;
 		case KV3_TYPEEX_STRING_SHORT:
 			return m_Data.m_szStringShort;
+		case KV3_TYPEEX_STRING_SYMBOL:
+		{
+			CKV3Arena* context = GetContext();
+			return context ? context->LookupString( m_Data.m_StringSymbol ) : defaultValue;
+		}
 		default:
 			return defaultValue;
 	}
@@ -649,6 +660,16 @@ void KeyValues3::NormalizeArray()
 			NormalizeArray<int16>( KV3_TYPEEX_INT, KV3_SUBTYPE_INT16, m_nNumArrayElements, i16ArrayShort, false );
 			break;
 		}
+		case KV3_TYPEEX_ARRAY_UINT32:
+		{
+			NormalizeArray<uint32>( KV3_TYPEEX_UINT, KV3_SUBTYPE_UINT32, m_nNumArrayElements, m_Data.m_Array.m_u32, m_bFreeArrayMemory );
+			break;
+		}
+		case KV3_TYPEEX_ARRAY_UINT64:
+		{
+			NormalizeArray<uint64>( KV3_TYPEEX_UINT, KV3_SUBTYPE_UINT64, m_nNumArrayElements, m_Data.m_Array.m_u64, m_bFreeArrayMemory );
+			break;
+		}
 		default: 
 			break;
 	}
@@ -708,6 +729,22 @@ bool KeyValues3::ReadArrayInt32( int dest_size, int32* data ) const
 				int count = MIN( src_size, dest_size );
 				for ( int i = 0; i < count; ++i )
 					data[ i ] = ( int32 )m_Data.m_Array.m_i16Short[ i ];
+				break;
+			}
+			case KV3_TYPEEX_ARRAY_UINT32:
+			{
+				src_size = m_nNumArrayElements;
+				int count = MIN( src_size, dest_size );
+				for ( int i = 0; i < count; ++i )
+					data[ i ] = ( int32 )m_Data.m_Array.m_u32[ i ];
+				break;
+			}
+			case KV3_TYPEEX_ARRAY_UINT64:
+			{
+				src_size = m_nNumArrayElements;
+				int count = MIN( src_size, dest_size );
+				for ( int i = 0; i < count; ++i )
+					data[ i ] = ( int32 )m_Data.m_Array.m_u64[ i ];
 				break;
 			}
 			default: 
@@ -1153,6 +1190,24 @@ const char* KeyValues3::ToString( CBufferString& buff, uint flags ) const
 						}
 						return buff.Get();
 					}
+					case KV3_TYPEEX_ARRAY_UINT32:
+					{
+						for ( int i = 0; i < elements; ++i )
+						{
+							buff.AppendFormat( "%u", m_Data.m_Array.m_u32[i] );
+							if ( i != elements - 1 ) buff.Insert( buff.Length(), " " );
+						}
+						return buff.Get();
+					}
+					case KV3_TYPEEX_ARRAY_UINT64:
+					{
+						for ( int i = 0; i < elements; ++i )
+						{
+							buff.AppendFormat( "%llu", m_Data.m_Array.m_u64[i] );
+							if ( i != elements - 1 ) buff.Insert( buff.Length(), " " );
+						}
+						return buff.Get();
+					}
 					default:
 						break;
 				}
@@ -1258,6 +1313,12 @@ void KeyValues3::CopyFrom( const KeyValues3* pSrc )
 					break;
 				case KV3_TYPEEX_ARRAY_INT16_SHORT:
 					AllocArray<int16>( pSrc->m_nNumArrayElements, pSrc->m_Data.m_Array.m_i16Short, KV3_ARRAY_ALLOC_NORMAL, KV3_TYPEEX_ARRAY_INT16_SHORT, KV3_TYPEEX_ARRAY_INT16, eSrcSubType, KV3_TYPEEX_INT, KV3_SUBTYPE_INT16 );
+					break;
+				case KV3_TYPEEX_ARRAY_UINT32:
+					AllocArray<uint32>( pSrc->m_nNumArrayElements, pSrc->m_Data.m_Array.m_u32, KV3_ARRAY_ALLOC_NORMAL, KV3_TYPEEX_INVALID, KV3_TYPEEX_ARRAY_UINT32, eSrcSubType, KV3_TYPEEX_UINT, KV3_SUBTYPE_UINT32 );
+					break;
+				case KV3_TYPEEX_ARRAY_UINT64:
+					AllocArray<uint64>( pSrc->m_nNumArrayElements, pSrc->m_Data.m_Array.m_u64, KV3_ARRAY_ALLOC_NORMAL, KV3_TYPEEX_INVALID, KV3_TYPEEX_ARRAY_UINT64, eSrcSubType, KV3_TYPEEX_UINT, KV3_SUBTYPE_UINT64 );
 					break;
 				default:
 					break;
