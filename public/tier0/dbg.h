@@ -231,10 +231,18 @@ PLATFORM_INTERFACE bool SetupWin32ConsoleIO();
 // Legacy Logging System
 //////////////////////////////////////////////////////////////////////////
 
-// Channels which map the legacy logging system to the new system. Only LOG_GENERAL exists as shared in Source 2
+// Channels which map the legacy logging system to the new system.
 
 // Channel for all default Msg/Warning/Error commands.
 PLATFORM_INTERFACE LoggingChannelID_t LOG_GENERAL;
+
+PLATFORM_INTERFACE LoggingChannelID_t LOG_ASSERT;
+PLATFORM_INTERFACE LoggingChannelID_t LOG_CONSOLE;
+PLATFORM_INTERFACE LoggingChannelID_t LOG_DEVELOPER;
+PLATFORM_INTERFACE LoggingChannelID_t LOG_DEVELOPER_CONSOLE;
+PLATFORM_INTERFACE LoggingChannelID_t LOG_DEVELOPER_VERBOSE;
+PLATFORM_INTERFACE LoggingChannelID_t LOG_SYMBOLS;
+PLATFORM_INTERFACE LoggingChannelID_t LOG_VPROF;
 
 // Legacy logging functions
 
