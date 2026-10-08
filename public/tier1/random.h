@@ -37,54 +37,35 @@ public:
 
 
 //-----------------------------------------------------------------------------
-// The standard generator of uniformly distributed random numbers
+// The standard generator of uniformly distributed random numbers, which tier0
+// exports for CThreadNullMutex, CAtomicMutex and CThreadNullVerificationMutex
 //-----------------------------------------------------------------------------
-class DLL_CLASS_IMPORT CUniformRandomStream : public IUniformRandomStream
+template < class TMutex >
+class DLL_CLASS_IMPORT CUniformRandomStreamImpl
 {
 public:
-	CUniformRandomStream();
+	CUniformRandomStreamImpl();
+	explicit CUniformRandomStreamImpl( int iSeed );
 
 	// Sets the seed of the random number generator
-	virtual void	SetSeed( int iSeed );
+	void	SetSeed( int iSeed );
 
 	// Generates random numbers
-	virtual float	RandomFloat( float flMinVal = 0.0f, float flMaxVal = 1.0f );
-	virtual int		RandomInt( int iMinVal, int iMaxVal );
-	virtual float	RandomFloatExp( float flMinVal = 0.0f, float flMaxVal = 1.0f, float flExponent = 1.0f );
+	float	RandomFloat( float flMinVal = 0.0f, float flMaxVal = 1.0f );
+	int		RandomInt( int iMinVal, int iMaxVal );
+	float	RandomFloatExp( float flMinVal = 0.0f, float flMaxVal = 1.0f, float flExponent = 1.0f );
+	float	RandomGaussianFloat( float flMean = 0.0f, float flStdDev = 1.0f );
+	void	RandomizeBits( void *pOut, size_t nBytes );
 
 private:
-	int		GenerateRandomNumber();
+	int		GenerateRandomNumber_Locked();
+	void	SetSeed_Locked( int iSeed );
 
 	int m_idum;
 	int m_iy;
 	int m_iv[NTAB];
 
-	CThreadFastMutex m_mutex;
-};
-
-
-//-----------------------------------------------------------------------------
-// A generator of gaussian distributed random numbers
-//-----------------------------------------------------------------------------
-class DLL_CLASS_IMPORT CGaussianRandomStream
-{
-public:
-	// Passing in NULL will cause the gaussian stream to use the
-	// installed global random number generator
-	CGaussianRandomStream( IUniformRandomStream *pUniformStream = NULL );
-
-	// Attaches to a random uniform stream
-	void	AttachToStream( IUniformRandomStream *pUniformStream = NULL );
-
-	// Generates random numbers
-	float	RandomFloat( float flMean = 0.0f, float flStdDev = 1.0f );
-
-private:
-	IUniformRandomStream *m_pUniformStream;
-	bool	m_bHaveValue;
-	float	m_flRandomValue;
-
-	CThreadFastMutex m_mutex;
+	TMutex m_mutex;
 };
 
 
@@ -96,12 +77,6 @@ DLL_IMPORT float	RandomFloat( float flMinVal = 0.0f, float flMaxVal = 1.0f );
 DLL_IMPORT float	RandomFloatExp( float flMinVal = 0.0f, float flMaxVal = 1.0f, float flExponent = 1.0f );
 DLL_IMPORT int	RandomInt( int iMinVal, int iMaxVal );
 DLL_IMPORT float	RandomGaussianFloat( float flMean = 0.0f, float flStdDev = 1.0f );
-
-
-//-----------------------------------------------------------------------------
-// Installs a global random number generator, which will affect the Random functions above
-//-----------------------------------------------------------------------------
-DLL_IMPORT void	InstallUniformRandomStream( IUniformRandomStream *pStream );
 
 #ifdef _MSC_VER
 #pragma warning(pop)
