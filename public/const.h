@@ -335,6 +335,13 @@ enum RenderFx_t : unsigned char
 
 typedef uint32 SpawnGroupHandle_t;
 
+enum ESpawnGroupUnloadOption
+{
+	kSGUO_None = 0,
+	kSGUO_SaveEntities,
+	kSGUO_MergedIntoOwner,
+};
+
 enum BuiltInInteractionLayer_t
 {
 	LAYER_INDEX_CONTENTS_SOLID = 0,
