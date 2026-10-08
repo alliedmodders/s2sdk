@@ -13,6 +13,7 @@
 #include "tier1/utlscratchmemory.h"
 #include "tier1/utlvector.h"
 #include "engine2/igameresourceservice.h"
+#include "worldrenderer/iworldrenderermgr.h"
 
 #define MAX_SPAWN_GROUP_WORLD_NAME_LENGTH 4096
 
@@ -27,12 +28,6 @@ class CGameResourceManifest;
 class ISpawnGroupPrerequisiteRegistry;
 class IWorld;
 class IWorldReference;
-
-abstract_class IComputeWorldOriginCallback
-{
-public:
-	virtual matrix3x4_t ComputeWorldOrigin( const char *pWorldName, SpawnGroupHandle_t hSpawnGroup, IWorld * pWorld ) = 0;
-};
 
 typedef int *SaveRestoreDataHandle_t;
 
