@@ -228,6 +228,13 @@ template <size_t maxLenInCharacters> int V_vswprintf_safe( OUT_Z_ARRAY wchar_t( 
 PLATFORM_INTERFACE int			V_vsnprintfRet( OUT_Z_CAP(maxLenInCharacters) char *pDest, int maxLenInCharacters, PRINTF_FORMAT_STRING const char *pFormat, va_list params, bool *pbTruncated );
 template <size_t maxLenInCharacters> int V_vsprintfRet_safe( OUT_Z_ARRAY char (&pDest)[maxLenInCharacters], PRINTF_FORMAT_STRING const char *pFormat, va_list params, bool *pbTruncated ) { return V_vsnprintfRet( pDest, maxLenInCharacters, pFormat, params, pbTruncated ); }
 
+// Warns when the string is truncated, unless bQuietTruncation is set
+PLATFORM_INTERFACE int			V_snprintfWarnTrunc( OUT_Z_CAP( destLen ) char *pDest, int destLen, bool bQuietTruncation, PRINTF_FORMAT_STRING const char *pFormat, ... ) FMTFUNCTION( 4, 5 );
+PLATFORM_INTERFACE int			V_vsnprintfWarnTrunc( OUT_Z_CAP( maxLenInCharacters ) char *pDest, int maxLenInCharacters, bool bQuietTruncation, PRINTF_FORMAT_STRING const char *pFormat, va_list params );
+
+// Returns the length of the whole formatted string without the terminator. pDest can be null with a length of 0.
+PLATFORM_INTERFACE int			V_vsnprintfSize( OUT_Z_CAP( maxLenInCharacters ) char *pDest, int maxLenInCharacters, PRINTF_FORMAT_STRING const char *pFormat, va_list params );
+
 // FMTFUNCTION can only be used on ASCII functions, not wide-char functions.
 int V_snwprintf( OUT_Z_CAP(maxLenInCharacters) wchar_t *pDest, int maxLenInCharacters, PRINTF_FORMAT_STRING const wchar_t *pFormat, ... );
 template <size_t maxLenInChars> int V_swprintf_safe( OUT_Z_ARRAY wchar_t (&pDest)[maxLenInChars], PRINTF_FORMAT_STRING const wchar_t *pFormat, ... )
