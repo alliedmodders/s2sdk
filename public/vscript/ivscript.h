@@ -116,6 +116,7 @@
 #endif
 
 class CUtlBuffer;
+class KeyValues;
 class CCommand;
 class CCommandContext;
 
@@ -395,6 +396,7 @@ enum ScriptErrorLevel_t
 
 typedef void ( *ScriptOutputFunc_t )( const char *pszText );
 typedef bool ( *ScriptErrorFunc_t )( ScriptErrorLevel_t eLevel, const char *pszText );
+typedef bool ( *ScriptKeyValuesFromTableFunc_t )( KeyValues *pKeyValues, const char *pszKey, const ScriptVariant_t &value, void *pContext );
 
 //-----------------------------------------------------------------------------
 // 
@@ -411,13 +413,16 @@ enum ScriptStatus_t
 	SCRIPT_RUNNING,
 };
 
-class CSquirrelMetamethodDelegateImpl;
-
 class IScriptVM
 {
 public:
+	virtual ~IScriptVM() {}
+
 	virtual bool Init() = 0;
 	virtual void Shutdown() = 0;
+
+	// AMNOTE: Makes ExecuteFunction fail with SCRIPT_ERROR from then on, Run is unaffected
+	virtual void DisableExecuteFunction() = 0;
 
 	virtual ScriptLanguage_t GetLanguage() = 0;
 	virtual const char *GetLanguageName() = 0;
@@ -430,7 +435,7 @@ public:
 	
 	virtual void EnableLocalDiskAccess() = 0;
 	
-	virtual void ForwardConsoleCommand(const CCommandContext &, const CCommand &) = 0;
+	virtual bool ForwardConsoleCommand(const CCommandContext &, const CCommand &) = 0;
 
 	//--------------------------------------------------------
  
@@ -455,11 +460,14 @@ public:
 	virtual ScriptStatus_t Run( HSCRIPT hScript, HSCRIPT hScope = NULL, bool bWait = true ) = 0;
 	virtual ScriptStatus_t Run( HSCRIPT hScript, bool bWait ) = 0;
 
+	// AMNOTE: Returns the script or function that Run or ExecuteFunction is currently running, NULL outside of them
+	virtual HSCRIPT GetExecutingScript() = 0;
+
 	//--------------------------------------------------------
 	// Scope
 	//--------------------------------------------------------
 	virtual HSCRIPT CreateScope( const char *pszScope, HSCRIPT hParent = NULL ) = 0;
-	virtual void ReferenceScope( HSCRIPT hScript ) = 0;
+	virtual HSCRIPT ReferenceScope( HSCRIPT hScript ) = 0;
 	virtual void ReleaseScope( HSCRIPT hScript ) = 0;
 
 	//--------------------------------------------------------
@@ -513,27 +521,29 @@ public:
 	bool SetValue( const char *pszKey, const ScriptVariant_t &value )																{ return SetValue(NULL, pszKey, value ); }
 
 	virtual bool SetEnumValue(HSCRIPT hScope, const char *pszEnumName, const char *pszValueName, int value, const char *pszDescription) = 0;
-	virtual bool CreateKeyValuesFromTable(HSCRIPT hScope, const char* unk1, void* fUnk, void* unk2) = 0;
 
 	virtual void CreateTable( ScriptVariant_t &Table ) = 0;
 	virtual bool IsTable( HSCRIPT hScope ) = 0;
 	virtual int	GetNumTableEntries( HSCRIPT hScope ) = 0;
 	virtual int GetNumElements( HSCRIPT hScope ) = 0;
 	virtual int GetKeyValue( HSCRIPT hScope, int nIterator, ScriptVariant_t *pKey, ScriptVariant_t *pValue ) = 0;
+	// The caller owns the returned KeyValues. pfnCallback may be NULL, keys it returns true for are not added
+	virtual KeyValues *CreateKeyValuesFromTable(HSCRIPT hScope, const char* pszName, ScriptKeyValuesFromTableFunc_t pfnCallback, void* pContext) = 0;
 
 	virtual bool GetValue( HSCRIPT hScope, const char *pszKey, ScriptVariant_t *pValue ) = 0;
 	virtual bool GetValue( HSCRIPT hScope, int nIndex, ScriptVariant_t *pValue ) = 0;
 	bool GetValue( const char *pszKey, ScriptVariant_t *pValue )																	{ return GetValue(NULL, pszKey, pValue ); }
 	virtual bool GetScalarValue( HSCRIPT hScope, ScriptVariant_t *pValue ) = 0;
+	virtual void CopyValue( const ScriptVariant_t &src, ScriptVariant_t *pDest ) = 0;
 	virtual void ReleaseValue( ScriptVariant_t &value ) = 0;
 
 	virtual bool ClearValue( HSCRIPT hScope, const char *pszKey ) = 0;
 	bool ClearValue( const char *pszKey)																							{ return ClearValue( NULL, pszKey ); }
 	
-	virtual HSCRIPT CreateArray( ScriptVariant_t & ) = 0;
+	virtual void CreateArray( ScriptVariant_t &Array ) = 0;
 	virtual bool IsArray( HSCRIPT hScope ) = 0;
 	virtual int GetArrayCount( HSCRIPT hScope ) = 0;
-	virtual void ArrayAddToTail( HSCRIPT hScope, const ScriptVariant_t &pValue ) = 0;
+	virtual int ArrayAddToTail( HSCRIPT hScope, const ScriptVariant_t &pValue ) = 0;
 	
 	//----------------------------------------------------------------------------
 
@@ -555,14 +565,12 @@ public:
 
 	virtual HSCRIPT CopyHandle( HSCRIPT hScope ) = 0;
 
-	virtual int GetIdentity( HSCRIPT hScope ) = 0;
+	// Returns 0 on success
+	virtual int LoadAndCompileScriptFile( const char *pszFile, const char *pszPathId, HSCRIPT *pScript ) = 0;
 
-	class ISquirrelMetamethodDelegate;
+	virtual void GetSourceId( HSCRIPT hScope, char *pBuf, int nBufSize ) = 0;
 
-	virtual void *MakeSquirrelMetamethod_Get( HSCRIPT&, const char*, ISquirrelMetamethodDelegate *, bool ) = 0;
-	virtual void DestroySquirrelMetamethod_Get( CSquirrelMetamethodDelegateImpl * ) = 0;
-
-	virtual int GetKeyValue2( HSCRIPT hScope, int iterator, ScriptVariant_t *pKey, ScriptVariant_t *pValue ) = 0;
+	virtual bool AreHandlesEqual( HSCRIPT hScript1, HSCRIPT hScript2 ) = 0;
 
 	//----------------------------------------------------------------------------
 	// Call API
