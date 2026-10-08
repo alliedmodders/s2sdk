@@ -33,6 +33,8 @@
 #include "entity2/entityidentity.h"
 #include "resourcefile/resourcetype.h"
 #include "network_connection.pb.h"
+#include "scenesystem/iscenesystem.h"
+#include "const.h"
 
 class KeyValues3;
 class CUtlBuffer;
@@ -50,13 +52,24 @@ class CSVCMsg_UserCommands;
 template <typename T>
 class CNetMessagePB;
 class INetChannel;
-class CCheckTransmitInfo;
-struct vis_info_t;
 class CCLCMsg_Move;
 class CCLCMsg_Diagnostic;
 class IHLTVDirector;
 struct NetMessageInfo_t;
 class CNetMessage;
+
+class CCheckTransmitInfo
+{
+public:
+	CBitVec<MAX_EDICTS>	*m_pTransmitEntity;	// entity n is already marked for transmission
+	CBitVec<MAX_EDICTS>	*m_pNonTransmitEntity; // entity n exists but isn't transmitted; filled from m_pTransmitEntity after the checks, and the client is sent its changes
+	CBitVec<MAX_EDICTS>	*m_pTransmitOutOfPVS; // entity n is outside the PVS but still gets out-of-PVS updates (sv_outofpvsentityupdates)
+	CBitVec<MAX_EDICTS>	*m_pTransmitAlways; // entity n is always send even if not in PVS (HLTV and Replay only)
+	CUtlVector<SpawnGroupHandle_t> m_LoadedSpawnGroups; // sorted; entities from spawn groups the client hasn't loaded aren't checked
+	vis_info_t m_VisInfo; // filled by ISource2GameClients::ClientSetupVisibility
+	CPlayerSlot m_nPlayerSlot;
+	bool m_bFullUpdate; // the client gets a full update instead of a delta
+};
 
 abstract_class IServerGCLobby
 {
