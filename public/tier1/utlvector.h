@@ -374,12 +374,12 @@ public:
 		}
 		if ( m_pData == StaticData() )
 		{
-			m_pData = (Data_t *)A::Alloc( sizeof(int) + ( num * sizeof(T) ) );
+			m_pData = (Data_t *)A::Alloc( sizeof(Data_t) + ( num * sizeof(T) ) );
 			m_pData->m_Size = 0;
 		}
 		else
 		{
-			int nNeeded = sizeof(int) + ( num * sizeof(T) );
+			int nNeeded = sizeof(Data_t) + ( num * sizeof(T) );
 			int nHave = A::GetSize( m_pData );
 			if ( nNeeded > nHave )
 			{
