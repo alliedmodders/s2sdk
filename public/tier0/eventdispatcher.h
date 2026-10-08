@@ -10,6 +10,12 @@
 
 struct SchemaClassInfoData_t;
 
+enum EventMapRegistrationType_t : int32
+{
+	EVENT_MAP_REGISTER = 0,
+	EVENT_MAP_UNREGISTER,
+};
+
 struct CEventDispatcher_Base
 {
 	struct EventListenerInfo_t

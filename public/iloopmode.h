@@ -43,12 +43,6 @@ struct RenderViewport_t
 	float m_flMaxZ;
 };
 
-enum EventMapRegistrationType_t : int32
-{
-	EVENT_MAP_REGISTER = 0,
-	EVENT_MAP_UNREGISTER,
-};
-
 struct RHBackColorBuffer_t
 {
 	ISceneView *m_pView;
