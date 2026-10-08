@@ -16,7 +16,7 @@
 #include "engine2/gameshareddefs.h"
 #include "tier1/netadr.h"
 #include "tier1/utlvector.h"
-#include "entity2/entityidentity.h"
+#include "const.h"
 #include "resourcefile/resourcetype.h"
 
 class GameSessionConfiguration_t;
