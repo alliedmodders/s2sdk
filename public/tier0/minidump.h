@@ -11,6 +11,7 @@
 #endif
 
 #include "tier0/platform.h"
+#include "tier0/memalloc.h"
 
 // calls the passed in function pointer and catches any exceptions/crashes thrown by it, and writes a minidump
 // use from wmain() to protect the whole program
@@ -53,5 +54,40 @@ typedef int (*FnMiniDumpHandler)( MiniDumpStandardData_t *pData );
 // Returns the previous handler. Linux ignores the handler and returns null.
 PLATFORM_INTERFACE FnMiniDumpHandler SetDefaultMiniDumpHandler( FnMiniDumpHandler pfn, bool bRegisterForUnhandledExceptions );
 PLATFORM_INTERFACE FnMiniDumpHandler GetDefaultMiniDumpHandler();
+
+class CMiniDumpComment
+{
+public:
+	DLL_CLASS_IMPORT CMiniDumpComment( int nSize, MemAllocAttribute_t allocAttribute );
+	DLL_CLASS_IMPORT ~CMiniDumpComment();
+
+	DLL_CLASS_IMPORT char *GetStartPointer();
+	DLL_CLASS_IMPORT const char *GetStartPointer() const;
+	DLL_CLASS_IMPORT const char *GetEndPointer() const;
+	DLL_CLASS_IMPORT char *GetCurrentPointer();
+	DLL_CLASS_IMPORT const char *GetCurrentPointer() const;
+	DLL_CLASS_IMPORT int GetAvailableBufferSize() const;
+
+	DLL_CLASS_IMPORT void EnsureOSDescription();
+	DLL_CLASS_IMPORT void Reset();
+	DLL_CLASS_IMPORT void AppendOSComment();
+	DLL_CLASS_IMPORT void AppendComment( const char *pszComment );
+	DLL_CLASS_IMPORT void PrependComment( const char *pszComment );
+	DLL_CLASS_IMPORT void AppendFormattedComment( const char *pszFormat, ... ) FMTFUNCTION( 2, 3 );
+
+	// Appends ch until the comment ends with nCount of them, returns whether it appended any
+	DLL_CLASS_IMPORT bool EnsureEndsWithNumCharacters( char ch, int nCount, bool bAppendToEmpty );
+	// Returns whether it removed any
+	DLL_CLASS_IMPORT bool RemoveTrailingCharacters( char ch );
+
+	DLL_CLASS_IMPORT void OnExceptionCaught();
+
+private:
+	int m_nBufferSize;
+	MemAllocAttribute_t m_nAllocAttribute;
+	char *m_pBuffer;
+	char *m_pOSDescription;
+	EOSType m_eOSType;
+};
 
 #endif // MINIDUMP_H
