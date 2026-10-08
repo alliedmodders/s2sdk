@@ -30,6 +30,7 @@
 #include "network_connection.pb.h"
 #include "entity2/entityidentity.h"
 #include "checktransmitinfo.h"
+#include "engine2/iscreenshotcallback.h"
 #include "networksystem/inetworksystem.h"
 #include "resourcefile/resourcetype.h"
 
@@ -61,7 +62,6 @@ class ISPSharedMemory;
 class CGamestatsData;
 class CEngineHltvInfo_t;
 class INetworkStringTable;
-class CResourceManifestPrerequisite;
 class CEntityLump;
 class IPVS;
 class IHLTVDirector;
@@ -181,14 +181,14 @@ public:
 	// What is the game timescale multiplied with the host_timescale?
 	virtual float		GetTimescale( void ) const = 0;
 
-	virtual void		*FindOrCreateWorldSession( const char *pszWorldName, CResourceManifestPrerequisite *, void * ) = 0;
+	virtual void		*FindOrCreateWorldSession( const char *pszWorldName, const char *, void * ) = 0;
 
 	virtual CEntityLump	*GetEntityLumpForTemplate( const char *, bool, const char *, const char *, bool ) = 0;
 
 	virtual uint32		GetStatsAppID() const = 0;
 
-	virtual void		*UnknownFunc1( const char *pszFilename, int, int, int, bool ) = 0;
-	virtual void		UnknownFunc2( void *, void * ) = 0;
+	virtual void		WriteJpegScreenshot( const char *pszFilename, int nQuality, int nWidth, int nHeight, bool bAsyncWrite ) = 0;
+	virtual void		RequestScreenshot( IScreenshotCallback *pCallback, void *pContext ) = 0;
 };
 
 //-----------------------------------------------------------------------------
