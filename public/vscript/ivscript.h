@@ -188,7 +188,7 @@ DECLARE_DEDUCE_FIELDTYPE( FIELD_CHARACTER, char );
 DECLARE_DEDUCE_FIELDTYPE( FIELD_HSCRIPT, HSCRIPT );
 DECLARE_DEDUCE_FIELDTYPE( FIELD_VARIANT, ScriptVariant_t );
 
-#define ScriptDeduceType( T ) ScriptDeducer<T>::FIELD_TYPE
+#define ScriptDeduceType( T ) ((ScriptDataType_t)ScriptDeducer<T>::FIELD_TYPE)
 
 //---------------------------------------------------------
 
