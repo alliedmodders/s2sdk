@@ -38,41 +38,20 @@
 // forward declarations
 //-----------------------------------------------------------------------------
 class	ServerClass;
-class	CGameTrace;
-typedef	CGameTrace trace_t;
-struct	typedescription_t;
-class	CSaveRestoreData;
-struct	datamap_t;
-struct	studiohdr_t;
-class	CBaseEntity;
-class	CRestore;
-class	CSave;
-struct	vcollide_t;
 class	IRecipientFilter;
-class	CBaseEntity;
-class	ITraceFilter;
 class	INetChannelInfo;
-class	ISpatialPartition;
-class IScratchPad3D;
-class CStandardSendProxies;
 class IAchievementMgr;
 class CGamestatsData;
 class CSteamID;
-class ISPSharedMemory;
-class CGamestatsData;
-class CEngineHltvInfo_t;
 class INetworkStringTable;
 class CEntityLump;
 class IPVS;
 class IHLTVDirector;
 struct SpawnGroupDesc_t;
-class IClassnameForMapClassCallback;
 struct Entity2Networkable_t;
 class CCreateGameServerLoadInfo;
 class INavListener;
 class CNavData;
-class CEntityHandle;
-struct RenderDeviceInfo_t;
 
 enum RenderMultisampleType_t : uint8
 {
@@ -86,10 +65,6 @@ enum RenderMultisampleType_t : uint8
 	RENDER_MULTISAMPLE_TYPE_COUNT
 };
 
-class GameSessionConfiguration_t;
-struct StringTableDef_t;
-class ILoopModePrerequisiteRegistry;
-struct URLArgument_t;
 struct vis_info_t;
 class IHLTVServer;
 class CCompressedResourceManifest;
@@ -126,19 +101,7 @@ namespace google
 // defines
 //-----------------------------------------------------------------------------
 
-#ifdef _WIN32
-#define DLLEXPORT __stdcall
-#else
-#define DLLEXPORT /* */
-#endif
-
 #define INTERFACEVERSION_VENGINESERVER	"Source2EngineToServer001"
-
-struct bbox_t
-{
-	Vector mins;
-	Vector maxs;
-};
 
 class CPlayerUserId
 {
@@ -582,13 +545,6 @@ public:
 	virtual void			unk_401( void ) = 0;
 #endif
 };
-
-//-----------------------------------------------------------------------------
-// Just an interface version name for the random number interface
-// See tier1/random.h for the interface definition
-// NOTE: If you change this, also change VENGINE_CLIENT_RANDOM_INTERFACE_VERSION in cdll_int.h
-//-----------------------------------------------------------------------------
-#define VENGINE_SERVER_RANDOM_INTERFACE_VERSION	"VEngineRandom001"
 
 #define INTERFACEVERSION_SERVERGAMEENTS			"Source2GameEntities001"
 //-----------------------------------------------------------------------------
