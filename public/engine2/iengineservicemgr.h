@@ -4,19 +4,19 @@
 //
 //=============================================================================//
 
-#ifndef IENGINESERVICE_H
-#define IENGINESERVICE_H
+#ifndef IENGINESERVICEMGR_H
+#define IENGINESERVICEMGR_H
 #ifdef _WIN32
 #pragma once
 #endif
 
 #include <appframework/IAppSystem.h>
+#include "engine2/hoststate.h"
 #include <inputsystem/InputEnums.h>
 #include <iloopmode.h>
 #include <localize/ilocalize.h>
 #include <engine2/tier4.h>
 
-class ISwitchLoopModeStatusNotify;
 class IAddonListChangeNotify;
 struct RenderDeviceInfo_t;
 
@@ -128,4 +128,4 @@ public:
 #endif
 };
 
-#endif // IENGINESERVICE_H
+#endif // IENGINESERVICEMGR_H

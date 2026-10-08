@@ -12,7 +12,6 @@ Engine:
     - any-glob-to-any-file:
       - public/igameevents.h
       - public/iloopmode.h
-      - public/engine/**
       - public/engine2/**
 
 Networking:

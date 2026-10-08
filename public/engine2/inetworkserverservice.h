@@ -11,7 +11,7 @@
 #pragma once
 #endif
 
-#include "engine/IEngineService.h"
+#include "engine2/iengineservicemgr.h"
 #include "tier1/utlstring.h"
 #include "tier1/checksum_crc.h"
 #include "tier1/netadr.h"

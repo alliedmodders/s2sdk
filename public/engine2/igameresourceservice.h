@@ -5,7 +5,7 @@
 #pragma once
 #endif
 
-#include "engine/IEngineService.h"
+#include "engine2/iengineservicemgr.h"
 #include "entity2/entitysystem.h"
 #include "resourcefile/resourcetype.h"
 #include "tier1/utlstring.h"
