@@ -609,7 +609,7 @@ public:
 										   const uint16 *pEntityIndicies, int nEntityIndices ) = 0;
 	
 	// TERROR: Perform any PVS cleanup before a full update
-	virtual void			PrepareForFullUpdate( CEntityIndex nPlayerEntityIndex ) = 0;
+	virtual void			PrepareForFullUpdate( CPlayerSlot slot ) = 0;
 
 	virtual bool			ShouldClientReceiveStringTableUserData( const INetworkStringTable *pTable, int stringNumber, const CCheckTransmitInfo *pInfo ) = 0;
 	
