@@ -15,6 +15,7 @@
 #include "engine2/igameresourceservice.h"
 #include "worldrenderer/iworldrenderermgr.h"
 #include "engine2/isource2engine.h"
+#include "engine2/basespawngroup.h"
 
 class matrix3x4a_t;
 class CCompressedResourceManifest;
@@ -111,10 +112,6 @@ private:
 };
 
 // AMNOTE: Short stubs representing game class hierarchy
-class CBaseSpawnGroup : public ISpawnGroup, public IComputeWorldOriginCallback, public IGameResourceManifestLoadCompletionCallback
-{
-};
-
 class CLoadingSpawnGroup : public ILoadingSpawnGroup
 {
 };
