@@ -1,0 +1,69 @@
+//===== Copyright © 1996-2005, Valve Corporation, All rights reserved. ======//
+//
+// Purpose:
+//
+// $NoKeywords: $
+//
+//===========================================================================//
+
+#ifndef ISOURCE2SERVERCONFIG_H
+#define ISOURCE2SERVERCONFIG_H
+
+#ifdef _WIN32
+#pragma once
+#endif
+
+#include "appframework/IAppSystem.h"
+#include "tier1/utlstring.h"
+#include "tier1/KeyValues.h"
+#include "iloopmode.h"
+#include "entity2/entityidentity.h"
+#include <steam/steamclientpublic.h>
+
+
+#define INTERFACEVERSION_SERVERCONFIG			"Source2ServerConfig001"
+
+abstract_class ISource2ServerConfig : public IAppSystem
+{
+public:
+	// Returns string describing current .dll.  e.g., TeamFortress 2, Half-Life 2.
+	//  Hey, it's more descriptive than just the name of the game directory
+	virtual const char *GetGameDescription( void ) = 0;
+
+	virtual int			GetNetworkVersion( void ) = 0;
+
+	// Get server maxplayers and lower bound for same
+	virtual void		GetPlayerLimits( int& minplayers, int& maxplayers, int &defaultMaxPlayers, bool &bIsMultiplayer ) const = 0;
+
+	// Returns max splitscreen slot count ( 1 == no splits, 2 for 2-player split screen )
+	virtual int			GetMaxSplitscreenPlayers( void ) = 0;
+
+	// Return # of human slots, -1 if can't determine or don't care (engine will assume it's == maxplayers )
+	virtual int			GetMaxHumanPlayers() = 0;
+
+	virtual bool		ShouldNotifyLocalClientConnectionStateChanges() = 0;
+
+	virtual void		OnClientFullyConnect( CEntityIndex nEntityIndex ) = 0;
+
+	virtual void		GetHostStateLoopModeInfo( HostStateLoopModeType_t type, CUtlString &loopModeName, KeyValues **ppLoopModeOptions ) = 0;
+
+	virtual bool		AllowDedicatedServers( EUniverse universe ) const = 0;
+
+	virtual void		GetConVarPrefixesToResetToDefaults( CUtlString &sSemicolonDelimitedPrefixList ) const = 0;
+
+	virtual bool		AllowSaveRestore() = 0;
+
+	virtual bool		unk101() = 0;
+
+	virtual bool		IsCommandQueueEnabled() = 0;
+	virtual float		GetCommandQueueDilationPercentage() = 0;
+
+	// When true, the map command changes level instead of loading the map while a server is running
+	virtual bool		ShouldMapCommandChangeLevel() = 0;
+	// When true, a connecting client gets a new client object while below the limit instead of reusing a free one
+	virtual bool		ShouldAllocateNewClients() = 0;
+	virtual bool		Uses64TickInterval() = 0;
+	virtual bool		InitGameEvents( CreateInterfaceFn factory ) = 0;
+};
+
+#endif // ISOURCE2SERVERCONFIG_H
