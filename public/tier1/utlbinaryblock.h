@@ -10,7 +10,7 @@
 #pragma once
 #endif
 
-#include "tier1/utlvectormemory.h"
+#include "tier1/utlleanvector.h"
 #include "tier1/strtools.h"
 #include "limits.h"
 
@@ -20,12 +20,11 @@
 class CUtlBinaryBlock
 {
 public:
-	CUtlBinaryBlock( int growSize = 0, int initSize = 0 );
+	CUtlBinaryBlock( int growSize = 0, int initSize = 0 ) : m_Memory( growSize, initSize ) {}
 
 	// NOTE: nInitialLength indicates how much of the buffer starts full
-	CUtlBinaryBlock( void* pMemory, int nSizeInBytes, int nInitialLength );
-	CUtlBinaryBlock( const void* pMemory, int nSizeInBytes );
-	CUtlBinaryBlock( const CUtlBinaryBlock& src );
+	CUtlBinaryBlock( void* pMemory, int nSizeInBytes, int nInitialLength ) : m_Memory( (uint8 *)pMemory, nSizeInBytes, nInitialLength ) {}
+	CUtlBinaryBlock( const CUtlBinaryBlock& src ) { *this = src; }
 
 	void		Get( void *pValue, int nMaxLen ) const;
 	void		Set( const void *pValue, int nLen );
@@ -41,16 +40,14 @@ public:
 	void		Clear();
 	void		Purge();
 
-	bool		IsReadOnly() const;
-
 	CUtlBinaryBlock &operator=( const CUtlBinaryBlock &src );
+	CUtlBinaryBlock &operator=( CUtlBinaryBlock &&src );
 
 	// Test for equality
 	bool operator==( const CUtlBinaryBlock &src ) const;
 
 private:
-	CUtlVectorMemory_Growable<unsigned char> m_Memory;
-	int m_nActualLength;
+	CUtlLeanVector<uint8, int> m_Memory;
 };
 
 
@@ -69,7 +66,7 @@ inline void *CUtlBinaryBlock::Get( )
 
 inline int CUtlBinaryBlock::Length() const
 {
-	return m_nActualLength;
+	return m_Memory.Count();
 }
 
 inline unsigned char& CUtlBinaryBlock::operator[]( int i )
@@ -80,11 +77,6 @@ inline unsigned char& CUtlBinaryBlock::operator[]( int i )
 inline const unsigned char& CUtlBinaryBlock::operator[]( int i ) const
 {
 	return m_Memory[i];
-}
-
-inline bool CUtlBinaryBlock::IsReadOnly() const
-{
-	return m_Memory.IsReadOnly();
 }
 
 inline bool CUtlBinaryBlock::IsEmpty() const
