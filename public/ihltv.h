@@ -43,8 +43,9 @@ public:
 	virtual void	GetRelayStats( int &proxies, int &slots, int &specs ) = 0;
 	virtual void	GetGlobalStats( int &proxies, int &slots, int &specs ) = 0; 
 
+	// AMNOTE: Network system's local address with the SourceTV port, on master and relay alike
+	virtual const netadr_t *GetLocalAddress( void ) = 0;
 	virtual const netadr_t *GetRelayAddress( void ) = 0; // returns relay address
-	virtual const netadr_t *unk101( void ) = 0;
 
 	virtual bool	IsMasterProxy( void ) = 0; // true, if this is the HLTV master proxy
 	virtual bool	IsTVRelay( void ) = 0;
@@ -55,7 +56,8 @@ public:
 	
 	virtual bool	IsRecording() = 0;
 	virtual const char	*GetRecordingDemoFilename ( void ) = 0;
-	virtual uint32	unk201( void ) = 0;
+	// AMNOTE: -1 until the first broadcast frame arrives
+	virtual int	GetFirstTick( void ) = 0;
 	virtual void	StartAutoRecording( void ) = 0;
 	virtual void	StopRecording( const CGameInfo *pGameInfo ) = 0;
 	virtual void	AddSaveGame( CSteamID steamID, uint64, int, const CUtlBuffer &buf ) = 0;
