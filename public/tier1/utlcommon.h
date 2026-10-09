@@ -13,6 +13,7 @@
 #include "utlstring.h"
 #include "murmurhash3.h"
 #include "type_traits"
+#include <utility>
 
 //-----------------------------------------------------------------------------
 // Henry Goffin (henryg) was here. Questions? Bugs? Go slap him around a bit.
@@ -176,6 +177,19 @@ template <> struct DefaultHashFunctor<CUtlStringToken> { unsigned int operator()
 #if !defined(_MSC_VER) || defined(_NATIVE_WCHAR_T_DEFINED)
 template <> struct DefaultHashFunctor<wchar_t> : IntegerHashFunctor<wchar_t> { };
 #endif
+
+// Enums are hashed by their underlying value, other types without a specialization have no default hash
+template <typename T, bool = std::is_enum_v<T>> struct EnumHashFunctor;
+template <typename T> struct EnumHashFunctor<T, true>
+{
+	unsigned int operator()( T e ) const { return IntegerHashFunctor<std::underlying_type_t<T>>()( (std::underlying_type_t<T>)e ); }
+};
+template <typename T> struct DefaultHashFunctor : EnumHashFunctor<T> { };
+
+template <typename A, typename B> struct DefaultHashFunctor<std::pair<A, B>>
+{
+	unsigned int operator()( const std::pair<A, B> &p ) const { return MurmurHash3Mix64HashFunctor()( ( (uint64)DefaultHashFunctor<A>()( p.first ) << 32 ) | DefaultHashFunctor<B>()( p.second ) ); }
+};
 
 // String specializations. If you want to operate on raw values, use
 // PointerLessFunctor and friends from the "building-block" section above
