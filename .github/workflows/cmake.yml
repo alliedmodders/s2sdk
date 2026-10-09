@@ -1,0 +1,37 @@
+name: CMake
+
+# Only when the CMake support itself changes; the AMBuild CI covers the rest
+on:
+  push:
+    paths:
+      - CMakeLists.txt
+      - .github/cmake-test/**
+      - .github/workflows/cmake.yml
+  pull_request:
+    paths:
+      - CMakeLists.txt
+      - .github/cmake-test/**
+      - .github/workflows/cmake.yml
+
+jobs:
+  cmake:
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+        build_libs: ['OFF', 'ON']
+      fail-fast: false
+
+    name: ${{ matrix.os }} - S2SDK_BUILD_LIBS=${{ matrix.build_libs }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v7
+        name: Repository checkout
+        with:
+          submodules: recursive
+
+      - name: Build a plugin against the SDK
+        shell: bash
+        run: |
+          cmake -S .github/cmake-test -B build -DCMAKE_BUILD_TYPE=Release -DS2SDK_BUILD_LIBS=${{ matrix.build_libs }}
+          cmake --build build --config Release
