@@ -161,19 +161,17 @@ private:
 
 	struct UtlSymTableLargeAltKey
 	{
+		const CUtlSymbolTableLargeBase*	m_pTable;
+		const char *m_pString;
+		int m_nLength;
+	};
+
+	struct UtlSymTableLargeIdKey
+	{
 		explicit operator UtlSymLargeId_t() const { return m_SymId; }
 
 		const CUtlSymbolTableLargeBase*	m_pTable;
-		union
-		{
-			struct
-			{
-				const char *m_pString;
-				int m_nLength;
-			};
-
-			UtlSymLargeId_t m_SymId;
-		};
+		UtlSymLargeId_t m_SymId;
 	};
 
 	struct UtlSymTableLargeHashFunctor
@@ -181,6 +179,12 @@ private:
 		unsigned int operator()( UtlSymTableLargeAltKey k ) const
 		{
 			return CUtlSymbolLarge_Hash( CASEINSENSITIVE, k.m_pString, k.m_nLength );
+		}
+
+		unsigned int operator()( const UtlSymTableLargeIdKey &k ) const
+		{
+			const char *pString = k.m_pTable->String( k.m_SymId );
+			return CUtlSymbolLarge_Hash( CASEINSENSITIVE, pString, V_strlen( pString ) );
 		}
 	};
 
@@ -203,6 +207,20 @@ private:
 		bool operator()( UtlSymLargeId_t a, UtlSymTableLargeAltKey b ) const 
 		{ 
 			return operator()( b, a );
+		}
+
+		bool operator()( UtlSymLargeId_t a, const UtlSymTableLargeIdKey &b ) const
+		{
+			if ( a == b.m_SymId )
+				return true;
+
+			const char *pString = b.m_pTable->String( a );
+			const char *pOther = b.m_pTable->String( b.m_SymId );
+
+			if ( !CASEINSENSITIVE )
+				return V_strcmp( pString, pOther ) == 0;
+			else
+				return V_stricmp( pString, pOther ) == 0;
 		}
 	};
 
@@ -267,7 +285,7 @@ inline UtlSymLargeId_t CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUT
 
 	UtlSymLargeId_t id = m_MemBlocks.AddToTail( block + sizeof( LargeSymbolTableHashDecoration_t ) );
 
-	UtlSymTableLargeAltKey key;
+	UtlSymTableLargeIdKey key;
 	key.m_pTable = this;
 	key.m_SymId = id;
 
