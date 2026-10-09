@@ -67,6 +67,12 @@ typedef void (*BitBufErrorHandler)( BitBufErrorType errorType, const char *pDebu
 // Use this to install the error handler. Call with NULL to uninstall your error handler.
 void SetBitBufErrorHandler( BitBufErrorHandler fn );
 
+// [startbit][nBitsLeft]: the bits below startbit and from startbit + nBitsLeft up are set.
+PLATFORM_INTERFACE uint32 g_BitBuf_BitWriteMasks[32][33];
+
+// (1 << i) - 1
+PLATFORM_INTERFACE uint32 g_BitBuf_ExtraMasks[33];
+
 
 //-----------------------------------------------------------------------------
 // Helpers.
@@ -805,8 +811,7 @@ BITBUF_INLINE unsigned int bf_read::ReadUBitLong( int numbits ) RESTRICT
 #if __i386__
 	unsigned int bitmask = (2 << (numbits-1)) - 1;
 #else
-	extern uint32 g_ExtraMasks[33];
-	unsigned int bitmask = g_ExtraMasks[numbits];
+	unsigned int bitmask = g_BitBuf_ExtraMasks[numbits];
 #endif
 
 	unsigned int dw1 = LoadLittleDWord( (uint32* RESTRICT)m_pData, iWordOffset1 ) >> iStartBit;

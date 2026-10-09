@@ -85,38 +85,16 @@ void SetBitBufErrorHandler( BitBufErrorHandler fn )
 
 uint32 g_LittleBits[32];
 
-// Precalculated bit masks for WriteUBitLong. Using these tables instead of 
-// doing the calculations gives a 33% speedup in WriteUBitLong.
-uint32 g_BitWriteMasks[32][33];
-
-// (1 << i) - 1
-uint32 g_ExtraMasks[33];
-
-class CBitWriteMasksInit
+class CLittleBitsInit
 {
 public:
-	CBitWriteMasksInit()
+	CLittleBitsInit()
 	{
-		for( unsigned int startbit=0; startbit < 32; startbit++ )
-		{
-			for( unsigned int nBitsLeft=0; nBitsLeft < 33; nBitsLeft++ )
-			{
-				unsigned int endbit = startbit + nBitsLeft;
-				g_BitWriteMasks[startbit][nBitsLeft] = BitForBitnum(startbit) - 1;
-				if(endbit < 32)
-					g_BitWriteMasks[startbit][nBitsLeft] |= ~(BitForBitnum(endbit) - 1);
-			}
-		}
-
-		for ( unsigned int maskBit=0; maskBit < 32; maskBit++ )
-			g_ExtraMasks[maskBit] = BitForBitnum(maskBit) - 1;
-		g_ExtraMasks[32] = ~0u;
-
 		for ( unsigned int littleBit=0; littleBit < 32; littleBit++ )
 			StoreLittleDWord( &g_LittleBits[littleBit], 0, 1u<<littleBit );
 	}
 };
-static CBitWriteMasksInit g_BitWriteMasksInit;
+static CLittleBitsInit g_LittleBitsInit;
 
 
 // ---------------------------------------------------------------------------------------- //
@@ -487,8 +465,8 @@ bool bf_write::WriteBits(const void *pInData, int nBits)
 	{
 		uint32 iBitsRight = (m_iCurBit & 31);
 		uint32 iBitsLeft = 32 - iBitsRight;
-		uint32 bitMaskLeft = g_BitWriteMasks[iBitsRight][32];
-		uint32 bitMaskRight = g_BitWriteMasks[0][iBitsRight];
+		uint32 bitMaskLeft = g_BitBuf_BitWriteMasks[iBitsRight][32];
+		uint32 bitMaskRight = g_BitBuf_BitWriteMasks[0][iBitsRight];
 
 		uint32 *pData = &m_pData[m_iCurBit>>5];
 
@@ -1443,8 +1421,6 @@ void bf_read::ExciseBits( int startbit, int bitstoremove )
 
 int bf_read::CompareBitsAt( int offset, bf_read * RESTRICT other, int otherOffset, int numbits ) RESTRICT
 {
-	extern uint32 g_ExtraMasks[33];
-
 	if ( numbits == 0 )
 		return 0;
 
@@ -1481,5 +1457,5 @@ int bf_read::CompareBitsAt( int offset, bf_read * RESTRICT other, int otherOffse
 	x ^= LoadLittleDWord( (uint32*)pData1End, 0 ) << (32 - iStartBit1);
 	x ^= LoadLittleDWord( (uint32*)pData2, 0 ) >> iStartBit2;
 	x ^= LoadLittleDWord( (uint32*)pData2End, 0 ) << (32 - iStartBit2);
-	return x & g_ExtraMasks[ numbits ];
+	return x & g_BitBuf_ExtraMasks[ numbits ];
 }
