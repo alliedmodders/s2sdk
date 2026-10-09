@@ -320,9 +320,9 @@ void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyReloca
 	for ( uint i = 0; i < nSize; ++i )
 		pBuffer[i].MarkInvalid();
 	if ( bAssumeOwnership )
-		m_table.AssumeMemory( pBuffer, nSize );
+		m_table.AssumeMemory( pBuffer, nSize, nSize );
 	else
-		m_table.SetExternalBuffer( pBuffer, nSize );
+		m_table.SetExternalBuffer( pBuffer, nSize, nSize );
 	m_nTableSize = nSize;
 	m_bSizeLocked = !bGrowable;
 }
