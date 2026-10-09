@@ -13,6 +13,7 @@
 
 #include "appframework/IAppSystem.h"
 #include "utlstring.h"
+#include "utlvector.h"
 
 typedef int TABLEID;
 
@@ -28,6 +29,9 @@ const unsigned int INVALID_STRING_INDEX = -1;
 class StringTableInit_t;
 class INetworkStringTable;
 
+template <typename Signature>
+class CUtlDelegate;
+
 class SetStringUserDataRequest_t
 {
 public:
@@ -41,6 +45,10 @@ public:
 	unsigned int m_cbDataSize;
 	void* m_pRawData;
 };
+
+typedef CUtlDelegate<void ( INetworkStringTable *pTable, int stringNumber, const char *pString, const SetStringUserDataRequest_t *pUserData )> StringChangedDelegate_t;
+// Returns false to fall back to a hex dump of the user data
+typedef CUtlDelegate<bool ( const char *pString, const SetStringUserDataRequest_t *pUserData, CUtlVector<CUtlString> *pOutLines )> UserDataFormatterDelegate_t;
 
 //-----------------------------------------------------------------------------
 // Purpose: Game .dll shared string table interfaces
@@ -57,22 +65,21 @@ public:
 	virtual int				GetNumStrings( void ) const = 0;
 
 	// Networking
-	virtual int				SetTick( int tick, void *unknown ) = 0;
+	virtual void			SetStringChangeTick( int tick_count, void *unknown ) = 0;
 	virtual int				GetTick( void ) = 0;
 	virtual bool			ChangedBetweenTicks(int tickA, int tickB ) const = 0;
 
 	virtual int				AddString( bool bIsServer, const char *value, const SetStringUserDataRequest_t* userdata = 0 ) = 0;
 
-	virtual const char		*GetString( int stringNumber ) const = 0;
+	virtual const char		*GetString( int stringNumber, bool bFailSilent = false ) const = 0;
 	virtual bool			SetStringUserData(int stringNumber, const SetStringUserDataRequest_t *userdata, bool bForceOverride) = 0;
 	virtual const StringUserData_t* GetStringUserData(int stringNumber) const = 0;
 	virtual int				FindStringIndex( char const *string ) = 0; // returns INVALID_STRING_INDEX if not found
-	// AMNOTE: Sets the string changed callback, { void *pContext; void (*fn)( void *pContext, INetworkStringTable *, int stringNumber, const char *, const StringUserData_t * ); }
-	virtual void			unk001( const void *pCallback, bool bCallForExisting ) = 0;
+	virtual void			SetStringChangedCallback( const StringChangedDelegate_t &callback, bool bCallForExisting ) = 0;
 	virtual void			SetAllowClientSideAddString( bool state ) = 0;
-	virtual void			unk003( bool ) = 0; // AMNOTE: Enables logging of string changes
-	virtual void			unk004( const char *string ) const = 0; // all stringtables in engine/server set this to "[server]".
-	virtual void			unk005( const void *pCallback ) = 0; // AMNOTE: Sets the user data formatter used when dumping the table
+	virtual void			SetDebugLogging( bool bDebug ) = 0;
+	virtual void			SetDebugLoggingPrefix( const char *pszPrefix ) = 0;
+	virtual void			SetUserDataFormatter( const UserDataFormatterDelegate_t &formatter ) = 0;
 };
 
 enum ENetworkStringtableFlags
