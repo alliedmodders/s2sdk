@@ -459,7 +459,7 @@ public:
 	virtual void			ServerConVarChanged( const char *pVarName, const char *pValue ) = 0;
 
 	// Returns a list of values and names corresponding to HitGroup_t enum
-	virtual void			GetHitGroupEnumInfo( CUtlVector<int> &values, CUtlVector<CUtlString> &names ) = 0;
+	virtual void			GetHitGroupInfo( CUtlVector<int> &groupIDs, CUtlVector<CUtlString> &groupNames ) = 0;
 
 	// Adds the game's fields to the server section of the status_json output
 	virtual void			WriteStatusJson( KeyValues3 *pServer ) = 0;
@@ -496,7 +496,8 @@ public:
 
 	virtual bool			ReportGCQueuedMatchStart( int32 iReservationStage, uint32 *puiConfirmedAccounts, int numConfirmedAccounts ) = 0;
 
-	// AMNOTE: Forwards to the game rules, which do nothing with it in CS2
+	// AMNOTE: Called each main loop iteration with two doubles, the iteration's time and the time slept after the main loop.
+	// Forwards to the game rules, which do nothing with it in CS2
 	virtual void			unk_201( void * ) = 0;
 	virtual ISceneViewDebugOverlays *GetDebugOverlays( void ) = 0;
 
