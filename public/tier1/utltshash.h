@@ -55,7 +55,7 @@ public:
 };
 
 template < class KEYTYPE = intp >
-class CUtlTSHashGenericHash
+class CUtlTSHashGenericHashMethod
 {
 public:
 	static int Hash( const KEYTYPE &key, int nBucketMask )
@@ -94,7 +94,7 @@ public:
 	}
 };
 
-template< class T, int BUCKET_COUNT, class KEYTYPE = intp, class HashFuncs = CUtlTSHashGenericHash< KEYTYPE > > 
+template< class T, int BUCKET_COUNT, class KEYTYPE = intp, class HashFuncs = CUtlTSHashGenericHashMethod< KEYTYPE > > 
 class CUtlTSHash
 {
 public:
