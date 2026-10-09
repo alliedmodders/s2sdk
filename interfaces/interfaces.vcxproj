@@ -264,7 +264,6 @@
     <ClInclude Include="..\public\tier1\uniqueid.h" />
     <ClInclude Include="..\public\tier1\utlblockmemory.h" />
     <ClInclude Include="..\public\tier1\utlbuffer.h" />
-    <ClInclude Include="..\public\tier1\utlbufferutil.h" />
     <ClInclude Include="..\public\tier1\utldict.h" />
     <ClInclude Include="..\public\tier1\utlfixedmemory.h" />
     <ClInclude Include="..\public\tier1\utlhandletable.h" />

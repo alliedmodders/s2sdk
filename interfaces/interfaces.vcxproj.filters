@@ -104,9 +104,6 @@
     <ClInclude Include="..\public\tier1\utlbuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\tier1\utlbufferutil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\tier1\utldict.h">
       <Filter>Header Files</Filter>
     </ClInclude>
