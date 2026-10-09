@@ -1,7 +1,7 @@
 #include "tier1/utlstring.h"
 #include "tier1/KeyValues.h"
 #include "appframework/IAppSystem.h"
-#include "tier2/tier2.h"
+#include "tier4/tier4.h"
 
 struct ResourceManifestDesc_t;
 
@@ -67,7 +67,7 @@ public:
 	virtual void unk002(void) = 0;
 };
 
-class CHostStateMgr : public CTier2AppSystem<IHostStateMgr>, public ISwitchLoopModeStatusNotify
+class CHostStateMgr : public CTier4AppSystem<IHostStateMgr>, public ISwitchLoopModeStatusNotify
 {
 public:
 	CHostStateRequest *m_PendingRequest;              // 0x30
