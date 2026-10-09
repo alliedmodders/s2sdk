@@ -48,17 +48,16 @@ typedef void *FileHandle_t;
 #define FOR_EACH_VALUE( kvRoot, kvValue ) \
 	for ( KeyValues * kvValue = kvRoot->GetFirstValue(); kvValue != NULL; kvValue = kvValue->GetNextValue() )
 
-DECLARE_POINTER_HANDLE( HTemporaryKeyValueAllocationScope );
-
 PLATFORM_INTERFACE KeyValues *KeyValuesFromJSON( CUtlBuffer *buf, bool allow_unterminated = false, bool *parsed_successfully = nullptr );
 PLATFORM_INTERFACE bool KeyValuesToJSON( KeyValues *kv, CUtlBuffer *buf );
 
 class CTemporaryKeyValues
 {
+public:
 	CTemporaryKeyValues() : m_pKeyValues( nullptr ), m_hScope() {}
 	~CTemporaryKeyValues()
 	{
-		KeyValuesSystem()->ReleaseTemporaryKeyValues( this );
+		KeyValuesSystem()->FreeTemporaryKeyValueAllocationScope( m_hScope );
 	}
 
 private:
