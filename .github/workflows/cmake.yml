@@ -5,12 +5,12 @@ on:
   push:
     paths:
       - CMakeLists.txt
-      - .github/cmake-test/**
+      - tests/CMakeLists.txt
       - .github/workflows/cmake.yml
   pull_request:
     paths:
       - CMakeLists.txt
-      - .github/cmake-test/**
+      - tests/CMakeLists.txt
       - .github/workflows/cmake.yml
 
 jobs:
@@ -30,8 +30,14 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build a plugin against the SDK
+      - name: Build tests/ against the SDK
         shell: bash
         run: |
-          cmake -S .github/cmake-test -B build -DCMAKE_BUILD_TYPE=Release -DS2SDK_BUILD_LIBS=${{ matrix.build_libs }}
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DS2SDK_BUILD_TESTS=ON -DS2SDK_BUILD_LIBS=${{ matrix.build_libs }}
           cmake --build build --config Release
+
+      - name: Test
+        if: startsWith(runner.os, 'Linux')
+        shell: bash
+        run: |
+          LD_LIBRARY_PATH=lib/linux64 build/tests/keyvalues3_test

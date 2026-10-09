@@ -15,8 +15,15 @@ project(s2sdk LANGUAGES C CXX)
 #
 # With MSVC the libraries use the static runtime (/MT), so the consumer has to
 # as well: set CMAKE_MSVC_RUNTIME_LIBRARY to MultiThreaded before adding s2sdk.
+#
+# S2SDK_BUILD_TESTS builds tests/ the way CheckScript does, for s2sdk's own CI.
 
 option(S2SDK_BUILD_LIBS "Build interfaces, mathlib and libprotobuf from source instead of linking the prebuilt ones in lib/" OFF)
+option(S2SDK_BUILD_TESTS "Build tests/ like CheckScript (for s2sdk itself)" OFF)
+
+if(S2SDK_BUILD_TESTS AND NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
 	message(FATAL_ERROR "s2sdk only supports 64-bit targets")
@@ -92,6 +99,19 @@ else()
 	)
 endif()
 
+# What AMBuildScript compiles the SDK's own code with (the libraries, tests/)
+if(MSVC)
+	set(S2SDK_OWN_DEFINITIONS _WINDOWS WINDOWS _CRT_SECURE_NO_DEPRECATE _CRT_NONSTDC_NO_DEPRECATE)
+	set(S2SDK_OWN_OPTIONS)
+else()
+	set(S2SDK_OWN_DEFINITIONS)
+	set(S2SDK_OWN_OPTIONS
+		-Wall -Werror -Wno-overloaded-virtual -Wno-non-virtual-dtor -Wno-delete-non-virtual-dtor
+		-Wno-invalid-offsetof -Wno-unknown-pragmas -Wno-unused -Wno-narrowing -Wno-register
+		-march=nocona -mmmx -msse -msse2
+	)
+endif()
+
 if(S2SDK_BUILD_LIBS)
 	add_library(s2sdk_interfaces STATIC
 		interfaces/interfaces.cpp
@@ -147,15 +167,8 @@ if(S2SDK_BUILD_LIBS)
 			PREFIX ""
 			MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 		)
-		if(MSVC)
-			target_compile_definitions(${lib} PRIVATE _WINDOWS WINDOWS _CRT_SECURE_NO_DEPRECATE _CRT_NONSTDC_NO_DEPRECATE)
-		else()
-			target_compile_options(${lib} PRIVATE
-				-Wall -Werror -Wno-overloaded-virtual -Wno-non-virtual-dtor -Wno-delete-non-virtual-dtor
-				-Wno-invalid-offsetof -Wno-unknown-pragmas -Wno-unused -Wno-narrowing -Wno-register
-				-march=nocona -mmmx -msse -msse2
-			)
-		endif()
+		target_compile_definitions(${lib} PRIVATE ${S2SDK_OWN_DEFINITIONS})
+		target_compile_options(${lib} PRIVATE ${S2SDK_OWN_OPTIONS})
 	endforeach()
 
 	set_target_properties(s2sdk_interfaces PROPERTIES OUTPUT_NAME interfaces)
@@ -230,3 +243,7 @@ function(s2sdk_protobufs target)
 	target_sources(${target} PRIVATE ${sources})
 	target_include_directories(${target} PUBLIC "${out}")
 endfunction()
+
+if(S2SDK_BUILD_TESTS)
+	add_subdirectory(tests)
+endif()
