@@ -13,12 +13,6 @@
 // Include the annotation header file.
 #include <sal.h>
 
-// For temporarily suppressing warnings -- the warnings are suppressed for the next source line.
-#define ANALYZE_SUPPRESS(wnum) __pragma(warning(suppress: wnum))
-#define ANALYZE_SUPPRESS2(wnum1, wnum2) __pragma(warning(supress: wnum1  wnum2))
-#define ANALYZE_SUPPRESS3(wnum1, wnum2, wnum3) __pragma(warning(suppress: wnum1 wnum2 wnum3))
-#define ANALYZE_SUPPRESS4(wnum1, wnum2, wnum3, wnum4) __pragma(warning(suppress: wnum1 wnum2 wnum3 wnum4))
-
 // Tag all printf style format strings with this
 #define PRINTF_FORMAT_STRING _Printf_format_string_
 #define SCANF_FORMAT_STRING _Scanf_format_string_impl_
@@ -40,11 +34,9 @@
 // These macros are use for annotating array reference parameters, typically used in functions
 // such as V_strcpy_safe. Because they are array references the capacity is already known.
 #if _MSC_VER >= 1700
-#define IN_Z_ARRAY _Pre_z_
 #define OUT_Z_ARRAY _Post_z_
 #define INOUT_Z_ARRAY _Prepost_z_
 #else
-#define IN_Z_ARRAY _Deref_pre_z_
 #define OUT_Z_ARRAY _Deref_post_z_
 #define INOUT_Z_ARRAY _Deref_prepost_z_
 #endif // _MSC_VER >= 1700
@@ -58,11 +50,7 @@
 #endif // _PREFAST_
 #endif // _MSC_VER >= 1600 // VS 2010 and above.
 
-#ifndef ANALYZE_SUPPRESS
-#define ANALYZE_SUPPRESS(wnum)
-#define ANALYZE_SUPPRESS2(wnum1, wnum2)
-#define ANALYZE_SUPPRESS3(wnum1, wnum2, wnum3)
-#define ANALYZE_SUPPRESS4(wnum1, wnum2, wnum3, wnum4)
+#ifndef PRINTF_FORMAT_STRING
 #define PRINTF_FORMAT_STRING
 #define SCANF_FORMAT_STRING
 #define IN_Z
