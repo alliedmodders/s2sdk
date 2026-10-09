@@ -71,7 +71,6 @@ target_include_directories(s2sdk_headers INTERFACE
 	"${S2SDK_DIR}/public/tier0"
 	"${S2SDK_DIR}/public/tier1"
 	"${S2SDK_DIR}/public/entity2"
-	"${S2SDK_DIR}/public/game/server"
 	"${S2SDK_DIR}/game/shared"
 	"${S2SDK_DIR}/game/server"
 	"${S2SDK_DIR}/common"
