@@ -149,8 +149,8 @@ public:
 
 	virtual void	BroadcastPrintf( const char *pszFmt, ... ) FMTFUNCTION( 2, 3 ) = 0;
 
-	// AMNOTE: Sets a client state to !bool unless it is 2 or higher, which CNetworkGameServerBase::CreateClient sets
-	virtual void	unk101( CPlayerSlot slot, bool ) = 0;
+	// AMNOTE: Has no effect on clients made by CreateClient, which lock their slot
+	virtual void	SetRecyclePlayerSlot( CPlayerSlot slot, bool bRecycle ) = 0;
 	virtual SignonState_t GetClientSignonState( CPlayerSlot slot ) = 0;
 	// Adds the server to the overlays' listeners to broadcast what they draw, or removes it
 	virtual void	SetBroadcastDebugOverlays( ISceneViewDebugOverlays *pOverlays, bool bBroadcast ) = 0;
@@ -162,8 +162,8 @@ public:
 	virtual bool	HasReplayDirector() = 0;
 	virtual float	GetAverageFrameTime() = 0;
 
-	virtual void	PreWorldUpdate() = 0;
-	virtual void 	DirectUpdate() = 0;
+	virtual void	PrepareSendClientUpdatesMainThread() = 0;
+	virtual void 	PrepareSendClientUpdatesAsync() = 0;
 
 	virtual CSteamID GetGameServerSteamID() = 0;
 	virtual void	BroadcastEntityVoice( int entity, CMsgVoiceAudio *data, uint64 xuid ) = 0;
