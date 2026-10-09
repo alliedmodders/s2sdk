@@ -48,6 +48,7 @@ enum AppSystemTier_t
 	APP_SYSTEM_TIER2,
 	APP_SYSTEM_TIER3,
 	APP_SYSTEM_TIER4,
+	APP_SYSTEM_TIER5,
 
 	APP_SYSTEM_TIER_OTHER,
 };
@@ -108,6 +109,7 @@ public:
 	// Init, shutdown
 	virtual InitReturnVal_t Init() { return INIT_OK; }
 	virtual void Shutdown() {}
+	virtual void PreShutdown() {}
 
 	virtual const AppSystemInfo_t* GetDependencies() { return NULL; }
 	virtual AppSystemTier_t GetTier() { return APP_SYSTEM_TIER_OTHER; }
@@ -118,6 +120,8 @@ public:
 	}
 
 	virtual bool IsSingleton() { return true; }
+
+	virtual BuildType_t GetBuildType() { return kBuildTypeRelease; }
 };
 
 
@@ -127,6 +131,8 @@ public:
 template< class IInterface > 
 class CTier0AppSystem : public CBaseAppSystem< IInterface >
 {
+public:
+	virtual AppSystemTier_t GetTier() { return APP_SYSTEM_TIER0; }
 };
 
 
