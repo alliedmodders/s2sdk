@@ -108,6 +108,16 @@ public:
 protected:
 	typedef CUtlOrderedMap<const char *, T, typename CDictCompareTypeDeducer<COMPARE_TYPE>::Type_t, I> DictElementMap_t;
 	DictElementMap_t m_Elements;
+
+public:
+	// STL / C++11-style iterators over the nodes in name order, with the name in key and the element in elem.
+	// The dictionary owns the names, change one with SetElementName.
+	typedef typename DictElementMap_t::iterator iterator;
+	typedef typename DictElementMap_t::const_iterator const_iterator;
+	const_iterator begin() const { return m_Elements.begin(); }
+	const_iterator end() const { return m_Elements.end(); }
+	iterator begin() { return m_Elements.begin(); }
+	iterator end() { return m_Elements.end(); }
 };
 
 
