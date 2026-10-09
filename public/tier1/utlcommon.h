@@ -11,6 +11,7 @@
 #pragma once
 
 #include "utlstring.h"
+#include "murmurhash3.h"
 #include "type_traits"
 
 //-----------------------------------------------------------------------------
@@ -127,13 +128,17 @@ struct StringEqualFunctor { bool operator()( const char *a, const char *b ) cons
 struct CaselessStringLessFunctor { bool operator()( const char *a, const char *b ) const { return Q_strcasecmp( a, b ) < 0; } };
 struct CaselessStringEqualFunctor { bool operator()( const char *a, const char *b ) const { return Q_strcasecmp( a, b ) == 0; } };
 
-struct Mix32HashFunctor { unsigned int operator()( uint32 s ) const; };
+struct MurmurHash3Mix32HashFunctor { unsigned int operator()( uint32 n ) const { return MurmurHash3Int( n ); } };
+struct MurmurHash3Mix64HashFunctor { unsigned int operator()( uint64 n ) const { return MurmurHash3Int64( n ); } };
 struct StringHashFunctor { unsigned int operator()( const char* s ) const; };
 struct CaselessStringHashFunctor { unsigned int operator()( const char* s ) const; };
 
+// Integers of up to 32 bits are hashed as uint32 (signed ones sign-extended), wider ones as uint64.
+template <typename T> struct IntegerHashFunctor : CTypeSelect<( sizeof( T ) > sizeof( uint32 ) ), MurmurHash3Mix64HashFunctor, MurmurHash3Mix32HashFunctor>::type { };
+
 struct PointerLessFunctor { bool operator()( const void *a, const void *b ) const { return a < b; } };
 struct PointerEqualFunctor { bool operator()( const void *a, const void *b ) const { return a == b; } };
-struct PointerHashFunctor { unsigned int operator()( const void* s ) const { return Mix32HashFunctor()((uint32)POINTER_TO_INT(s)); } };
+struct PointerHashFunctor { unsigned int operator()( const void* s ) const { return MurmurHash3Mix64HashFunctor()( (uint64)(uintp)s ); } };
 
 
 // Generic implementation of Less and Equal functors
@@ -154,20 +159,22 @@ struct DefaultEqualFunctor
 };
 
 // Hashes for basic types
-template <> struct DefaultHashFunctor<char> : Mix32HashFunctor { };
-template <> struct DefaultHashFunctor<signed char> : Mix32HashFunctor { };
-template <> struct DefaultHashFunctor<unsigned char> : Mix32HashFunctor { };
-template <> struct DefaultHashFunctor<signed short> : Mix32HashFunctor { };
-template <> struct DefaultHashFunctor<unsigned short> : Mix32HashFunctor { };
-template <> struct DefaultHashFunctor<signed int> : Mix32HashFunctor { };
-template <> struct DefaultHashFunctor<unsigned int> : Mix32HashFunctor { };
-template <> struct DefaultHashFunctor<signed long> : Mix32HashFunctor { };
-template <> struct DefaultHashFunctor<unsigned long> : Mix32HashFunctor { };
+template <> struct DefaultHashFunctor<char> : IntegerHashFunctor<char> { };
+template <> struct DefaultHashFunctor<signed char> : IntegerHashFunctor<signed char> { };
+template <> struct DefaultHashFunctor<unsigned char> : IntegerHashFunctor<unsigned char> { };
+template <> struct DefaultHashFunctor<signed short> : IntegerHashFunctor<signed short> { };
+template <> struct DefaultHashFunctor<unsigned short> : IntegerHashFunctor<unsigned short> { };
+template <> struct DefaultHashFunctor<signed int> : IntegerHashFunctor<signed int> { };
+template <> struct DefaultHashFunctor<unsigned int> : IntegerHashFunctor<unsigned int> { };
+template <> struct DefaultHashFunctor<signed long> : IntegerHashFunctor<signed long> { };
+template <> struct DefaultHashFunctor<unsigned long> : IntegerHashFunctor<unsigned long> { };
+template <> struct DefaultHashFunctor<signed long long> : IntegerHashFunctor<signed long long> { };
+template <> struct DefaultHashFunctor<unsigned long long> : IntegerHashFunctor<unsigned long long> { };
 template <> struct DefaultHashFunctor<void*> : PointerHashFunctor { };
 template <> struct DefaultHashFunctor<const void*> : PointerHashFunctor { };
 template <> struct DefaultHashFunctor<CUtlStringToken> { unsigned int operator()( const CUtlStringToken &k ) const { return k.GetHashCode(); } };
 #if !defined(_MSC_VER) || defined(_NATIVE_WCHAR_T_DEFINED)
-template <> struct DefaultHashFunctor<wchar_t> : Mix32HashFunctor { };
+template <> struct DefaultHashFunctor<wchar_t> : IntegerHashFunctor<wchar_t> { };
 #endif
 
 // String specializations. If you want to operate on raw values, use
@@ -292,32 +299,6 @@ template <typename T> struct DefaultHashFunctor< T * > : PointerHashFunctor { };
 
 
 // Here follow the useful implementations.
-
-// Bob Jenkins's 32-bit mix function.
-inline unsigned int Mix32HashFunctor::operator()( uint32 n ) const
-{
-	// Perform a mixture of the bits in n, where each bit
-	// of the input value has an equal chance to affect each
-	// bit of the output. This turns tightly clustered input
-	// values into a smooth distribution.
-	//
-	// This takes 16-20 cycles on modern x86 architectures;
-	// that's roughly the same cost as a mispredicted branch.
-	// It's also reasonably efficient on PPC-based consoles.
-	//
-	// If you're still thinking, "too many instructions!",
-	// do keep in mind that reading one byte of uncached RAM
-	// is about 30x slower than executing this code. It pays
-	// to have a good hash function which minimizes collisions
-	// (and therefore long lookup chains).
-	n = ( n + 0x7ed55d16 ) + ( n << 12 );
-	n = ( n ^ 0xc761c23c ) ^ ( n >> 19 );
-	n = ( n + 0x165667b1 ) + ( n << 5 );
-	n = ( n + 0xd3a2646c ) ^ ( n << 9 );
-	n = ( n + 0xfd7046c5 ) + ( n << 3 );
-	n = ( n ^ 0xb55a4f09 ) ^ ( n >> 16 );
-	return n;
-}
 
 // Based on the widely-used FNV-1A string hash with a final
 // mixing step to improve dispersion for very small and very
