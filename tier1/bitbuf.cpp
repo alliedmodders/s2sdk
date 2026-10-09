@@ -130,7 +130,7 @@ bf_write::bf_write()
 	m_nDataBits = -1; // set to -1 so we generate overflow on any operation
 	m_iCurBit = 0;
 	m_bOverflow = false;
-	m_bAssertOnOverflow = true;
+	m_bAssertOnOverflow = false;
 	m_pDebugName = NULL;
 }
 
@@ -802,6 +802,7 @@ bf_read::bf_read()
 bf_read::bf_read( const void *pData, int nBytes, int nBits )
 {
 	m_bAssertOnOverflow = true;
+	m_pDebugName = NULL;
 	StartReading( pData, nBytes, 0, nBits );
 }
 
