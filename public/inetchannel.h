@@ -33,9 +33,6 @@ class	InstantReplayMessage_t;
 class	CUtlSlot;
 class	CNETMsg_Tick;
 
-template<typename PROTO_TYPE>
-class CNetMessagePB;
-
 #ifndef NET_PACKET_ST_DEFINED
 #define NET_PACKET_ST_DEFINED
 struct NetPacket_t
@@ -59,6 +56,32 @@ enum NetChannelBufType_t : int8
 	BUF_RELIABLE,
 	BUF_VOICE,
 };
+
+// AMNOTE: Some engine messages also use -1, which IProtobufBinding::GetGroup names "Unknown"
+enum SignonGroup_t
+{
+	SG_GENERIC = 0,
+	SG_LOCALPLAYER,
+	SG_OTHERPLAYERS,
+	SG_ENTITIES,
+	SG_SOUNDS,
+	SG_EVENTS,
+	SG_VOICE,
+	SG_STRINGTABLE,
+	SG_MOVE,
+	SG_STRINGCMD,
+	SG_SIGNON,
+	SG_SYSTEM,
+	SG_DECALS,
+	SG_USERMESSAGES,
+	SG_CLIENTMESSAGES,
+	SG_SPAWNGROUP,
+	SG_GAMEENGINE,
+	SG_HLTVREPLAY,
+};
+
+template<int msgType, typename PB_OBJECT_TYPE, SignonGroup_t groupType, NetChannelBufType_t bufType, bool bOkayToRedispatch>
+class CNetMessagePB;
 
 abstract_class INetworkChannelNotify
 {
@@ -115,7 +138,7 @@ public:
 	// AMNOTE: Latency in seconds above which packets are flagged and counted in the flow stats
 	virtual void	unk211( float ) = 0;
 	// AMNOTE: Also sets the outgoing flow's loss and choke from the message
-	virtual void	SetRemoteFramerate( const CNetMessagePB<CNETMsg_Tick> *pMsg ) = 0;
+	virtual void	SetRemoteFramerate( const CNetMessagePB<4, CNETMsg_Tick, SG_GAMEENGINE, BUF_UNRELIABLE, false> *pMsg ) = 0;
 	
 	virtual bool	IsRemoteDisconnected( ENetworkDisconnectionReason &reason ) const = 0;
 
@@ -156,7 +179,7 @@ public:
 	virtual void	NotifyOutboundTick( int nTick ) = 0;
 	// AMNOTE: Returns the queue of received messages that ProcessMessages dispatches
 	virtual void	*unk411() = 0;
-	virtual void	unk412( CNetMessagePB<CNETMsg_Tick> *pMsg ) = 0;
+	virtual void	unk412( CNetMessagePB<4, CNETMsg_Tick, SG_GAMEENGINE, BUF_UNRELIABLE, false> *pMsg ) = 0;
 	virtual void	unk413( CConVar<int> *pQueuedMessageLimit ) = 0;
 };
 

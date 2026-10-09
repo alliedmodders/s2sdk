@@ -73,8 +73,6 @@ class KeyValues3;
 struct SaveGameParams_t;
 class IToolGameSimulationAPI;
 class CCLCMsg_Move;
-template <typename T>
-class CNetMessagePB;
 class CCLCMsg_Diagnostic;
 class CUtlBuffer;
 class ISceneViewDebugOverlays;
@@ -514,7 +512,7 @@ public:
 	virtual bool			FormatSerializerFieldValue( CEntityIndex nEntityIndex, FlattenedSerializerSpewField_t &field ) = 0;
 
 	virtual void			CaptureUserCommands( void ) = 0;
-	virtual CNetMessagePB<CSVCMsg_UserCommands> *CreateUserCommandsMessage( void ) = 0;
+	virtual CNetMessagePB<76, CSVCMsg_UserCommands, SG_HLTVREPLAY, BUF_RELIABLE, false> *CreateUserCommandsMessage( void ) = 0;
 
 	virtual bool			ProcessClientStringCommand( CPlayerSlot slot, const CCommand &args, uint32 nPredictionSync ) = 0;
 	virtual void			OnPreMatchInterfaceCommand( uint32 uiAccountID, int, const char *pszCommand ) = 0;
@@ -686,7 +684,7 @@ public:
 	// A block of CUserCmds has arrived from the user, decode them and buffer for execution during player simulation
 	// Will be called when CNetworkGameServerBase::GetServerState() > SS_Loading
 	// A "paused" argument equals CNetworkGameServerBase::GetServerState() == SS_Paused
-	virtual void			ProcessUsercmds( CPlayerSlot slot, const CNetMessagePB<CCLCMsg_Move> &msg, bool paused ) = 0;
+	virtual void			ProcessUsercmds( CPlayerSlot slot, const CNetMessagePB<21, CCLCMsg_Move, SG_MOVE, BUF_UNRELIABLE, false> &msg, bool paused ) = 0;
 
 	virtual bool			IsPlayerSlotOccupied( CPlayerSlot slot ) = 0;
 

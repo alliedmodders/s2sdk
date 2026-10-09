@@ -21,10 +21,9 @@
 #include "tier1/keyvalues3.h"
 #include "tier1/utlstring.h"
 #include "entity2/entityinstance.h"
+#include "inetchannel.h"
 
 class CMsgSource1LegacyGameEvent;
-template<typename PROTO_TYPE>
-class CNetMessagePB;
 class CPlayerSlot;
 class CBasePlayer;
 class CEntityIndex;
@@ -184,8 +183,8 @@ public:
 	virtual void FreeEvent( IGameEvent *event ) = 0;
 
 	// write/read event to/from bitbuffer
-	virtual bool SerializeEvent( IGameEvent *event, CNetMessagePB<CMsgSource1LegacyGameEvent> *ev ) = 0;
-	virtual IGameEvent *UnserializeEvent( const CNetMessagePB<CMsgSource1LegacyGameEvent> &ev ) = 0; // create new KeyValues, must be deleted
+	virtual bool SerializeEvent( IGameEvent *event, CNetMessagePB<207, CMsgSource1LegacyGameEvent, SG_EVENTS, BUF_RELIABLE, true> *ev ) = 0;
+	virtual IGameEvent *UnserializeEvent( const CNetMessagePB<207, CMsgSource1LegacyGameEvent, SG_EVENTS, BUF_RELIABLE, true> &ev ) = 0; // create new KeyValues, must be deleted
 	
 	virtual int LookupEventId( const char *name ) = 0;
 	
