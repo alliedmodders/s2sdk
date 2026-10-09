@@ -263,10 +263,9 @@ public:
 	// AMNOTE: Does nothing
 	virtual void	unk102( void ) = 0;
 	virtual bool	ThreadInPrimaryOrSecondaryMainThread( void ) = 0;
-	// AMNOTE: Ends the per-client state the next method starts with true, releasing each client's queued messages
-	virtual void	unk201( void ) = 0;
-	// AMNOTE: Starts a per-client state on every client not already in one; the bool picks which of two
-	virtual void	unk202( bool ) = 0;
+	virtual void	EnterSyncInterval( void ) = 0;
+	// AMNOTE: The bool picks which of two parallel work modes clients enter
+	virtual void	ExitSyncInterval( bool ) = 0;
 };
 
 typedef CNetworkGameServerBase IServer;
