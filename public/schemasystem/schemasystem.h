@@ -32,8 +32,6 @@ enum SchemaHierarchyIteration_t
 	SCHEMA_ITER_MULTI_PARENT
 };
 
-typedef void (*CompleteModuleRegistrationCallbackFn_t)(void*);
-
 abstract_class ISchemaSystemTypeScope
 {
 public:
@@ -172,13 +170,7 @@ class CSchemaSystem : public ISchemaSystem
 		uintp m_minAddr;
 		uintp m_maxAddr;
 	};
-	
-	struct CompleteModuleRegistrationCallback_t
-	{
-		CompleteModuleRegistrationCallbackFn_t m_pfnCallback;
-		void* m_pArgument;
-	};
-	
+
 public:
 	CUtlVector<ResourceManifestDesc_t*> m_ResourceManifestDescs;
 	int m_nNumConnections;
@@ -210,8 +202,6 @@ public:
 	int m_nIgnored;
 	int m_nRedundant;
 	size_t m_nIgnoredBytes;
-	
-	CUtlVector<CompleteModuleRegistrationCallback_t> m_CompleteModuleRegistrationCallbacks;
 };
 
 #endif // SCHEMASYSTEM_H
