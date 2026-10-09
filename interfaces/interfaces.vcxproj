@@ -241,21 +241,17 @@
     <ClInclude Include="..\public\tier1\checksum_md5.h" />
     <ClInclude Include="..\public\tier1\CommandBuffer.h" />
     <ClInclude Include="..\public\tier1\convar.h" />
-    <ClInclude Include="..\public\tier1\datamanager.h" />
     <ClInclude Include="..\public\datamap.h" />
     <ClInclude Include="..\public\tier1\diff.h" />
     <ClInclude Include="..\public\tier1\fmtstr.h" />
     <ClInclude Include="..\public\tier1\functors.h" />
     <ClInclude Include="..\public\tier1\generichash.h" />
-    <ClInclude Include="..\public\tier1\iconvar.h" />
-    <ClInclude Include="..\public\tier1\interface.h" />
     <ClInclude Include="..\public\tier1\KeyValues.h" />
     <ClInclude Include="..\public\tier1\lzmaDecoder.h" />
     <ClInclude Include="..\public\tier1\lzss.h" />
     <ClInclude Include="..\public\tier1\mempool.h" />
     <ClInclude Include="..\public\tier1\memstack.h" />
     <ClInclude Include="..\public\tier1\netadr.h" />
-    <ClInclude Include="..\public\tier1\processor_detect.h" />
     <ClInclude Include="..\public\tier1\refcount.h" />
     <ClInclude Include="..\public\tier1\smartptr.h" />
     <ClInclude Include="..\public\tier1\stringpool.h" />
@@ -270,7 +266,6 @@
     <ClInclude Include="..\public\tier1\utlhash.h" />
     <ClInclude Include="..\public\tier1\utllinkedlist.h" />
     <ClInclude Include="..\public\tier1\utlmap.h" />
-    <ClInclude Include="..\public\tier1\utlmemory.h" />
     <ClInclude Include="..\public\tier1\utlmultilist.h" />
     <ClInclude Include="..\public\tier1\utlpriorityqueue.h" />
     <ClInclude Include="..\public\tier1\utlqueue.h" />
@@ -281,7 +276,6 @@
     <ClInclude Include="..\public\tier1\UtlStringMap.h" />
     <ClInclude Include="..\public\tier1\utlsymbol.h" />
     <ClInclude Include="..\public\tier1\utlvector.h" />
-    <ClInclude Include="..\common\xbox\xboxstubs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="interfaces.cpp" />
