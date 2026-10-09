@@ -300,6 +300,16 @@ GS_EVENT_MSG( NewLevelPlayerConnect )
 	const CUtlString m_PreviousLevel;
 };
 
+GS_EVENT_MSG( WorldGroupCreated )
+{
+	WorldGroupId_t m_WorldGroupId;
+};
+
+GS_EVENT_MSG( WorldGroupDestroyed )
+{
+	WorldGroupId_t m_WorldGroupId;
+};
+
 GS_EVENT_MSG( DemoSkip )
 {
 	int m_PlaybackTick;
@@ -409,13 +419,13 @@ public:
 	// AMNOTE: Called only when gpGlobals->maxplayer == 1 on player_connect_full
 	GS_EVENT_IMPL( NewLevelPlayerConnect )					// 52
 
-	// AMNOTE: CSpawnGroupMgrGameSystem related, msg is a single int
-	virtual void unk_201( const void *const msg ) = 0;		// 53
-	virtual void unk_202( const void *const msg ) = 0;		// 54
+	// AMNOTE: Called when a world group is first referenced and when its last reference is released
+	GS_EVENT_IMPL( WorldGroupCreated )						// 53
+	GS_EVENT_IMPL( WorldGroupDestroyed )					// 54
 
 	// AMNOTE: Nothing dispatches or overrides these in CS2
-	virtual void unk_203( const void *const msg ) = 0;		// 55
-	virtual void unk_204( const void *const msg ) = 0;		// 56
+	virtual void unk_201( const void *const msg ) = 0;		// 55
+	virtual void unk_202( const void *const msg ) = 0;		// 56
 
 	// Same as to demo_skip event
 	GS_EVENT_IMPL( DemoSkip )								// 57
@@ -522,10 +532,11 @@ public:
 
 	GS_EVENT( NewLevelPlayerConnect ) {}
 
+	GS_EVENT( WorldGroupCreated ) {}
+	GS_EVENT( WorldGroupDestroyed ) {}
+
 	virtual void unk_201( const void *const msg ) override {}
 	virtual void unk_202( const void *const msg ) override {}
-	virtual void unk_203( const void *const msg ) override {}
-	virtual void unk_204( const void *const msg ) override {}
 
 	GS_EVENT( DemoSkip ) {}
 

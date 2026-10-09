@@ -327,9 +327,9 @@ public:
 	virtual void DumpSpawnGroups() = 0;
 	virtual LoggingChannelID_t GetSaveRestoreLogChannel() = 0;
 	virtual CUtlString GetSaveRestoreContextString() const = 0;
-	// AMNOTE: Dispatch IGameSystem::unk_201 and unk_202 with the int as the message
-	virtual void unk101(int) = 0;
-	virtual void unk102(int) = 0;
+	// AMNOTE: Dispatch the IGameSystem WorldGroupCreated and WorldGroupDestroyed events
+	virtual void OnWorldGroupCreated(WorldGroupId_t hWorldGroup) = 0;
+	virtual void OnWorldGroupDestroyed(WorldGroupId_t hWorldGroup) = 0;
 	virtual CUtlString GetName() const = 0;
 };
 
