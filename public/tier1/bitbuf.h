@@ -654,6 +654,9 @@ private:
 
 	// For debugging..
 	bool			m_bAssertOnOverflow;
+
+	// AMNOTE: Set when nBytes is a multiple of 4, reads near the end of the buffer go byte by byte otherwise
+	bool			m_bCanReadDwords;
 };
 
 //-----------------------------------------------------------------------------
@@ -714,11 +717,11 @@ inline bool bf_read::CheckForOverflow(int nBits)
 
 inline int bf_read::ReadOneBitNoCheck()
 {
-#if VALVE_LITTLE_ENDIAN
-	unsigned int value = ((uint32 * RESTRICT)m_pData)[m_iCurBit >> 5] >> (m_iCurBit & 31);
-#else
-	unsigned char value = m_pData[m_iCurBit >> 3] >> (m_iCurBit & 7);
-#endif
+	unsigned int value;
+	if ( m_bCanReadDwords )
+		value = ((uint32 * RESTRICT)m_pData)[m_iCurBit >> 5] >> (m_iCurBit & 31);
+	else
+		value = m_pData[m_iCurBit >> 3] >> (m_iCurBit & 7);
 	++m_iCurBit;
 	return value & 1;
 }
@@ -778,8 +781,27 @@ BITBUF_INLINE unsigned int bf_read::ReadUBitLong( int numbits ) RESTRICT
 	int iLastBit = m_iCurBit + numbits - 1;
 	unsigned int iWordOffset1 = m_iCurBit >> 5;
 	unsigned int iWordOffset2 = iLastBit >> 5;
+
+	if ( !m_bCanReadDwords && (int)( iWordOffset2 * 4 + 3 ) >= m_nDataBytes )
+	{
+		unsigned int ret = 0;
+		int nShift = 0;
+		for ( ; numbits >= 8; numbits -= 8, nShift += 8 )
+		{
+			unsigned int iByteBit = m_iCurBit & 7;
+			unsigned int nByte = ( m_pData[m_iCurBit >> 3] >> iByteBit ) | (uint8)( m_pData[(m_iCurBit + 7) >> 3] << ( 8 - iByteBit ) );
+			ret |= nByte << nShift;
+			m_iCurBit += 8;
+		}
+
+		for ( int i = 0; i < numbits; i++ )
+			ret |= ReadOneBitNoCheck() << ( nShift + i );
+
+		return ret;
+	}
+
 	m_iCurBit += numbits;
-	
+
 #if __i386__
 	unsigned int bitmask = (2 << (numbits-1)) - 1;
 #else
