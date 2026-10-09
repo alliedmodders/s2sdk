@@ -49,6 +49,11 @@ enum ResourceBindingFlags_t
 	RESOURCE_BINDING_FIRST_UNUSED_FLAG = 0x200
 };
 
+struct ResourceId_t
+{
+	uint64 m_Value;
+};
+
 struct ResourceNameInfo_t
 {
 	CUtlSymbolLarge m_ResourceNameSymbol;
@@ -73,5 +78,8 @@ struct ResourceBindingBase_t
 
 typedef const ResourceBindingBase_t* ResourceHandle_t;
 typedef void* HGameResourceManifest;
+typedef uint64 ResourceType_t;
+
+class CResourceName;
 
 #endif // RESOURCETYPE_H
