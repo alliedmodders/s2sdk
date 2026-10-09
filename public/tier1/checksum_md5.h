@@ -24,6 +24,17 @@ typedef struct
     unsigned char	in[64];
 } MD5Context_t;
 
+struct MD5Value_t
+{
+	unsigned char bits[MD5_DIGEST_LENGTH];
+
+	void Zero() { memset( bits, 0, sizeof( bits ) ); }
+	DLL_CLASS_IMPORT bool IsZero() const;
+
+	bool operator==( const MD5Value_t &src ) const { return memcmp( bits, src.bits, sizeof( bits ) ) == 0; }
+	bool operator!=( const MD5Value_t &src ) const { return !( *this == src ); }
+};
+
 PLATFORM_INTERFACE void MD5Init( MD5Context_t *context );
 PLATFORM_INTERFACE void MD5Update( MD5Context_t *context, unsigned char const *buf, unsigned int len );
 PLATFORM_INTERFACE void MD5Final( unsigned char digest[ MD5_DIGEST_LENGTH ], MD5Context_t *context );
@@ -31,5 +42,7 @@ PLATFORM_INTERFACE void MD5Final( unsigned char digest[ MD5_DIGEST_LENGTH ], MD5
 PLATFORM_INTERFACE char *MD5_Print(unsigned char *digest, int hashlen );
 
 PLATFORM_INTERFACE unsigned int MD5_PseudoRandom(unsigned int nSeed);
+
+PLATFORM_INTERFACE void MD5_ProcessSingleBuffer( const void *p, int len, MD5Value_t &md5Result );
 
 #endif // CHECKSUM_MD5_H
