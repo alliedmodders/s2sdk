@@ -172,13 +172,14 @@ class CUtlVectorMemory_FixedGrowable : public CUtlVectorMemory_Growable< T, I >
 	typedef CUtlVectorMemory_Growable< T, I > BaseClass;
 
 public:
-	CUtlVectorMemory_FixedGrowable( I nGrowSize = 0, I nInitSize = SIZE ) : BaseClass( m_pFixedMemory, SIZE ) 
+	CUtlVectorMemory_FixedGrowable( I nGrowSize = 0, I nInitSize = SIZE ) : BaseClass( reinterpret_cast< T* >( m_pFixedMemory ), SIZE ) 
 	{
 		Assert( nInitSize == 0 || nInitSize == SIZE );
 	}
 
 private:
-	T m_pFixedMemory[ SIZE ];
+	// Raw storage: elements are constructed and destroyed by the owning vector, not by this array
+	alignas( T ) char m_pFixedMemory[ SIZE * sizeof( T ) ];
 };
 
 //-----------------------------------------------------------------------------
