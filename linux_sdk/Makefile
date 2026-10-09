@@ -100,7 +100,7 @@ endif
 
 DEFINES +=-DX64BITS -DPLATFORM_64BITS -DVPROF_LEVEL=1 -DSWDS -D_finite=finite -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp \
 	-Dstrnicmp=strncasecmp -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DPOSIX -DGNUC -DCOMPILER_GCC -DNO_MALLOC_OVERRIDE
-UNDEF = -Usprintf -Ustrncpy -UPROTECTED_THINGS_ENABLE
+UNDEF = -Usprintf -Ustrncpy
 
 BASE_CFLAGS = -std=c++17 -fPIC -fno-strict-aliasing -Wall -Wsign-compare -Wno-conversion -Wno-overloaded-virtual -Wno-non-virtual-dtor -Wno-invalid-offsetof \
 	      -Wno-unknown-pragmas -Wno-unused -Wno-c++11-narrowing -Wno-register
