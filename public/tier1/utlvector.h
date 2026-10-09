@@ -18,6 +18,8 @@
 
 #include <string.h>
 #include <type_traits>
+#include <algorithm>
+#include <functional>
 #include <utility>
 #include "tier0/platform.h"
 #include "tier0/dbg.h"
@@ -171,7 +173,19 @@ public:
 
 	I NumAllocated() const;	// Only use this if you really know what you're doing!
 
-	void Sort( int (__cdecl *pfnCompare)(const T *, const T *) );
+	// Sorts with a predicate, e.g. []( const T &a, const T &b ) { return a < b; }
+	// Elements are sorted with std::sort.
+	template< class F > void SortPredicate( F &&predicate );
+
+	// Sorts with operator<
+	void Sort()								{ SortPredicate( std::less<T>() ); }
+
+	// WARNING: The compare func for this Sort expects < 0, 0 for equal, or > 0. If you pass only true/false back, you won't get correct sorting.
+	void Sort( int (*pfnCompare)(const T *, const T *) );
+
+	// These sorts expect true/false
+	void Sort( bool (*pfnLessFunc)(const T &src1, const T &src2) );
+	void Sort( bool (*pfnLessFunc)(const T &src1, const T &src2, void *pCtx), void *pLessContext );
 
 #ifdef DBGFLAG_VALIDATE
 	void Validate( CValidator &validator, char *pchName );		// Validate our internal structures
@@ -757,35 +771,38 @@ void CUtlVectorBase<T, I, A>::GrowVector( I num )
 // Sorts the vector
 //-----------------------------------------------------------------------------
 template< typename T, class I, class A >
-void CUtlVectorBase<T, I, A>::Sort( int (__cdecl *pfnCompare)(const T *, const T *) )
+template< class F >
+inline void CUtlVectorBase<T, I, A>::SortPredicate( F &&predicate )
 {
-	typedef int (__cdecl *QSortCompareFunc_t)(const void *, const void *);
-	if ( Count() <= 1 )
-		return;
+	std::sort( begin(), end(), predicate );
+}
 
-	if ( Base() )
+template< typename T, class I, class A >
+inline void CUtlVectorBase<T, I, A>::Sort( int (*pfnCompare)(const T *, const T *) )
+{
+	SortPredicate( [pfnCompare]( const T &a, const T &b )
 	{
-		qsort( Base(), Count(), sizeof(T), (QSortCompareFunc_t)(pfnCompare) );
-	}
-	else
-	{
-		Assert( 0 );
-		// this path is untested
-		// if you want to sort vectors that use a non-sequential memory allocator,
-		// you'll probably want to patch in a quicksort algorithm here
-		// I just threw in this bubble sort to have something just in case...
+		// Comparing an element with itself is skipped, some compare funcs don't cope with it
+		return &a != &b && pfnCompare( &a, &b ) < 0;
+	} );
+}
 
-		for ( I i = m_Size - 1; i >= 0; --i )
-		{
-			for ( I j = 1; j <= i; ++j )
-			{
-				if ( pfnCompare( &Element( j - 1 ), &Element( j ) ) < 0 )
-				{
-					V_swap( Element( j - 1 ), Element( j ) );
-				}
-			}
-		}
-	}
+template< typename T, class I, class A >
+inline void CUtlVectorBase<T, I, A>::Sort( bool (*pfnLessFunc)(const T &src1, const T &src2) )
+{
+	SortPredicate( [pfnLessFunc]( const T &a, const T &b )
+	{
+		return &a != &b && pfnLessFunc( a, b );
+	} );
+}
+
+template< typename T, class I, class A >
+inline void CUtlVectorBase<T, I, A>::Sort( bool (*pfnLessFunc)(const T &src1, const T &src2, void *pCtx), void *pLessContext )
+{
+	SortPredicate( [pfnLessFunc, pLessContext]( const T &a, const T &b )
+	{
+		return &a != &b && pfnLessFunc( a, b, pLessContext );
+	} );
 }
 
 //-----------------------------------------------------------------------------
