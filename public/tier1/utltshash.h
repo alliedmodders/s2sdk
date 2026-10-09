@@ -60,7 +60,7 @@ class CUtlTSHashGenericHash
 public:
 	static int Hash( const KEYTYPE &key, int nBucketMask )
 	{
-		int nHash = HashIntConventional( (intp)key );
+		int nHash = HashIntAlternate( (intp)key );
 		if ( nBucketMask <= USHRT_MAX )
 		{
 			nHash ^= ( nHash >> 16 );
