@@ -173,7 +173,7 @@ public:
 	virtual WorldGroupId_t	FindWorldGroupByName( const char *pszName ) = 0;
 	virtual const char	*GetWorldGroupName( WorldGroupId_t hWorldGroup ) = 0;
 	virtual WorldGroupId_t	GetFirstWorldGroupId( bool bClient ) = 0;
-	virtual WorldGroupId_t	GetLastWorldGroupId( bool bClient ) = 0;
+	virtual WorldGroupId_t	MaxWorldGroupId( bool bClientSide ) = 0;
 	virtual bool		IsWorldGroupValid( WorldGroupId_t hWorldGroup ) = 0;
 
 	// Points to two floats for the last main loop iteration: the time it took before running its frame, and the frame's time
@@ -216,8 +216,8 @@ public:
 	// Get stats info interface for a client netchannel
 	virtual INetChannelInfo* GetPlayerNetInfo( CPlayerSlot nSlot ) = 0;
 
-	// AMNOTE: Returns a pointer into the client's frame for its acknowledged delta tick, or nullptr
-	virtual void		*unk101( CPlayerSlot nSlot ) = 0;
+	// Returns the entities transmitted in the client's frame for its acknowledged delta tick, or nullptr
+	virtual const CBitVec<MAX_EDICTS> *GetEntityTransmitBitsForClient( CPlayerSlot nSlot ) = 0;
 	// Returns -1 for an invalid slot
 	virtual int			GetClientDeltaTick( CPlayerSlot nSlot ) = 0;
 
@@ -325,8 +325,8 @@ public:
 
 	// AMNOTE: Creates or reuses a client without a connection, returns its slot
 	virtual CPlayerSlot CreateClient( CPlayerSlot nSlot, CSteamID steamID, const char *pszName ) = 0;
-	// AMNOTE: Sets a client state to !bool unless it is 2 or higher, which CreateClient sets
-	virtual void unk201( CPlayerSlot nSlot, bool ) = 0;
+	// AMNOTE: Has no effect on clients made by CreateClient, which lock their slot
+	virtual void SetRecyclePlayerSlot( CPlayerSlot nSlot, bool bRecycle ) = 0;
 	virtual SignonState_t GetClientSignonState( CPlayerSlot nSlot ) = 0;
 
 	virtual void KickClient( CPlayerSlot nSlot, const char *szInternalReason, ENetworkDisconnectionReason reason ) = 0;
@@ -349,7 +349,7 @@ public:
 	virtual void AddHltvRelayProxyWhitelist( uint32 a, uint32 b, uint32 c, uint32 d, uint32 numbits ) = 0;
 	virtual bool WasShutDownRequested() const = 0;
 	// AMNOTE: Extends the queued matchmaking reservation timeout and sends the data in a connectionless packet to every reservation entry, or only to the entry matching the int when it is non-zero
-	virtual void unk301( int, uint8, uint8, uint32 nDataSize, const void *pData ) = 0;
+	virtual void unk101( int, uint8, uint8, uint32 nDataSize, const void *pData ) = 0;
 	virtual bool IsTvRecording() = 0;
 	virtual void StartAutoRecording() = 0;
 	virtual void RecordDemo( const char *pszFilename ) = 0;
