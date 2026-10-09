@@ -18,6 +18,7 @@
 
 #include <string.h>
 #include <type_traits>
+#include <utility>
 #include "tier0/platform.h"
 #include "tier0/dbg.h"
 #include "tier0/threadtools.h"
@@ -57,6 +58,9 @@ public:
 	CUtlVectorBase( I growSize = 0, I initSize = 0 );
 	CUtlVectorBase( T* pMemory, I allocationCount, I numElements = 0 );
 	~CUtlVectorBase();
+
+	CUtlVectorBase( CUtlVectorBase&& src );
+	CUtlVectorBase<T, I, A>& operator=( CUtlVectorBase<T, I, A> &&other );
 	
 	// Copy the array.
 	CUtlVectorBase<T, I, A>& operator=( const CUtlVectorBase<T, I, A> &other );
@@ -105,6 +109,7 @@ public:
 	// Adds an element, uses copy constructor
 	I AddToHead( const T& src );
 	I AddToTail( const T& src );
+	I AddToTail( T&& src );
 	I InsertBefore( I elem, const T& src );
 	I InsertAfter( I elem, const T& src );
 
@@ -579,6 +584,20 @@ inline CUtlVectorBase<T, I, A>::~CUtlVectorBase()
 }
 
 template< typename T, class I, class A >
+inline CUtlVectorBase<T, I, A>::CUtlVectorBase( CUtlVectorBase&& src ) :
+	CUtlVectorBase( 0, 0 )
+{
+	Swap( src );
+}
+
+template< typename T, class I, class A >
+inline CUtlVectorBase<T, I, A>& CUtlVectorBase<T, I, A>::operator=( CUtlVectorBase<T, I, A> &&other )
+{
+	Swap( other );
+	return *this;
+}
+
+template< typename T, class I, class A >
 inline CUtlVectorBase<T, I, A>& CUtlVectorBase<T, I, A>::operator=( const CUtlVectorBase<T, I, A> &other )
 {
 	int nCount = other.Count();
@@ -886,6 +905,18 @@ inline I CUtlVectorBase<T, I, A>::InsertAfter( I elem, const T& src )
 	// Can't insert something that's in the list... reallocation may hose us
 	Assert( (Base() == NULL) || (&src < Base()) || (&src >= (Base() + Count()) ) ); 
 	return InsertBefore( elem + 1, src );
+}
+
+template< typename T, class I, class A >
+inline I CUtlVectorBase<T, I, A>::AddToTail( T&& src )
+{
+	// Can't insert something that's in the list... reallocation may hose us
+	Assert( (Base() == NULL) || (&src < Base()) || (&src >= (Base() + Count()) ) );
+
+	I elem = m_Size;
+	GrowVector();
+	MoveConstruct( &Element(elem), std::move( src ) );
+	return elem;
 }
 
 template< typename T, class I, class A >

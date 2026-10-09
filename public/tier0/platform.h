@@ -63,6 +63,7 @@
 #else
 #include <new.h>
 #endif
+#include <utility>
 
 // Pull in the /analyze code annotations.
 #include "annotations.h"
@@ -1417,6 +1418,12 @@ template <class T>
 inline T* CopyConstruct( T* pMemory, T const& src )
 {
 	return reinterpret_cast<T*>(::new( pMemory ) T(src));
+}
+
+template <class T>
+inline T* MoveConstruct( T* pMemory, T&& src )
+{
+	return reinterpret_cast<T*>(::new( pMemory ) T(std::move(src)));
 }
 
 template <class T>
