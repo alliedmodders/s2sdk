@@ -46,6 +46,9 @@
 #include "mathlib/mathlib.h"
 #include "utllinkedlist.h"
 
+#include <type_traits>
+#include <utility>
+
 //-----------------------------------------------------------------------------
 // Henry Goffin (henryg) was here. Questions? Bugs? Go slap him around a bit.
 //-----------------------------------------------------------------------------
@@ -103,7 +106,10 @@ public:
 	}
 };
 
-template <typename KeyT, typename ValueT = empty_t, typename KeyHashT = DefaultHashFunctor<KeyT>, typename KeyIsEqualT = DefaultEqualFunctor<KeyT>, typename AlternateKeyT = typename ArgumentTypeInfo<KeyT>::Alt_t, typename TableT = CUtlLeanVector<CUtlHashtableEntry<KeyT, ValueT>>>
+// bTriviallyRelocatable moves entries by copying their bytes when the table grows or reorders,
+// otherwise they are move constructed and the source destructed.
+// AMNOTE: Default inferred from engine instantiations, its pointer and CUtlString keyed tables set it
+template <typename KeyT, typename ValueT = empty_t, typename KeyHashT = DefaultHashFunctor<KeyT>, typename KeyIsEqualT = DefaultEqualFunctor<KeyT>, typename TableT = CUtlLeanVector<CUtlHashtableEntry<KeyT, ValueT>>, bool bTriviallyRelocatable = true>
 class CUtlHashtable
 {
 public:
@@ -113,8 +119,15 @@ protected:
 	typedef CUtlKeyValuePair<KeyT, ValueT> KVPair;
 	typedef typename ArgumentTypeInfo<KeyT>::Arg_t KeyArg_t;
 	typedef typename ArgumentTypeInfo<ValueT>::Arg_t ValueArg_t;
-	typedef typename ArgumentTypeInfo<AlternateKeyT>::Arg_t KeyAlt_t;
 	typedef CUtlHashtableEntry<KeyT, ValueT> entry_t;
+
+	// Alternate keys are KeyT's alternate argument type (like const char* for CUtlString),
+	// or any type that doesn't convert to KeyT and that the hash and equality functors accept
+	typedef typename ArgumentTypeInfo<KeyT>::Alt_t KeyAlt_t;
+	template <typename KeyAltT>
+	using EnableIfKeyAlt_t = std::enable_if_t<!std::is_same_v<std::decay_t<KeyAltT>, KeyT> && std::disjunction_v<
+		std::negation<std::is_convertible<const KeyAltT &, KeyT>>,
+		std::conjunction<std::bool_constant<ArgumentTypeInfo<KeyT>::has_alt>, std::is_convertible<const KeyAltT &, KeyAlt_t>>>, int>;
 
 	enum
 	{
@@ -138,6 +151,9 @@ protected:
 
 	// Move an existing entry to a free slot, leaving a hole behind
 	void BumpEntry( unsigned int idx );
+
+	// Move the key-value pair of a valid entry into an unconstructed one
+	static void MoveEntryData( entry_t &dst, entry_t &src );
 
 	// Insert an unconstructed KVPair at the primary slot
 	int DoInsertUnconstructed( unsigned int h, bool allowGrow );
@@ -201,34 +217,34 @@ public:
 	handle_t Find( KeyArg_t k ) const { return DoLookup<KeyArg_t>( k, m_hash(k), NULL ); }
 	handle_t Find( KeyArg_t k, unsigned int hash ) const { Assert( hash == m_hash(k) ); return DoLookup<KeyArg_t>( k, hash, NULL ); }
 	// Alternate-type key lookup, returns InvalidHandle() if not found
-	handle_t Find( KeyAlt_t k ) const { return DoLookup<KeyAlt_t>( k, m_hash(k), NULL ); }
-	handle_t Find( KeyAlt_t k, unsigned int hash) const { Assert( hash == m_hash(k) ); return DoLookup<KeyAlt_t>( k, hash, NULL ); }
+	template <typename KeyAltT, EnableIfKeyAlt_t<KeyAltT> = 0> handle_t Find( const KeyAltT &k ) const { return DoLookup<const KeyAltT &>( k, m_hash(k), NULL ); }
+	template <typename KeyAltT, EnableIfKeyAlt_t<KeyAltT> = 0> handle_t Find( const KeyAltT &k, unsigned int hash ) const { Assert( hash == m_hash(k) ); return DoLookup<const KeyAltT &>( k, hash, NULL ); }
 
 	// True if the key is in the table
 	bool HasElement( KeyArg_t k ) const { return InvalidHandle() != Find( k ); }
-	bool HasElement( KeyAlt_t k ) const { return InvalidHandle() != Find( k ); }
+	template <typename KeyAltT, EnableIfKeyAlt_t<KeyAltT> = 0> bool HasElement( const KeyAltT &k ) const { return InvalidHandle() != Find( k ); }
 	
 	// Key insertion or lookup, always returns a valid handle
 	handle_t Insert( KeyArg_t k ) { return DoInsert<KeyArg_t>( k, m_hash(k) ); }
 	handle_t Insert( KeyArg_t k, ValueArg_t v, bool *pDidInsert = NULL ) { return DoInsert<KeyArg_t>( k, v, m_hash(k), pDidInsert ); }
 	handle_t Insert( KeyArg_t k, ValueArg_t v, unsigned int hash, bool *pDidInsert = NULL ) { Assert( hash == m_hash(k) ); return DoInsert<KeyArg_t>( k, v, hash, pDidInsert ); }
 	// Alternate-type key insertion or lookup, always returns a valid handle
-	handle_t Insert( KeyAlt_t k ) { return DoInsert<KeyAlt_t>( k, m_hash(k) ); }
-	handle_t Insert( KeyAlt_t k, ValueArg_t v, bool *pDidInsert = NULL ) { return DoInsert<KeyAlt_t>( k, v, m_hash(k), pDidInsert ); }
+	template <typename KeyAltT, EnableIfKeyAlt_t<KeyAltT> = 0> handle_t Insert( const KeyAltT &k ) { return DoInsert<const KeyAltT &>( k, m_hash(k) ); }
+	template <typename KeyAltT, EnableIfKeyAlt_t<KeyAltT> = 0> handle_t Insert( const KeyAltT &k, ValueArg_t v, bool *pDidInsert = NULL ) { return DoInsert<const KeyAltT &>( k, v, m_hash(k), pDidInsert ); }
 	// AMNOTE: Assert here triggers a false crash on CUtlSymbolTableLarge when it uses its altkey when adding a string
 	// not sure how else s2 altkey for it is setup, but what we have as an altkey union falls apart here
 	// when it tries to call hash func on it and UtlSymLargeId_t is actually stored there instead of a string
 	// you get a SIGSEGV crash since there's no way to differentiate.
 	// This affects primarily debug builds and has no effect on runtime logic.
 	// So while no other better solutions available this assert is commented out.
-	handle_t Insert( KeyAlt_t k, ValueArg_t v, unsigned int hash, bool *pDidInsert = NULL ) { /*Assert( hash == m_hash(k) );*/ return DoInsert<KeyAlt_t>( k, v, hash, pDidInsert ); }
+	template <typename KeyAltT, EnableIfKeyAlt_t<KeyAltT> = 0> handle_t Insert( const KeyAltT &k, ValueArg_t v, unsigned int hash, bool *pDidInsert = NULL ) { /*Assert( hash == m_hash(k) );*/ return DoInsert<const KeyAltT &>( k, v, hash, pDidInsert ); }
 
 	// Key removal, returns false if not found
 	bool Remove( KeyArg_t k ) { return DoRemove<KeyArg_t>( k, m_hash(k) ) >= 0; }
 	bool Remove( KeyArg_t k, unsigned int hash ) { Assert( hash == m_hash(k) ); return DoRemove<KeyArg_t>( k, hash ) >= 0; }
 	// Alternate-type key removal, returns false if not found
-	bool Remove( KeyAlt_t k ) { return DoRemove<KeyAlt_t>( k, m_hash(k) ) >= 0; }
-	bool Remove( KeyAlt_t k, unsigned int hash ) { Assert( hash == m_hash(k) ); return DoRemove<KeyAlt_t>( k, hash ) >= 0; }
+	template <typename KeyAltT, EnableIfKeyAlt_t<KeyAltT> = 0> bool Remove( const KeyAltT &k ) { return DoRemove<const KeyAltT &>( k, m_hash(k) ) >= 0; }
+	template <typename KeyAltT, EnableIfKeyAlt_t<KeyAltT> = 0> bool Remove( const KeyAltT &k, unsigned int hash ) { Assert( hash == m_hash(k) ); return DoRemove<const KeyAltT &>( k, hash ) >= 0; }
 
 	// Remove while iterating, returns the next handle for forward iteration
 	// Note: aside from this, ALL handles are invalid if an element is removed
@@ -255,15 +271,15 @@ public:
 	Element_t &operator[]( handle_t idx ) { return m_table[idx]->GetValue(); }
 
 	void ReplaceKey( handle_t idx, KeyArg_t k ) { Assert( m_eq( m_table[idx]->m_key, k ) && m_hash( k ) == m_hash( m_table[idx]->m_key ) ); m_table[idx]->m_key = k; }
-	void ReplaceKey( handle_t idx, KeyAlt_t k ) { Assert( m_eq( m_table[idx]->m_key, k ) && m_hash( k ) == m_hash( m_table[idx]->m_key ) ); m_table[idx]->m_key = k; }
+	template <typename KeyAltT, EnableIfKeyAlt_t<KeyAltT> = 0> void ReplaceKey( handle_t idx, const KeyAltT &k ) { Assert( m_eq( m_table[idx]->m_key, k ) && m_hash( k ) == m_hash( m_table[idx]->m_key ) ); m_table[idx]->m_key = k; }
 
 	Element_t const &Get( KeyArg_t k, Element_t const &defaultValue ) const { handle_t h = Find( k ); if ( h != InvalidHandle() ) return Element( h ); return defaultValue; }
-	Element_t const &Get( KeyAlt_t k, Element_t const &defaultValue ) const { handle_t h = Find( k ); if ( h != InvalidHandle() ) return Element( h ); return defaultValue; }
+	template <typename KeyAltT, EnableIfKeyAlt_t<KeyAltT> = 0> Element_t const &Get( const KeyAltT &k, Element_t const &defaultValue ) const { handle_t h = Find( k ); if ( h != InvalidHandle() ) return Element( h ); return defaultValue; }
 
 	Element_t const *GetPtr( KeyArg_t k ) const { handle_t h = Find(k); if ( h != InvalidHandle() ) return &Element( h ); return NULL; }
-	Element_t const *GetPtr( KeyAlt_t k ) const { handle_t h = Find(k); if ( h != InvalidHandle() ) return &Element( h ); return NULL; }
+	template <typename KeyAltT, EnableIfKeyAlt_t<KeyAltT> = 0> Element_t const *GetPtr( const KeyAltT &k ) const { handle_t h = Find(k); if ( h != InvalidHandle() ) return &Element( h ); return NULL; }
 	Element_t *GetPtr( KeyArg_t k ) { handle_t h = Find( k ); if ( h != InvalidHandle() ) return &Element( h ); return NULL; }
-	Element_t *GetPtr( KeyAlt_t k ) { handle_t h = Find( k ); if ( h != InvalidHandle() ) return &Element( h ); return NULL; }
+	template <typename KeyAltT, EnableIfKeyAlt_t<KeyAltT> = 0> Element_t *GetPtr( const KeyAltT &k ) { handle_t h = Find( k ); if ( h != InvalidHandle() ) return &Element( h ); return NULL; }
 
 	// Swap memory and contents with another identical hashtable
 	// (NOTE: if using function pointers or functors with state,
@@ -279,8 +295,8 @@ private:
 	CUtlHashtable(const CUtlHashtable& copyConstructorIsNotImplemented);
 };
 
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
-void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::InitTable()
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
+void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::InitTable()
 {
 	if ( m_table.Count() > 0 )
 	{
@@ -291,8 +307,8 @@ void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::InitTa
 }
 
 // Set external memory (raw byte buffer, best-fit)
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
-void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::SetExternalBuffer( byte* pRawBuffer, unsigned int nBytes, bool bAssumeOwnership, bool bGrowable )
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
+void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::SetExternalBuffer( byte* pRawBuffer, unsigned int nBytes, bool bAssumeOwnership, bool bGrowable )
 {
 	Assert( ((uintp)pRawBuffer % __alignof(int)) == 0 );
 	uint32 bestSize = LargestPowerOfTwoLessThanOrEqual( nBytes / sizeof(entry_t) );
@@ -302,8 +318,8 @@ void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::SetExt
 }
 
 // Set external memory (typechecked, must be power of two)
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
-void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::SetExternalBuffer( entry_t* pBuffer, unsigned int nSize, bool bAssumeOwnership, bool bGrowable )
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
+void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::SetExternalBuffer( entry_t* pBuffer, unsigned int nSize, bool bAssumeOwnership, bool bGrowable )
 {
 	Assert( IsPowerOfTwo(nSize) );
 	Assert( m_nUsed == 0 );
@@ -318,8 +334,8 @@ void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::SetExt
 }
 
 // Allocate an empty table and then re-insert all existing entries.
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
-void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DoRealloc( int size )
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
+void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::DoRealloc( int size )
 {
 	Assert( !m_bSizeLocked ); 
 
@@ -343,7 +359,20 @@ void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DoReal
 				pOldBase = (entry_t *)stackalloc( nBytes );
 			}
 
-			V_memmove( pOldBase, m_table.Base(), nBytes );
+			if constexpr ( bTriviallyRelocatable )
+			{
+				V_memmove( pOldBase, m_table.Base(), nBytes );
+			}
+			else
+			{
+				entry_t *pCurBase = m_table.Base();
+				for ( int i = 0; i < nOldSize; ++i )
+				{
+					pOldBase[i].flags_and_hash = pCurBase[i].flags_and_hash;
+					if ( pCurBase[i].IsValid() )
+						MoveEntryData( pOldBase[i], pCurBase[i] );
+				}
+			}
 		}
 
 		m_table.Purge();
@@ -379,7 +408,7 @@ void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DoReal
 		if ( pOldBase[i].IsValid() )
 		{
 			int newIdx = DoInsertUnconstructed( pOldBase[i].flags_and_hash, false );
-			pNewBase[newIdx].MoveDataFrom( pOldBase[i] );
+			MoveEntryData( pNewBase[newIdx], pOldBase[i] );
 			if ( --nLeftToMove == 0 )
 				break;
 		}
@@ -389,8 +418,8 @@ void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DoReal
 
 
 // Move an existing entry to a free slot, leaving a hole behind
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
-void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::BumpEntry( unsigned int idx )
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
+void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::BumpEntry( unsigned int idx )
 {
 	Assert( m_table[idx].IsValid() );
 	Assert( m_nUsed < m_nTableSize );
@@ -451,14 +480,29 @@ void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::BumpEn
 
 	// Move entry to the free slot we found, leaving a hole at idx
 	table[newIdx].flags_and_hash = new_flags_and_hash;
-	table[newIdx].MoveDataFrom( table[idx] );
+	MoveEntryData( table[newIdx], table[idx] );
 	table[idx].MarkInvalid();
+}
+
+// Move the key-value pair of a valid entry into an unconstructed one
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
+void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::MoveEntryData( entry_t &dst, entry_t &src )
+{
+	if constexpr ( bTriviallyRelocatable )
+	{
+		dst.MoveDataFrom( src );
+	}
+	else
+	{
+		MoveConstruct( dst.Raw(), std::move( *src.Raw() ) );
+		Destruct( src.Raw() );
+	}
 }
 
 	
 // Insert a value at the root position for that value's hash chain.
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
-int CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DoInsertUnconstructed( unsigned int h, bool allowGrow )
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
+int CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::DoInsertUnconstructed( unsigned int h, bool allowGrow )
 {
 	if ( allowGrow && !m_bSizeLocked )
 	{
@@ -494,9 +538,9 @@ int CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DoInser
 
 
 // Key lookup. Can also return previous-in-chain if result is a chained slot.
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
 template <typename KeyParamT>
-UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DoLookup( KeyParamT x, unsigned int h, handle_t *pPreviousInChain ) const
+UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::DoLookup( KeyParamT x, unsigned int h, handle_t *pPreviousInChain ) const
 {
 	if ( m_nUsed == 0 )
 	{
@@ -547,9 +591,9 @@ UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, Tabl
 
 
 // Key insertion, or return index of existing key if found
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
 template <typename KeyParamT>
-UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DoInsert( KeyParamT k, unsigned int h )
+UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::DoInsert( KeyParamT k, unsigned int h )
 {
 	handle_t idx = DoLookup<KeyParamT>( k, h, NULL );
 	if ( idx == (handle_t) -1 )
@@ -561,9 +605,9 @@ UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, Tabl
 }
 
 // Key insertion, or return index of existing key if found
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
 template <typename KeyParamT>
-UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DoInsert( KeyParamT k, typename ArgumentTypeInfo<ValueT>::Arg_t v, unsigned int h, bool *pDidInsert )
+UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::DoInsert( KeyParamT k, typename ArgumentTypeInfo<ValueT>::Arg_t v, unsigned int h, bool *pDidInsert )
 {
 	handle_t idx = DoLookup<KeyParamT>( k, h, NULL );
 	if ( idx == (handle_t) -1 )
@@ -580,9 +624,9 @@ UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, Tabl
 }
 
 // Key insertion
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
 template <typename KeyParamT>
-UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DoInsertNoCheck( KeyParamT k, typename ArgumentTypeInfo<ValueT>::Arg_t v, unsigned int h )
+UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::DoInsertNoCheck( KeyParamT k, typename ArgumentTypeInfo<ValueT>::Arg_t v, unsigned int h )
 {
 	Assert( DoLookup<KeyParamT>( k, h, NULL ) == (handle_t) -1 );
 	handle_t idx = (handle_t) DoInsertUnconstructed( h, true );
@@ -592,9 +636,9 @@ UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, Tabl
 
 
 // Remove single element by key + hash. Returns the location of the new empty hole.
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
 template <typename KeyParamT>
-int CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DoRemove( KeyParamT x, unsigned int h )
+int CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::DoRemove( KeyParamT x, unsigned int h )
 {
 	unsigned int slotmask = m_nTableSize-1;
 	handle_t previous = (handle_t) -1;
@@ -639,7 +683,7 @@ int CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DoRemov
 
 		// Leave a hole where the next entry in the chain was.
 		m_table[idx].flags_and_hash = m_table[nextIdx].flags_and_hash;
-		m_table[idx].MoveDataFrom( m_table[nextIdx] );
+		MoveEntryData( m_table[idx], m_table[nextIdx] );
 		m_table[nextIdx].MarkInvalid();
 		return nextIdx;
 	}
@@ -650,8 +694,8 @@ int CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DoRemov
 
 
 // Assignment operator. It's up to the user to make sure that the hash and equality functors match.
-template <typename K, typename V, typename H, typename E, typename A, typename T>
-CUtlHashtable<K,V,H,E,A,T> &CUtlHashtable<K,V,H,E,A,T>::operator=( CUtlHashtable<K,V,H,E,A,T> const &src )
+template <typename K, typename V, typename H, typename E, typename T, bool R>
+CUtlHashtable<K,V,H,E,T,R> &CUtlHashtable<K,V,H,E,T,R>::operator=( CUtlHashtable<K,V,H,E,T,R> const &src )
 {
 	if ( &src != this )
 	{
@@ -683,8 +727,8 @@ CUtlHashtable<K,V,H,E,A,T> &CUtlHashtable<K,V,H,E,A,T>::operator=( CUtlHashtable
 }
 
 // Remove and return the next valid iterator for a forward iteration.
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
-UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::RemoveAndAdvance( UtlHashHandle_t idx )
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
+UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::RemoveAndAdvance( UtlHashHandle_t idx )
 {
 	Assert( IsValidHandle( idx ) );
 
@@ -705,8 +749,8 @@ UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, Tabl
 }
 
 // Burn it with fire.
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
-void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::RemoveAll()
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
+void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::RemoveAll()
 {
 	int used = m_nUsed;
 	if ( used != 0 )
@@ -726,8 +770,8 @@ void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::Remove
 	}
 }
 
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
-UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::NextHandle( handle_t start ) const
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
+UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::NextHandle( handle_t start ) const
 {
 	const entry_t *table = m_table.Base();
 	for ( int i = (int)start + 1; i < m_nTableSize; ++i )
@@ -740,8 +784,8 @@ UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, Tabl
 
 
 #if _DEBUG
-template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename AltKeyT, typename TableT>
-void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT, TableT>::DbgCheckIntegrity() const
+template <typename KeyT, typename ValueT, typename KeyHashT, typename KeyIsEqualT, typename TableT, bool bTriviallyRelocatable>
+void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyRelocatable>::DbgCheckIntegrity() const
 {
 	// Stress test the hash table as a test of both container functionality
 	// and also the validity of the user's Hash and Equal function objects.
@@ -808,7 +852,7 @@ protected:
 	struct EqualProxy;
 	struct IndirectIndex;
 
-	typedef CUtlHashtable< IndirectIndex, empty_t, HashProxy, EqualProxy, AlternateKeyT > Hashtable_t;
+	typedef CUtlHashtable< IndirectIndex, empty_t, HashProxy, EqualProxy > Hashtable_t;
 	typedef CUtlLinkedList< KVPair, IndexStorage_t > LinkedList_t;
 
 	template <typename KeyArgumentT> bool DoRemove( KeyArgumentT k );

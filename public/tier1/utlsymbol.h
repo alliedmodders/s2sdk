@@ -142,7 +142,7 @@ protected:
 		bool operator()( int a, UtlSymTableAltKey b ) const;
 	};
 
-	typedef CUtlHashtable<int, empty_t, UtlSymTableHashFunctor, UtlSymTableEqualFunctor, UtlSymTableAltKey> Hashtable_t;
+	typedef CUtlHashtable<int, empty_t, UtlSymTableHashFunctor, UtlSymTableEqualFunctor> Hashtable_t;
 	typedef CUtlVector<MemBlockHandle_t> MemBlocksVec_t;
 
 	Hashtable_t						m_HashTable;
