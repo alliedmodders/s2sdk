@@ -96,6 +96,12 @@ public:
 	T* Base();
 	const T* Base() const;
 
+	// STL compatible iteration
+	typedef T* iterator;
+	typedef const T* const_iterator;
+	iterator begin()										{ return Base(); }
+	const_iterator begin() const							{ return Base(); }
+
 	// Attaches the buffer to external memory....
 	void SetExternalBuffer( T* pMemory, I numElements );
 	void SetExternalBuffer( const T* pMemory, I numElements );
@@ -205,6 +211,12 @@ public:
 	T* Base()												{ return (T*)(&m_Memory[0]); }
 	const T* Base() const									{ return (T*)(&m_Memory[0]); }
 
+	// STL compatible iteration
+	typedef T* iterator;
+	typedef const T* const_iterator;
+	iterator begin()										{ return Base(); }
+	const_iterator begin() const							{ return Base(); }
+
 	// element access
 	T& operator[]( I i )									{ Assert( IsIdxValid(i) ); return Base()[i];	}
 	const T& operator[]( I i ) const						{ Assert( IsIdxValid(i) ); return Base()[i];	}
@@ -285,6 +297,12 @@ public:
 	// Gets the base address
 	T* Base()												{ return m_pMemory; }
 	const T* Base() const									{ return m_pMemory; }
+
+	// STL compatible iteration
+	typedef T* iterator;
+	typedef const T* const_iterator;
+	iterator begin()										{ return Base(); }
+	const_iterator begin() const							{ return Base(); }
 
 	// element access
 	T& operator[]( I i )									{ Assert( IsIdxValid(i) ); return Base()[i];	}
@@ -1057,6 +1075,12 @@ public:
 	// Gets the base address (can change when adding elements!)
 	T* Base()											{ return m_nAllocationCount > 0 ? m_pMemory : nullptr; }
 	const T* Base() const								{ return m_nAllocationCount > 0 ? m_pMemory : nullptr; }
+
+	// STL compatible iteration
+	typedef T* iterator;
+	typedef const T* const_iterator;
+	iterator begin()										{ return Base(); }
+	const_iterator begin() const							{ return Base(); }
 
 	// element access
 	T& operator[]( int i )								{ Assert( IsIdxValid(i) ); return Base()[i];	}

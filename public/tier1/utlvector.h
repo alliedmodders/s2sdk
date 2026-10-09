@@ -50,6 +50,8 @@ class CUtlVectorBase : public base_vector_t
 public:
 	typedef T ElemType_t;
 	typedef I IndexType_t;
+	typedef typename A::iterator iterator;
+	typedef typename A::const_iterator const_iterator;
 
 	// constructor, destructor
 	CUtlVectorBase( I growSize = 0, I initSize = 0 );
@@ -72,6 +74,12 @@ public:
 	// Gets the base address (can change when adding elements!)
 	T* Base()								{ return m_Memory.Base(); }
 	const T* Base() const					{ return m_Memory.Base(); }
+
+	// STL compatible iteration, for range-based for loops and std algorithms
+	iterator begin()						{ return m_Memory.begin(); }
+	const_iterator begin() const			{ return m_Memory.begin(); }
+	iterator end()							{ return m_Memory.begin() + Count(); }
+	const_iterator end() const				{ return m_Memory.begin() + Count(); }
 
 	// Attaches the buffer to external memory....
 	void SetExternalBuffer( T *pMemory, I allocationCount, I numElements = 0 );

@@ -14,6 +14,8 @@
 #pragma once
 #endif
 
+#include <iterator>
+#include <type_traits>
 #include "tier0/dbg.h"
 #include "tier0/platform.h"
 #include "mathlib/mathlib.h"
@@ -71,6 +73,60 @@ public:
 	bool IsIdxAfter( I i, const Iterator_t &it ) const	{ return i > it.index; }
 	bool IsValidIterator( const Iterator_t &it ) const	{ return IsIdxValid( it.index ); }
 	Iterator_t InvalidIterator() const					{ return Iterator_t( InvalidIndex() ); }
+
+	// STL compatible random access iterator over the blocks, indexed through Element()
+	template< bool bConst >
+	class BlockIterator_t
+	{
+		typedef std::conditional_t< bConst, const CUtlBlockMemory< T, I >, CUtlBlockMemory< T, I > > Memory_t;
+
+	public:
+		typedef std::random_access_iterator_tag iterator_category;
+		typedef T value_type;
+		typedef intp difference_type;
+		typedef std::conditional_t< bConst, const T*, T* > pointer;
+		typedef std::conditional_t< bConst, const T&, T& > reference;
+
+		BlockIterator_t() : m_pMemory( nullptr ), m_nIndex( 0 ) {}
+		BlockIterator_t( Memory_t *pMemory, difference_type nIndex ) : m_pMemory( pMemory ), m_nIndex( nIndex ) {}
+
+		template< bool bOtherConst, std::enable_if_t< bConst && !bOtherConst, int > = 0 >
+		BlockIterator_t( const BlockIterator_t< bOtherConst > &other ) : m_pMemory( other.m_pMemory ), m_nIndex( other.m_nIndex ) {}
+
+		reference operator*() const							{ return m_pMemory->Element( ( I )m_nIndex ); }
+		pointer operator->() const							{ return &m_pMemory->Element( ( I )m_nIndex ); }
+		reference operator[]( difference_type n ) const		{ return m_pMemory->Element( ( I )( m_nIndex + n ) ); }
+
+		BlockIterator_t &operator++()						{ ++m_nIndex; return *this; }
+		BlockIterator_t operator++( int )					{ BlockIterator_t it = *this; ++m_nIndex; return it; }
+		BlockIterator_t &operator--()						{ --m_nIndex; return *this; }
+		BlockIterator_t operator--( int )					{ BlockIterator_t it = *this; --m_nIndex; return it; }
+		BlockIterator_t &operator+=( difference_type n )	{ m_nIndex += n; return *this; }
+		BlockIterator_t &operator-=( difference_type n )	{ m_nIndex -= n; return *this; }
+
+		friend BlockIterator_t operator+( BlockIterator_t it, difference_type n )	{ it += n; return it; }
+		friend BlockIterator_t operator+( difference_type n, BlockIterator_t it )	{ it += n; return it; }
+		friend BlockIterator_t operator-( BlockIterator_t it, difference_type n )	{ it -= n; return it; }
+		friend difference_type operator-( const BlockIterator_t &a, const BlockIterator_t &b )	{ return a.m_nIndex - b.m_nIndex; }
+
+		friend bool operator==( const BlockIterator_t &a, const BlockIterator_t &b )	{ return a.m_nIndex == b.m_nIndex; }
+		friend bool operator!=( const BlockIterator_t &a, const BlockIterator_t &b )	{ return a.m_nIndex != b.m_nIndex; }
+		friend bool operator<( const BlockIterator_t &a, const BlockIterator_t &b )	{ return a.m_nIndex < b.m_nIndex; }
+		friend bool operator>( const BlockIterator_t &a, const BlockIterator_t &b )	{ return a.m_nIndex > b.m_nIndex; }
+		friend bool operator<=( const BlockIterator_t &a, const BlockIterator_t &b )	{ return a.m_nIndex <= b.m_nIndex; }
+		friend bool operator>=( const BlockIterator_t &a, const BlockIterator_t &b )	{ return a.m_nIndex >= b.m_nIndex; }
+
+	private:
+		template< bool > friend class BlockIterator_t;
+
+		Memory_t *m_pMemory;
+		difference_type m_nIndex;
+	};
+
+	typedef BlockIterator_t< false > iterator;
+	typedef BlockIterator_t< true > const_iterator;
+	iterator begin()									{ return iterator( this, 0 ); }
+	const_iterator begin() const						{ return const_iterator( this, 0 ); }
 
 	// element access
 	T& operator[]( I i );
