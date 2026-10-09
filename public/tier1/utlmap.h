@@ -358,6 +358,15 @@ public:
 
 	CTree *AccessTree()	{ return &m_Tree; }
 
+	// STL / C++11-style iterators over the nodes in key order.
+	// Changing a node's key breaks the order, use Reinsert instead.
+	typedef typename CTree::iterator iterator;
+	typedef typename CTree::const_iterator const_iterator;
+	const_iterator begin() const { return m_Tree.begin(); }
+	const_iterator end() const { return m_Tree.end(); }
+	iterator begin() { return m_Tree.begin(); }
+	iterator end() { return m_Tree.end(); }
+
 protected:
 	CTree	m_Tree;
 };
