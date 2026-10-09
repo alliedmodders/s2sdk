@@ -9,19 +9,74 @@
 #include "resourcefile/resourcetype.h"
 #include "tier1/utlstring.h"
 #include "tier1/utlvector.h"
+#include <memory>
 
 class CBufferString;
+class IAsyncProcessedDataResult;
 class ICodeResourceManifestManager;
 class IFileSystem;
+class IRD_RegisterResourceDataUtils;
+class IResourceDeallocatorUtils;
 class IResourceSystemLeakTracker;
 class IResourceSystemProfiler;
-class IResourceTypeManager;
+class IResourceSystemUtils;
 class IResourceUpdater;
 class IToolsResourceListener;
 class IToolsResourcePreReloadListener;
 class IVDataTypeManager;
+struct ResourceFileHeader_t;
 
 DECLARE_POINTER_HANDLE( HResourceManifest );
+
+enum ResourceLoadType_t
+{
+	RESOURCE_LOAD_INVALID = -1,
+	RESOURCE_LOAD_SUCCESS = 0,
+	RESOURCE_LOAD_FAIL,
+	RESOURCE_LOAD_RELOAD,
+	RESOURCE_LOAD_PRE_RELOAD,
+};
+
+enum ResourceStreamingType_t : uint8
+{
+	RESOURCE_STREAMING_TYPE_NO_DATA = 0,
+	RESOURCE_STREAMING_TYPE_HAS_DATA,
+	RESOURCE_STREAMING_TYPE_HAS_DATA_ALWAYS_LOAD,
+	RESOURCE_STREAMING_TYPE_STREAM_DATA_FROM_ALLOCATE,
+};
+
+abstract_class IResourceTypeManager
+{
+public:
+	virtual bool Init( IResourceSystemUtils *pUtils ) = 0;
+	virtual void Shutdown() = 0;
+	// AMNOTE: Called after Shutdown when the type manager is removed, once the type's pending loads have finished
+	virtual void unk001() = 0;
+	virtual ResourceHandle_t GetErrorResource() = 0;
+	virtual bool NeedsFrameUpdate() const = 0;
+	virtual void FrameUpdate( int ) = 0;
+	virtual bool RequiresFinalizeResourceCall() const = 0;
+	virtual void FinalizeResource( ResourceHandle_t hResource, ResourceLoadType_t eLoadType ) = 0;
+	// AMNOTE: Cached when the type manager is installed, true makes the resource system call unk102 on a worker thread before FinalizeResource
+	virtual bool unk101() const = 0;
+	virtual void unk102( ResourceHandle_t hResource, ResourceLoadType_t eLoadType ) = 0;
+	virtual ResourceStreamingType_t GetStreamingType() const = 0;
+	virtual int GetNonStreamingDataLoadSize( ResourceHandle_t hResource, bool ) const = 0;
+	virtual void LoadStreamingData( ResourceHandle_t hResource, IResourceSystemUtils *pUtils ) = 0;
+	virtual void AllocateResource( ResourceHandle_t hResource, ResourceId_t id, const ResourceFileHeader_t *pHeader, IRD_RegisterResourceDataUtils *pUtils ) = 0;
+	virtual void DeallocateResource( void *pData, IResourceDeallocatorUtils *pUtils ) = 0;
+	virtual void NotifyResourceWithWorkPendingLoadCancelled( ResourceHandle_t hResource, void *pData ) = 0;
+	virtual bool UsesData() const = 0;
+	virtual bool IsStreamingDataAlreadyLoaded( ResourceHandle_t hResource ) = 0;
+	virtual bool WantsAsyncProcessData() const = 0;
+	virtual std::unique_ptr<IAsyncProcessedDataResult> AsyncProcessData( ResourceHandle_t hResource, const ResourceFileHeader_t *pHeader ) = 0;
+	// AMNOTE: Cached when the type manager is installed, true makes the resource system call unk202 during Update, only for the vdata type
+	virtual bool unk201() const = 0;
+	virtual void unk202() = 0;
+	// AMNOTE: Called on every type manager before and after Update processes the resources that finished loading
+	virtual void unk203() = 0;
+	virtual void unk204() = 0;
+};
 
 enum ResourceManifestPriority_t
 {
