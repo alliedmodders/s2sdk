@@ -208,6 +208,7 @@ template < typename T > class CUtlConstStringBase;
 
 template <> struct DefaultLessFunctor<CUtlString> : StringLessFunctor { };
 template <> struct DefaultHashFunctor<CUtlString> : StringHashFunctor { };
+template <> struct MurmurHash3Functor<CUtlString> { uint32 operator()( const CUtlString &key ) const { return MurmurHash3String( key.Get() ); } };
 template < typename T > struct DefaultLessFunctor< CUtlConstStringBase<T> > : StringLessFunctor { };
 template < typename T > struct DefaultHashFunctor< CUtlConstStringBase<T> > : StringHashFunctor { };
 
