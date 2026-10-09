@@ -41,7 +41,7 @@
 
 #include "tier0/platform.h"
 #include "tier1/refcount.h"
-#include "tier1/utlenvelope.h"
+#include "tier1/strtools.h"
 #include <typeinfo>
 
 #if defined( _CPPRTTI ) || defined( __GXX_RTTI )
@@ -381,8 +381,6 @@ public:
 // When calling through a functor, care needs to be taken to not pass objects that might go away. 
 // Since this code determines the type to store in the functor based on the actual arguments,
 // this is achieved by changing the point of call. 
-//
-// See also CUtlEnvelope
 //-----------------------------------------------------------------------------
 // convert a reference to a passable value
 template <typename T>

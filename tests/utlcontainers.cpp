@@ -19,12 +19,9 @@
 #include "tier1/utlhandletable.h"
 #include "tier1/utlhashdict.h"
 #include "tier1/utlfixedmemory.h"
-#include "tier1/utlenvelope.h"
 #include "tier1/utlcommon.h"
 #include "tier1/utlscratchmemory.h"
-#include "tier1/utlbidirectionalset.h"
 #include "tier1/circularbuffer.h"
-#include "tier1/utlflags.h"
 #include "tier1/utlntree.h"
 #include "tier1/utlintrusivelist.h"
 #include "tier1/memstack.h"
@@ -72,15 +69,12 @@ template class CUtlMultiList<CUtlString, int>;
 template class CUtlHashFixed<CUtlString, 16>;
 template class CUtlScalarHash<int>;
 template class CUtlFixedMemory<CUtlString>;
-template class CUtlEnvelope<CUtlString>;
 template class CUtlKeyValuePair<CUtlString, CUtlString>;
 template class CUtlKeyValuePair<CUtlString, empty_t>;
 template class CUtlScratchMemoryPoolFixedGrowable<1024>;
-template class CBidirectionalSet<int, int, int>;
 template class CObjectPool<CUtlString>;
 template class CFixedBudgetMemoryPool<16, 16>;
 template class CFixedSizeCircularBuffer<CUtlString, 16>;
-template class CUtlFlags<uint8>;
 template class CUtlDelegate<bool ( int, const CUtlString & )>;
 template class FastDelegate0<>;
 template class FastDelegate1<int>;

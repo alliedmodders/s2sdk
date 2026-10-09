@@ -243,7 +243,6 @@
     <ClInclude Include="..\public\tier1\convar.h" />
     <ClInclude Include="..\public\tier1\datamanager.h" />
     <ClInclude Include="..\public\datamap.h" />
-    <ClInclude Include="..\public\tier1\delegates.h" />
     <ClInclude Include="..\public\tier1\diff.h" />
     <ClInclude Include="..\public\tier1\fmtstr.h" />
     <ClInclude Include="..\public\tier1\functors.h" />
@@ -257,19 +256,16 @@
     <ClInclude Include="..\public\tier1\memstack.h" />
     <ClInclude Include="..\public\tier1\netadr.h" />
     <ClInclude Include="..\public\tier1\processor_detect.h" />
-    <ClInclude Include="..\public\tier1\rangecheckedvar.h" />
     <ClInclude Include="..\public\tier1\refcount.h" />
     <ClInclude Include="..\public\tier1\smartptr.h" />
     <ClInclude Include="..\public\tier1\stringpool.h" />
     <ClInclude Include="..\public\tier1\strtools.h" />
     <ClInclude Include="..\public\tier1\tier1.h" />
     <ClInclude Include="..\public\tier1\uniqueid.h" />
-    <ClInclude Include="..\public\tier1\utlbidirectionalset.h" />
     <ClInclude Include="..\public\tier1\utlblockmemory.h" />
     <ClInclude Include="..\public\tier1\utlbuffer.h" />
     <ClInclude Include="..\public\tier1\utlbufferutil.h" />
     <ClInclude Include="..\public\tier1\utldict.h" />
-    <ClInclude Include="..\public\tier1\utlenvelope.h" />
     <ClInclude Include="..\public\tier1\utlfixedmemory.h" />
     <ClInclude Include="..\public\tier1\utlhandletable.h" />
     <ClInclude Include="..\public\tier1\utlhash.h" />

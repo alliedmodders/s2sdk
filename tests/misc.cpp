@@ -8,7 +8,6 @@
 #include "tier1/refcount.h"
 #include "tier1/functors.h"
 #include "tier1/utlstring.h"
-#include "tier1/rangecheckedvar.h"
 #include "tier1/utlsoacontainer.h"
 #include "tier1/keyvalues3.h"
 #include "mathlib/vec3d.h"
@@ -71,7 +70,6 @@ template class CBaseIntHandle<uint64>;
 template class CIntHandle16<IntHandleType_t>;
 template class CIntHandle32<IntHandleType_t>;
 template class CIntHandle64<IntHandleType_t>;
-template class CRangeCheckedVar<int, 0, 10, 5>;
 template class CStridedPtr<float>;
 template class CStridedConstPtr<float>;
 template class Vec3D<float>;

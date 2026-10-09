@@ -41,9 +41,6 @@
     <ClInclude Include="..\public\datamap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\tier1\delegates.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\tier1\diff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -83,9 +80,6 @@
     <ClInclude Include="..\public\tier1\processor_detect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\tier1\rangecheckedvar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\tier1\refcount.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -104,9 +98,6 @@
     <ClInclude Include="..\public\tier1\uniqueid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\tier1\utlbidirectionalset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\tier1\utlblockmemory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -117,9 +108,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\public\tier1\utldict.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\tier1\utlenvelope.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\public\tier1\utlfixedmemory.h">
