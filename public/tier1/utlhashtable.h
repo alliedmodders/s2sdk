@@ -343,6 +343,11 @@ void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, TableT, bTriviallyReloca
 	entry_t * RESTRICT pOldBase = m_table.Detach();
 	int nOldSize = m_nTableSize;
 
+	// Owns the detached allocation so that it is freed once the entries are moved out
+	TableT oldOwnedTable;
+	if ( pOldBase )
+		oldOwnedTable.AssumeMemory( pOldBase, nOldSize );
+
 	if (!pOldBase)
 	{
 		if ( nOldSize > 0 )
