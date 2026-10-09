@@ -497,6 +497,14 @@ public:
 	T& Tail();
 	const T& Tail() const;
 	
+	// STL compatible iteration, for range-based for loops and std algorithms.
+	typedef T* iterator;
+	typedef const T* const_iterator;
+	iterator begin()						{ return this->Base(); }
+	const_iterator begin() const			{ return this->Base(); }
+	iterator end()							{ return this->Base() + Count(); }
+	const_iterator end() const				{ return this->Base() + Count(); }
+
 	// Returns the number of elements in the vector
 	int Count() const;
 
