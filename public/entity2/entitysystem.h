@@ -21,6 +21,7 @@
 #include "concreteentitylist.h"
 #include "entitydatainstantiator.h"
 #include "entity2/ientity2_entityio.h"
+#include "entity2/entitystructs.h"
 #include "gametime.h"
 
 class CKV3Arena;
@@ -157,13 +158,6 @@ struct EntityDeletion_t : EntityNotification_t
 struct PostDataUpdateInfo_t : EntityNotification_t
 {
 	DataUpdateType_t m_updateType;
-};
-
-struct CEntityPrecacheContext
-{
-	const CEntityKeyValues* m_pKeyValues;
-	IEntityPrecacheConfiguration* m_pConfig;
-	IEntityResourceManifest* m_pManifest;
 };
 
 // Keeps the member function pointers below as small as the engine's
