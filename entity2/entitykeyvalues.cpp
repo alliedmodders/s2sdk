@@ -179,6 +179,15 @@ void CEntityKeyValues::RemoveConnectionDesc( int nDesc )
 	m_connectionDescs.Remove( nDesc );
 }
 
+static void ClearEHandles( KeyValues3* kv )
+{
+	for ( CKeyValues3Iterator it( kv ); it.IsValid(); it.Advance() )
+	{
+		if ( it.Get()->GetSubType() == KV3_SUBTYPE_EHANDLE )
+			it.Get()->SetToNull();
+	}
+}
+
 void CEntityKeyValues::CopyFrom( const CEntityKeyValues* pSrc, bool bRemoveAllKeys, bool bSkipEHandles )
 {
 	if ( bRemoveAllKeys )
@@ -200,7 +209,12 @@ void CEntityKeyValues::CopyFrom( const CEntityKeyValues* pSrc, bool bRemoveAllKe
 		KeyValues3* kv = SetKeyValue( pSrc->GetEntityKeyId( iter ), bIsAttribute );
 
 		if ( kv )
+		{
 			*kv = *pSrc->GetKeyValue( iter );
+
+			if ( bSkipEHandles && !bIsAttribute )
+				ClearEHandles( kv );
+		}
 	}
 
 	m_connectionDescs.RemoveAll();
