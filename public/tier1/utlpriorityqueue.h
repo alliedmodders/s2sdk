@@ -52,6 +52,9 @@ public:
 	void		RemoveAtHead();
 	void		RemoveAt( int index );
 
+	// Restores the heap order after the element's priority was changed, O(lgn)
+	void		RevaluateElement( int index );
+
 	// O(lgn) to rebalance heap
 	void		Insert( T const &element );
 	// Sets the less func
@@ -72,6 +75,8 @@ protected:
 	CUtlVector<T, int, A>	m_heap;
 
 	void		Swap( int index1, int index2 );
+	int			PercolateDown( int index );
+	int			PercolateUp( int index );
 
 	// Used for sorting.
 	LessFunc_t m_LessFunc;
@@ -93,43 +98,9 @@ template< class T, class LessFunc, class A >
 void CUtlPriorityQueue<T, LessFunc, A>::RemoveAtHead()
 {
 	m_heap.FastRemove( 0 );
-	int index = 0;
 
-	int count = Count();
-	if ( !count )
-		return;
-
-	LessFunc lessFunc;
-	int half = count/2;
-	int larger = index;
-	while ( index < half )
-	{
-		int child = ((index+1) * 2) - 1;	// if we wasted an element, this math would be more compact (1 based array)
-		if ( child < count )
-		{
-			// Item has been filtered down to its proper place, terminate.
-			if ( lessFunc( m_heap[index], m_heap[child], m_LessFunc ) )
-			{
-				// mark the potential swap and check the other child
-				larger = child;
-			}
-		}
-		// go to sibling
-		child++;
-		if ( child < count )
-		{
-			// If this child is larger, swap it instead
-			if ( lessFunc( m_heap[larger], m_heap[child], m_LessFunc ) )
-				larger = child;
-		}
-		
-		if ( larger == index )
-			break;
-
-		// swap with the larger child
-		Swap( index, larger );
-		index = larger;
-	}
+	if ( Count() > 0 )
+		PercolateDown( 0 );
 }
 
 
@@ -139,25 +110,48 @@ void CUtlPriorityQueue<T, LessFunc, A>::RemoveAt( int index )
 	Assert(m_heap.IsValidIndex(index));
 	m_heap.FastRemove( index );
 
-	int count = Count();
-	if ( !count )
+	// The element moved into the hole may belong above or below it
+	if ( index < Count() )
+		RevaluateElement( index );
+}
+
+template< class T, class LessFunc, class A >
+void CUtlPriorityQueue<T, LessFunc, A>::RevaluateElement( int nStartingIndex )
+{
+	if ( !m_heap.IsValidIndex( nStartingIndex ) )
+	{
+		Assert( 0 );
 		return;
+	}
+
+	int index = PercolateDown( nStartingIndex );
+
+	// If it stayed where it was, it was not smaller than its children, but it
+	// could be larger than its parent, so treat it like an insertion.
+	if ( index == nStartingIndex )
+		PercolateUp( index );
+}
+
+template< class T, class LessFunc, class A >
+int CUtlPriorityQueue<T, LessFunc, A>::PercolateDown( int index )
+{
+	Assert( m_heap.IsValidIndex( index ) );
 
 	LessFunc lessFunc;
-	int half = count/2;
+	int count = Count();
 	int larger = index;
-	while ( index < half )
+	for (;;)
 	{
 		int child = ((index+1) * 2) - 1;	// if we wasted an element, this math would be more compact (1 based array)
-		if ( child < count )
+		if ( child >= count )
+			break;
+
+		if ( lessFunc( m_heap[index], m_heap[child], m_LessFunc ) )
 		{
-			// Item has been filtered down to its proper place, terminate.
-			if ( lessFunc( m_heap[index], m_heap[child], m_LessFunc ) )
-			{
-				// mark the potential swap and check the other child
-				larger = child;
-			}
+			// mark the potential swap and check the other child
+			larger = child;
 		}
+
 		// go to sibling
 		child++;
 		if ( child < count )
@@ -166,7 +160,8 @@ void CUtlPriorityQueue<T, LessFunc, A>::RemoveAt( int index )
 			if ( lessFunc( m_heap[larger], m_heap[child], m_LessFunc ) )
 				larger = child;
 		}
-		
+
+		// Item has been filtered down to its proper place, terminate.
 		if ( larger == index )
 			break;
 
@@ -174,6 +169,30 @@ void CUtlPriorityQueue<T, LessFunc, A>::RemoveAt( int index )
 		Swap( index, larger );
 		index = larger;
 	}
+
+	return index;
+}
+
+template< class T, class LessFunc, class A >
+int CUtlPriorityQueue<T, LessFunc, A>::PercolateUp( int index )
+{
+	Assert( m_heap.IsValidIndex( index ) );
+
+	LessFunc lessFunc;
+	while ( index > 0 )
+	{
+		int parent = ((index+1) / 2) - 1;
+
+		// Heap condition satisfied?  Then we're done
+		if ( !lessFunc( m_heap[parent], m_heap[index], m_LessFunc ) )
+			break;
+
+		// swap with parent and repeat
+		Swap( parent, index );
+		index = parent;
+	}
+
+	return index;
 }
 
 template< class T, class LessFunc, class A >
