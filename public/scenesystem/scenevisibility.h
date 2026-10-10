@@ -10,6 +10,7 @@
 #include "scenesystem/iscenesystem.h"
 
 struct AABB_t;
+struct AABBWS_t;
 struct OBB_t;
 class CFrustum;
 struct CVoxelVisibility;
@@ -37,7 +38,7 @@ public:
 	virtual int FilterClustersInRadius( uint32 *pClusters, int nClusters, const VectorWS &vecOrigin, float flMaxDistance ) = 0;
 
 	virtual int GetClusterCount() = 0;
-	virtual int GetAllClusterBounds( AABB_t *pBounds, int nMaxBounds ) = 0;
+	virtual int GetAllClusterBounds( AABBWS_t *pBounds, int nMaxBounds ) = 0;
 	virtual int GetClusterForPosition( const VectorWS &vecOrigin ) = 0;
 
 	virtual const VectorWS *GetVisDebugPosition() = 0;
@@ -67,12 +68,12 @@ public:
 
 	// AMNOTE: Takes spawn-group-local coordinates (world bounds minus GetWorldOffset())
 	virtual bool IsBoxInVisBounds( const AABB_t &box ) = 0;
-	virtual bool CheckBoxInCluster( const AABB_t &box, int nCluster ) = 0;
+	virtual bool CheckBoxInCluster( const AABBWS_t &box, int nCluster ) = 0;
 
 	virtual CVoxelVisibility *GetVoxelVisibility() = 0;
 
 	virtual VectorWS GetWorldOffset() = 0;
-	virtual void SnapBoxToVisCells( AABB_t *pBox, int nExtraCells ) = 0;
+	virtual void SnapBoxToVisCells( AABBWS_t *pBox, int nExtraCells ) = 0;
 
 	virtual int GetClusterWordsInBox( VisClusterWord_t *pEntries, int nMaxEntries, const VectorWS &vecMins, const VectorWS &vecMaxs, bool bIsStatic ) = 0;
 };
