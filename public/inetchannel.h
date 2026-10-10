@@ -13,9 +13,9 @@
 #include "tier0/platform.h"
 #include "inetchannelinfo.h"
 #include "steam/steamnetworkingtypes.h"
-#include "tier1/bitbuf.h"
-#include "tier1/netadr.h"
-#include "tier1/utldelegate.h"
+#include "tier0/bitbuf.h"
+#include "tier0/netadr.h"
+#include "tier0/utldelegate.h"
 #include "convar.h"
 #include "network_connection.pb.h"
 

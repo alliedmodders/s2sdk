@@ -5,8 +5,8 @@
 #pragma once
 #endif
 
-#include <tier1/utldelegate.h>
-#include <tier1/utlmap.h>
+#include <tier0/utldelegate.h>
+#include <tier0/utlmap.h>
 
 struct SchemaClassInfoData_t;
 

@@ -13,9 +13,9 @@
 #include <appframework/IAppSystem.h>
 #include "engine2/hoststate.h"
 #include <inputsystem/InputEnums.h>
-#include <KeyValues.h>
+#include <tier0/keyvalues.h>
 #include <tier0/eventdispatcher.h>
-#include <tier1/convar.h>
+#include <tier0/convar.h>
 #include <localize/ilocalize.h>
 #include <engine2/tier4.h>
 #include <engine2/iprerequisite_registry.h>

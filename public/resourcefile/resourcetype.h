@@ -8,10 +8,10 @@
 #include <tier0/platform.h>
 #include <tier0/dbg.h>
 #include <tier0/threadtools.h>
-#include <tier1/bufferstring.h>
-#include <tier1/generichash.h>
-#include <tier1/strtools.h>
-#include <tier1/utlsymbollarge.h>
+#include <tier0/buffer_string.h>
+#include <tier0/generichash.h>
+#include <tier0/tier0_strtools.h>
+#include <tier0/utlsymbollarge.h>
 
 #include <initializer_list>
 

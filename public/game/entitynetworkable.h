@@ -6,8 +6,8 @@
 #endif
 
 #include "tier0/platform.h"
-#include "tier1/utlmap.h"
-#include "tier1/utlvector.h"
+#include "tier0/utlmap.h"
+#include "tier0/utlvector.h"
 #include "entity2/entityidentity.h"
 
 class CEntityInstance;

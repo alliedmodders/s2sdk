@@ -1,4 +1,4 @@
-#include "tier1/convar.h"
+#include "tier0/convar.h"
 
 // Every type TranslateConVarType has
 #define INSTANTIATE_CONVAR( T ) \

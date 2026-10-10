@@ -12,11 +12,11 @@
 #include <string.h>
 #include <limits>
 #include "basetypes.h"
-#include "tier1/convar.h"
-#include "tier1/strtools.h"
-#include "tier1/characterset.h"
-#include "tier1/utlvector.h"
-#include "tier1/utlbuffer.h"
+#include "tier0/convar.h"
+#include "tier0/tier0_strtools.h"
+#include "tier0/characterset.h"
+#include "tier0/utlvector.h"
+#include "tier0/utlbuffer.h"
 #include "icvar.h"
 #include "tier0/dbg.h"
 #include "Color.h"

@@ -14,8 +14,8 @@
 #endif
 
 #include "appframework/IAppSystem.h"
-#include "tier1/utlstring.h"
-#include "tier1/KeyValues.h"
+#include "tier0/utlstring.h"
+#include "tier0/keyvalues.h"
 #include "entity2/entityidentity.h"
 #include <steam/steamclientpublic.h>
 

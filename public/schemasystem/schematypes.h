@@ -7,9 +7,9 @@
 
 #include "tier0/logging.h"
 #include "tier0/threadtools.h"
-#include "tier1/generichash.h"
-#include "tier1/utlmap.h"
-#include "tier1/utlstring.h"
+#include "tier0/generichash.h"
+#include "tier0/utlmap.h"
+#include "tier0/utlstring.h"
 
 class ISchemaSystemTypeScope;
 class CSchemaSystemTypeScope;

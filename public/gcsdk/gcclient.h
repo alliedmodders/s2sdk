@@ -14,8 +14,8 @@
 #include "steam/steam_api.h"
 #include "steam/isteamgamecoordinator.h"
 #include "tier0/threadtools.h"
-#include "tier1/utlleanvector.h"
-#include "tier1/utlmap.h"
+#include "tier0/utlleanvector.h"
+#include "tier0/utlmap.h"
 #include "gcsdk/gcclient_sharedobjectcache.h"
 
 class CTestEvent;

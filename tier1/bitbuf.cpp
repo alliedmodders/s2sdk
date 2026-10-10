@@ -10,7 +10,7 @@
 #include "coordsize.h"
 #include "mathlib/vector.h"
 #include "mathlib/mathlib.h"
-#include "tier1/strtools.h"
+#include "tier0/tier0_strtools.h"
 #include "bitvec.h"
 
 // FIXME: Can't use this until we get multithreaded allocations in tier0 working for tools

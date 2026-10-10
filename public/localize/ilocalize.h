@@ -13,7 +13,7 @@
 #endif
 
 #include "appframework/IAppSystem.h"
-#include <tier1/KeyValues.h>
+#include <tier0/keyvalues.h>
 #include "language.h"
 
 class CBufferString;

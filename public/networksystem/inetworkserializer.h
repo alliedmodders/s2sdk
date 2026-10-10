@@ -8,11 +8,11 @@
 #include <platform.h>
 
 #include <networksystem/iprotobufbinding.h>
-#include <tier1/utlstring.h>
-#include <tier1/utlcommon.h>
-#include <tier1/bitbuf.h>
-#include <tier1/utldict.h>
-#include <tier1/utlhash.h>
+#include <tier0/utlstring.h>
+#include <tier0/utlcommon.h>
+#include <tier0/bitbuf.h>
+#include <tier0/utldict.h>
+#include <tier0/utlhash.h>
 #include "Color.h"
 #include "schemasystem/schematypes.h"
 
