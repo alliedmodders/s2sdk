@@ -53,6 +53,10 @@ enum ResourceBindingFlags_t
 
 struct ResourceId_t
 {
+	// Having a constructor makes MSVC return it through memory, like the engine does
+	ResourceId_t() : m_Value( 0 ) {}
+	explicit ResourceId_t( uint64 nValue ) : m_Value( nValue ) {}
+
 	uint64 m_Value;
 };
 
