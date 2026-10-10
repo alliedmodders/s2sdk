@@ -14,7 +14,6 @@
 #include "basetypes.h"
 #include "tier0/convar.h"
 #include "tier0/tier0_strtools.h"
-#include "tier0/characterset.h"
 #include "tier0/utlvector.h"
 #include "tier0/utlbuffer.h"
 #include "icvar.h"

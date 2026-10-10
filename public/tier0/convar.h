@@ -22,7 +22,7 @@
 #include "tier0/utlstring.h"
 #include "mathlib/vector4d.h"
 #include "buffer_string.h"
-#include "tier0/characterset.h"
+#include "tier0/tier0_strtools.h"
 #include "Color.h"
 #include "vectorws.h"
 #include "playerslot.h"
