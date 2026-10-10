@@ -20,9 +20,6 @@
     <ClInclude Include="..\public\tier0\callqueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\tier0\characterset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\tier0\checksum_crc.h">
       <Filter>Header Files</Filter>
     </ClInclude>

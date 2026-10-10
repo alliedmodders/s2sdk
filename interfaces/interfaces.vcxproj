@@ -236,7 +236,6 @@
     <ClInclude Include="..\public\tier0\bitbuf.h" />
     <ClInclude Include="..\public\tier0\cbyteswap.h" />
     <ClInclude Include="..\public\tier0\callqueue.h" />
-    <ClInclude Include="..\public\tier0\characterset.h" />
     <ClInclude Include="..\public\tier0\checksum_crc.h" />
     <ClInclude Include="..\public\tier0\checksum_md5.h" />
     <ClInclude Include="..\public\tier0\commandbuffer.h" />
