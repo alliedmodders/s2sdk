@@ -110,6 +110,8 @@ else()
 		-march=nocona -mmmx -msse -msse2
 	)
 endif()
+# AMBuildScript's --enable-debug
+list(APPEND S2SDK_OWN_DEFINITIONS $<$<CONFIG:Debug>:DEBUG> $<$<CONFIG:Debug>:_DEBUG>)
 
 if(S2SDK_BUILD_LIBS)
 	add_library(s2sdk_interfaces STATIC
