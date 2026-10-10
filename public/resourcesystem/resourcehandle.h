@@ -8,9 +8,11 @@
 #include "resourcefile/resourcetype.h"
 #include "resourcesystem/resourcesystemtypes.h"
 
-// AMNOTE: Made-up name, the engine's name is unknown. Holds a binding pointer packed with its allocation serial
 struct ResourceSerialHandle_t
 {
+	ResourceSerialHandle_t() : m_Value( 0 ) {}
+	ResourceSerialHandle_t( uint64 nValue ) : m_Value( nValue ) {}
+
 	uint64 m_Value;
 };
 
