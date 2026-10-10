@@ -154,6 +154,7 @@ template < typename List >
 static void TestList( List &list )
 {
 	CHECK( list.begin() == list.end() );
+	CHECK( list.Count() == 0 );
 
 	// 2, 1, 3, 4 with a removed element in the middle
 	list.AddToTail( 1 );
@@ -161,7 +162,10 @@ static void TestList( List &list )
 	list.AddToTail( 3 );
 	list.AddToHead( 2 );
 	list.AddToTail( 4 );
+	CHECK( list.Count() == 5 );
 	list.Remove( removed );
+	CHECK( list.Count() == 4 );
+	CHECK( !list.IsValidIndex( removed ) );
 
 	const int expected[] = { 2, 1, 3, 4 };
 	CHECK( YieldsInOrder( list, expected, 4 ) );
@@ -171,8 +175,17 @@ static void TestList( List &list )
 	const int doubled[] = { 4, 2, 6, 8 };
 	CHECK( YieldsInOrder( list, doubled, 4 ) );
 
+	CHECK( list.AddToTail( 5 ) == removed );
+	CHECK( list.Count() == 5 );
+
 	list.RemoveAll();
 	CHECK( list.begin() == list.end() );
+	CHECK( list.Count() == 0 );
+
+	list.AddToTail( 1 );
+	CHECK( list.Count() == 1 );
+	list.Purge();
+	CHECK( list.Count() == 0 );
 }
 
 static void TestLinkedLists()
