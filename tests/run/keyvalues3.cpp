@@ -609,6 +609,84 @@ static void TestFindMemberHint( KeyValues3 *root )
 	CHECK( hint == 0 );
 }
 
+static bool HasComment( KV3MetaData_t *meta, int key, const char *comment )
+{
+	int index = meta->m_Comments.Find( key );
+	return meta->m_Comments.IsValidIndex( index ) && !strcmp( meta->m_Comments[index].Get(), comment );
+}
+
+static void TestMetaData()
+{
+	CKV3Arena arena;
+	arena.EnableMetaData( true );
+
+	KeyValues3 *root = arena.Root();
+	root->SetToEmptyTable();
+
+	const int count = 200;
+	char name[32];
+	for ( int i = 0; i < count; ++i )
+	{
+		snprintf( name, sizeof( name ), "m%d", i );
+		KeyValues3 *member = root->FindOrCreateMember( CKV3MemberName( (const char *)name ) );
+		member->SetInt( i );
+
+		KV3MetaData_t *meta = member->GetMetaData();
+		CHECK( meta && meta->m_Comments.Count() == 0 );
+		if ( !meta )
+			continue;
+
+		meta->m_nLine = i;
+		meta->m_Comments.Insert( 1, CBufferString( "a comment long enough to be allocated on the heap" ) );
+		meta->m_Comments.Insert( 2, CBufferString( name ) );
+	}
+
+	for ( int i = 0; i < count; ++i )
+	{
+		snprintf( name, sizeof( name ), "m%d", i );
+		KV3MetaData_t *meta = root->FindMember( CKV3MemberName( (const char *)name ) )->GetMetaData();
+		CHECK( meta && meta->m_nLine == i && meta->m_Comments.Count() == 2 );
+		CHECK( meta && HasComment( meta, 1, "a comment long enough to be allocated on the heap" ) );
+		CHECK( meta && HasComment( meta, 2, name ) );
+	}
+
+	// Copies take the metadata along
+	KeyValues3 *copy = root->FindOrCreateMember( "copy" );
+	*copy = *root->FindMember( "m150" );
+	KV3MetaData_t *copyMeta = copy->GetMetaData();
+	CHECK( copyMeta && copyMeta->m_nLine == 150 && HasComment( copyMeta, 2, "m150" ) );
+
+	if ( copyMeta )
+	{
+		copyMeta->Clear();
+		CHECK( copyMeta->m_nLine == 0 && copyMeta->m_Comments.Count() == 0 );
+		copyMeta->m_Comments.Insert( 3, CBufferString( "after clear" ) );
+		CHECK( HasComment( copyMeta, 3, "after clear" ) );
+	}
+
+	// A freed member's metadata is cleared for the next one
+	for ( int i = 0; i < count; i += 2 )
+	{
+		snprintf( name, sizeof( name ), "m%d", i );
+		CHECK( root->RemoveMember( CKV3MemberName( (const char *)name ) ) );
+	}
+
+	for ( int i = 0; i < count; i += 2 )
+	{
+		snprintf( name, sizeof( name ), "n%d", i );
+		KV3MetaData_t *meta = root->FindOrCreateMember( CKV3MemberName( (const char *)name ) )->GetMetaData();
+		CHECK( meta && meta->m_nLine == 0 && meta->m_Comments.Count() == 0 );
+	}
+
+	arena.EnableMetaData( false );
+	CHECK( root->GetMetaData() == nullptr );
+	CHECK( root->FindMember( "m151" )->GetMetaData() == nullptr );
+
+	arena.EnableMetaData( true );
+	KV3MetaData_t *meta = root->FindMember( "m151" )->GetMetaData();
+	CHECK( meta && meta->m_nLine == 0 && meta->m_Comments.Count() == 0 );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -643,6 +721,7 @@ int main()
 	RunTest( TestRenameMember );
 	RunTest( TestOverlayKeysFrom );
 	RunTest( TestFindMemberHint );
+	TestMetaData();
 
 	if ( g_nFailures )
 	{
