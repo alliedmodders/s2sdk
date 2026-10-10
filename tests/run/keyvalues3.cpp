@@ -426,6 +426,26 @@ static void TestInt16Arrays()
 	CHECK( b->GetArrayElement( 1 ) && b->GetArrayElement( 1 )->GetInt() == -20 );
 }
 
+static void TestTypeChecks( KeyValues3 *root )
+{
+	root->SetToEmptyTable();
+	CHECK( root->IsTable() && !root->IsArray() );
+
+	KeyValues3 *arr = MakeIntArray( root->FindOrCreateMember( "array" ), 2 );
+	CHECK( arr->IsArray() && !arr->IsTable() );
+
+	KeyValues3 *vec = root->FindOrCreateMember( "vector" );
+	vec->SetVector( Vector( 1.0f, 2.0f, 3.0f ) );
+	CHECK( vec->GetTypeEx() == KV3_TYPEEX_ARRAY_FLOAT32 && vec->IsArray() );
+
+	KeyValues3 *value = root->FindOrCreateMember( "int" );
+	value->SetInt( 1 );
+	CHECK( !value->IsArray() && !value->IsTable() );
+
+	root->SetToNull();
+	CHECK( !root->IsArray() && !root->IsTable() );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -455,6 +475,7 @@ int main()
 	RunTest( TestRoundTrips );
 	TestBinaryTypes();
 	TestInt16Arrays();
+	RunTest( TestTypeChecks );
 
 	if ( g_nFailures )
 	{

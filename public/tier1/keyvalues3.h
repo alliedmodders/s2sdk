@@ -431,6 +431,8 @@ public:
 
 	void SetToNull() { PrepareForType( KV3_TYPEEX_NULL, KV3_SUBTYPE_NULL ); }
 	bool IsNull() const { return GetType() == KV3_TYPE_NULL; }
+	bool IsArray() const { return GetType() == KV3_TYPE_ARRAY; }
+	bool IsTable() const { return GetType() == KV3_TYPE_TABLE; }
 
 	bool GetBool( bool defaultValue = false ) const			{ return GetValue<bool>( defaultValue ); }
 	char8 GetChar( char8 defaultValue = 0 ) const			{ return GetValue<char8>( defaultValue ); }
