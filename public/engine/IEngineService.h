@@ -43,7 +43,7 @@ public:
 	virtual void		SetServiceIndex( uint16 index ) = 0;
 };
 
-abstract_class IEngineServiceMgr : public IAppSystem, public ILoopModePrerequisiteRegistry
+abstract_class IEngineServiceMgr : public IAppSystem
 {
 public:
 	virtual void		RegisterEngineService( const char *psServiceName, IEngineService *pService ) = 0;
