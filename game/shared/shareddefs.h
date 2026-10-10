@@ -543,49 +543,41 @@ struct ModelScale
 
 #include "soundflags.h"
 
-struct CSoundParameters;
-typedef short HSOUNDSCRIPTHANDLE;
 //-----------------------------------------------------------------------------
 // Purpose: Aggregates and sets default parameters for EmitSound function calls
 //-----------------------------------------------------------------------------
 struct EmitSound_t
 {
 	EmitSound_t() :
-		m_nChannel( 0 ),
-		m_pSoundName( 0 ),
+		m_pSoundName( nullptr ),
 		m_flVolume( VOL_NORM ),
-		m_SoundLevel( SNDLVL_NONE ),
-		m_nFlags( 0 ),
-		m_nPitch( PITCH_NORM ),
-		m_pOrigin( 0 ),
 		m_flSoundTime( 0.0f ),
-		m_pflSoundDuration( 0 ),
-		m_bEmitCloseCaption( true ),
-		m_bWarnOnMissingCloseCaption( false ),
-		m_bWarnOnDirectWaveReference( false ),
-		m_nSpeakerEntity( -1 ),
-		m_UtlVecSoundOrigin(),
-		m_hSoundScriptHandle( -1 )
+		m_unk001( -1 ),
+		m_nForceGuid( 0 ),
+		m_nSourceSoundscape( 0 ),
+		m_nPitch( PITCH_NORM ),
+		m_unk101( 1 ),
+		m_unk102( 0 ),
+		m_unk103( 0 ),
+		m_bFindSourceSoundscape( false ),
+		m_bUseOrigin( false )
 	{
 	}
 
-	EmitSound_t( const CSoundParameters &src );
-
-	int							m_nChannel;
-	char const					*m_pSoundName;
+	const char					*m_pSoundName;
+	Vector						m_vecOrigin;
 	float						m_flVolume;
-	soundlevel_t				m_SoundLevel;
-	int							m_nFlags;
-	int							m_nPitch;
-	const Vector				*m_pOrigin;
-	float						m_flSoundTime; ///< NOT DURATION, but rather, some absolute time in the future until which this sound should be delayed
-	float						*m_pflSoundDuration;
-	bool						m_bEmitCloseCaption;
-	bool						m_bWarnOnMissingCloseCaption;
-	bool						m_bWarnOnDirectWaveReference;
-	int							m_nSpeakerEntity;
-	mutable CUtlVector< Vector >	m_UtlVecSoundOrigin;  ///< Actual sound origin(s) (can be multiple if sound routed through speaker entity(ies) )
-	mutable HSOUNDSCRIPTHANDLE		m_hSoundScriptHandle;
+	float						m_flSoundTime;
+	int							m_unk001;
+	uint32						m_nForceGuid;
+	// AMNOTE: Sound event hash of the source soundscape, 0 when not set
+	uint32						m_nSourceSoundscape;
+	int16						m_nPitch;
+	uint8						m_unk101 : 1;
+	uint8						m_unk102 : 1;
+	uint8						m_unk103 : 1;
+	uint8						m_bFindSourceSoundscape : 1;
+	uint8						m_bUseOrigin : 1;
 };
 
 #define MAX_ACTORS_IN_SCENE 16
