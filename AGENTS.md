@@ -69,7 +69,7 @@ SteamFileDownloader get 1422450 all --output <dir> -- "regex:\.(dll|so)$"
 
 - Use the engine's name when strings or symbols give it, even when it breaks the SDK's style. Otherwise name something only when the binary leaves no doubt about what it does; if in doubt it stays unknown, even with its full signature known. Don't rename without such evidence; a name proven wrong becomes unknown.
 - An unknown whose behaviour you can describe with certainty, like in its `AMNOTE`, gets a name after that behaviour instead of `unkXYZ`. Don't mark such names as not coming from the engine.
-- Put headers where Valve has them, found through asserts, `__FILE__` strings and debug info, under `public/` in the owning module's folder (like `public/engine2/`). A path only debug info shows is enough when nothing newer contradicts it, but check that the types in it still match current builds.
+- Put header files where Valve most likely has them, found through asserts, `__FILE__` strings and debug info, under `public/` in the owning module's folder (like `public/engine2/`). A path only debug info shows is enough when nothing newer contradicts it, but check that the types in it still match current builds.
 - Unknown virtuals are `unkXYZ` (`unk_XYZ` where the file already uses that), each `X` in them is a group index (starting with 0), `Y` is inheritance depth (starting from 0 at a first `unk`), `Z` is virtual index within the group of `unk`'s (starting from 1) (Example: `Base1::unk001`, `Base1::Foo`, `Base1::unk101`, `Base1::unk102`, `Base2::Bar`, `Base2::unk111`). When an `unk` virtual disappears, renumber `unk`'s after it.
 - Unknown members follow the same as virtuals scheme, like `m_unkXYZ`.
 - Name only the fields you are certain are there and of the correct type, try to deduce its name by its usage/engine strings/rtti info and come up with the name if you are certain with its meaning, else leave as unknown.
@@ -86,7 +86,7 @@ SteamFileDownloader get 1422450 all --output <dir> -- "regex:\.(dll|so)$"
 - When the engine removes an API, use what replaced it instead of keeping a compatibility wrapper. Delete removed virtuals rather than commenting them out or wrapping them in `#if 0`. A renamed type may keep a `using` alias with `// AMNOTE: Deprecated, use X instead`.
 - Update Source 1 leftovers that a game still has (found by RTTI, exports or strings) for Source 2 in place instead of deleting them; Attempt to preserve all the functionality it previously had where applicable. delete only what no game has.
 - New classes the game doesn't export are header-only, without extra .cpp files. Don't move code that's already in a .cpp into a header.
-- Files that include `tier0/memdbgon.h` already route `malloc`/`free` through `g_pMemAlloc`; don't replace them by hand.
+- Do wrap raw `malloc`/`free` calls in `memdbgon.h`/`memdbgoff.h` includes if the game confirms the usage of `g_pMemAlloc` in these places. Don't use `g_pMemAlloc`'s `Free`/`Alloc` manually.
 - Prefer plain getters to reimplementing removed virtuals. Use typedefs for function pointers, and bitfields where the engine packs bits.
 - No `static_assert`s for sizes or offsets, and no explicit padding the compiler adds anyway.
 - Use the SDK's platform and compiler macros (`PLATFORM_LINUX`, `PLATFORM_64BITS`, `COMPILER_MSVC64`, `COMPILER_GCC`).
