@@ -16,8 +16,11 @@
 #endif
 
 #include "tier0/platform.h"
+#include "tier1/convar.h"
 #include "tier1/utlstring.h"
 #include "tier1/utlvector.h"
+
+#include <cmath>
 
 
 //-----------------------------------------------------------------------------
@@ -48,7 +51,8 @@ public:
 	DLL_CLASS_IMPORT ~CCommandBuffer();
 
 	// Inserts text into the command buffer
-	DLL_CLASS_IMPORT bool AddText( const char *pText, int nSource = 0, int nTickDelay = 0, bool unk3 = false, double unk4 = 0.0, uint64 nRequiredFlags = 0 );
+	// AMNOTE: The last three are stored in the CCommand of each command added
+	DLL_CLASS_IMPORT bool AddText( const char *pText, int nTickDelay = 0, int nMaxCommands = 0, bool unk3 = false, double flInputTime = NAN, uint64 unk5 = 0 );
 
 	// Used to iterate over all commands appropriate for the current time
 	DLL_CLASS_IMPORT void BeginProcessingCommands( int nDeltaTicks );
@@ -66,7 +70,7 @@ public:
 	DLL_CLASS_IMPORT void SetWaitDelayTime( int nTickDelay );
 
 	// Splits pText into individual commands, appending each to pOut.
-	DLL_CLASS_IMPORT static void SplitCommands( const char *pText, int nLength, CUtlVector< CUtlString > *pOut );
+	DLL_CLASS_IMPORT static void SplitCommands( const char *pText, int nMaxCommands, CUtlVector< CUtlString > *pOut );
 
 	// Returns a handle to the next command to process
 	// (useful when inserting commands into the buffer during processing
@@ -79,7 +83,9 @@ public:
 	// Specifies a max limit of the args buffer. For unittesting. Size == 0 means use default
 	DLL_CLASS_IMPORT void LimitArgumentBufferSize( int nSize );
 
-	// Sets the flag mask a command must satisfy to be dequeued. Returns the previous mask.
+	// Sets the FCVAR flags that commands added from now on require, returns the previous flags.
+	// AMNOTE: The engine refuses to run a queued concommand that lacks any of them
+	// ("missing required FCVAR flag"), DequeueNextCommand itself doesn't filter on them
 	DLL_CLASS_IMPORT uint64 SetRequiredFlags( uint64 nRequiredFlags );
 
 	// Locks/unlocks the command buffer.
@@ -92,25 +98,20 @@ private:
 	};
 
 	char			m_ArgSBuffer[ ARGS_BUFFER_LENGTH ];	// 0x0000
-	CommandHandle_t	m_hNextCommand;				// 0x8000
-	uint8			m_unk001[ 0x30 ];			// 0x8008
+	uint8			m_unk001[ 0x38 ];			// 0x8000
 	uint64			m_nRequiredFlags;			// 0x8038
-	uint8			m_unk002[ 0x18 ];			// 0x8040
+	CommandHandle_t	m_hNextCommand;				// 0x8040
+	uint8			m_unk101[ 0x04 ];			// 0x8048
+	int				m_nArgSBufferSize;			// 0x804C
+	int				m_nCurrentTick;				// 0x8050
+	int				m_nLastTickToProcess;		// 0x8054
 	int			    m_nWaitDelayTicks;			// 0x8058
 	int			    m_nMaxArgSBufferLength;	    // 0x805C
-	uint8			m_unk003[ 0x02 ];			// 0x8060
+	bool			m_bIsProcessingCommands;	// 0x8060
+	bool			m_bWaitEnabled;				// 0x8061
 	bool			m_bIsLocked;				// 0x8062
-	uint8			m_unk004[ 0x15 ];			// 0x8063
-	char			*m_pArgSCursor;				// 0x8078
-	uint8			m_unk005[ 0x420 ];			// 0x8080  args pool / command list
-	int			    m_nArgc;					// 0x84A0
-	uint8			m_unk006[ 0x04 ];			// 0x84A4
-	const char		**m_ppArgv;					// 0x84A8
-	uint8			m_unk007[ 0x208 ];			// 0x84B0
-	bool			m_bIsProcessingCommands;	// 0x86B8
-	uint8			m_unk008[ 0x07 ];			// 0x86B9
-	double			m_unk009;					// 0x86C0
-	uint8			m_unk010[ 0x10 ];			// 0x86C8
+	CCommand		m_CurrentCommand;			// 0x8068
+	uint64			m_nCurrentCommandRequiredFlags;	// 0x86D0
 };												// sizeof == 0x86D8
 
 #endif // COMMANDBUFFER_H
