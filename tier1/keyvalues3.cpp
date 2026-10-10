@@ -981,6 +981,25 @@ KeyValues3* KeyValues3::RenameMember( const CKV3MemberName &name, const CKV3Memb
 	return m_Data.m_pTable->GetMember( id );
 }
 
+void KeyValues3::OverlayKeysFrom( const KeyValues3 *src, bool bRecursive )
+{
+	if ( GetType() != KV3_TYPE_TABLE )
+		PrepareForType( KV3_TYPEEX_TABLE, KV3_SUBTYPE_TABLE );
+
+	for ( int i = 0; i < src->GetMemberCount(); ++i )
+	{
+		const KeyValues3 *src_member = src->GetMember( i );
+
+		// Without the symbol id, which is only valid in the arena that made it
+		KeyValues3 *member = FindOrCreateMember( CKV3MemberName( src->GetMemberHash( i ), src->GetMemberName( i ) ) );
+
+		if ( bRecursive && member->IsTable() && src_member->IsTable() )
+			member->OverlayKeysFrom( src_member, true );
+		else
+			member->CopyFrom( src_member );
+	}
+}
+
 const char* KeyValues3::GetTypeAsString() const
 {
 	static const char* s_Types[] =

@@ -520,6 +520,55 @@ static void TestRenameMember( KeyValues3 *root )
 	CHECK( root->GetMemberCount() == 200 );
 }
 
+static void TestOverlayKeysFrom( KeyValues3 *root )
+{
+	CKV3Arena arena;
+	KeyValues3 *src = arena.Root();
+	src->SetToEmptyTable();
+	src->SetMemberInt( "int", 5 );
+	src->SetMemberString( "added", "a string long enough to be allocated on the heap" );
+	KeyValues3 *srcNested = src->FindOrCreateMember( "nested" );
+	srcNested->SetToEmptyTable();
+	srcNested->SetMemberString( "name", "overlaid" );
+	srcNested->SetMemberInt( "extra", 9 );
+
+	// Tables on both sides are merged
+	FillTable( root );
+	root->OverlayKeysFrom( src, true );
+	CHECK( root->GetMemberCount() == 9 );
+	CHECK( root->GetMemberInt( "int" ) == 5 );
+	CHECK( !strcmp( root->GetMemberString( "added" ), "a string long enough to be allocated on the heap" ) );
+	CHECK( !strcmp( root->GetMemberString( "string" ), "hello world" ) );
+	KeyValues3 *nested = root->FindMember( "nested" );
+	CHECK( nested && nested->GetMemberCount() == 2 );
+	CHECK( nested && !strcmp( nested->GetMemberString( "name" ), "overlaid" ) );
+	CHECK( nested && nested->GetMemberInt( "extra" ) == 9 );
+
+	// Without recursion they are replaced
+	FillTable( root );
+	root->FindMember( "nested" )->SetMemberInt( "kept", 1 );
+	root->OverlayKeysFrom( src, false );
+	CHECK( root->GetMemberCount() == 9 );
+	CHECK( root->GetMemberInt( "int" ) == 5 );
+	nested = root->FindMember( "nested" );
+	CHECK( nested && nested != srcNested && nested->GetMemberCount() == 2 );
+	CHECK( nested && nested->FindMember( "kept" ) == nullptr );
+	CHECK( nested && nested->GetMemberInt( "extra" ) == 9 );
+
+	// The copies own their strings
+	src->SetMemberString( "added", "changed" );
+	srcNested->SetMemberString( "name", "changed" );
+	CHECK( !strcmp( root->GetMemberString( "added" ), "a string long enough to be allocated on the heap" ) );
+	CHECK( nested && !strcmp( nested->GetMemberString( "name" ), "overlaid" ) );
+
+	// A value that isn't a table becomes one
+	root->SetInt( 1 );
+	root->OverlayKeysFrom( src, true );
+	CHECK( root->IsTable() && root->GetMemberCount() == 3 );
+	CHECK( root->GetMemberInt( "int" ) == 5 );
+	CHECK( !strcmp( root->GetMemberString( "added" ), "changed" ) );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -552,6 +601,7 @@ int main()
 	RunTest( TestTypeChecks );
 	RunTest( TestInvalidMemberNames );
 	RunTest( TestRenameMember );
+	RunTest( TestOverlayKeysFrom );
 
 	if ( g_nFailures )
 	{
