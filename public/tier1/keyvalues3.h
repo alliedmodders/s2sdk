@@ -516,14 +516,14 @@ public:
 	void SetToEmptyTable();
 	int GetMemberCount() const;
 
-	CKeyValues3Table *GetTableRaw();
-	CKeyValues3Table *GetTableRaw() const { return const_cast<KeyValues3 *>(this)->GetTableRaw(); };
+	CKeyValues3Table *GetTable();
+	CKeyValues3Table *GetTable() const { return const_cast<KeyValues3 *>(this)->GetTable(); };
 
 	KeyValues3* GetMember( KV3MemberId_t id );
 	const KeyValues3* GetMember( KV3MemberId_t id ) const { return const_cast<KeyValues3*>(this)->GetMember( id ); }
 
 	const char* GetMemberName( KV3MemberId_t id ) const;
-	CKV3MemberName GetMemberNameEx( KV3MemberId_t id ) const;
+	CKV3MemberName GetKV3MemberName( KV3MemberId_t id ) const;
 
 	CUtlStringToken GetMemberHash( KV3MemberId_t id ) const;
 

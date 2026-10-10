@@ -827,7 +827,7 @@ int KeyValues3::GetMemberCount() const
 	return m_Data.m_pTable->GetMemberCount();
 }
 
-CKeyValues3Table *KeyValues3::GetTableRaw()
+CKeyValues3Table *KeyValues3::GetTable()
 {
 	if(GetType() != KV3_TYPE_TABLE)
 		return nullptr;
@@ -851,7 +851,7 @@ const char* KeyValues3::GetMemberName( KV3MemberId_t id ) const
 	return m_Data.m_pTable->GetMemberName( this, id );
 }
 
-CKV3MemberName KeyValues3::GetMemberNameEx( KV3MemberId_t id ) const
+CKV3MemberName KeyValues3::GetKV3MemberName( KV3MemberId_t id ) const
 {
 	if ( GetType() != KV3_TYPE_TABLE || id < 0 || id >= m_Data.m_pTable->GetMemberCount() )
 		return CKV3MemberName();
