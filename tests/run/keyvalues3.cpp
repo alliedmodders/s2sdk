@@ -569,6 +569,46 @@ static void TestOverlayKeysFrom( KeyValues3 *root )
 	CHECK( !strcmp( root->GetMemberString( "added" ), "changed" ) );
 }
 
+static void TestFindMemberHint( KeyValues3 *root )
+{
+	FillTable( root );
+
+	KV3MemberId_t hint = KV3_INVALID_MEMBER;
+	CHECK( root->FindMember( "double", hint ) == root->FindMember( "double" ) );
+	CHECK( hint == 4 );
+
+	CHECK( root->FindMember( "string", hint ) == root->FindMember( "string" ) );
+	CHECK( hint == 5 );
+
+	CHECK( root->FindMember( "int", hint ) == root->FindMember( "int" ) );
+	CHECK( hint == 2 );
+
+	KeyValues3 def;
+	CHECK( root->FindMember( "missing", hint, &def ) == &def );
+	CHECK( hint == 2 );
+
+	hint = 1000;
+	const KeyValues3 *constRoot = root;
+	CHECK( constRoot->FindMember( "strings", hint ) == root->FindMember( "strings" ) );
+	CHECK( hint == 8 );
+
+	CHECK( constRoot->FindMember( "bool", hint ) == root->FindMember( "bool" ) );
+	CHECK( hint == 1 );
+
+	// Members found through the hash of their names leave the hint alone
+	root->SetToEmptyTable();
+	char name[32];
+	for ( int i = 0; i < 200; ++i )
+	{
+		snprintf( name, sizeof( name ), "m%d", i );
+		root->SetMemberInt( CKV3MemberName( (const char *)name ), i );
+	}
+
+	hint = 0;
+	CHECK( root->FindMember( "m150", hint ) && root->FindMember( "m150", hint )->GetInt() == 150 );
+	CHECK( hint == 0 );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -602,6 +642,7 @@ int main()
 	RunTest( TestInvalidMemberNames );
 	RunTest( TestRenameMember );
 	RunTest( TestOverlayKeysFrom );
+	RunTest( TestFindMemberHint );
 
 	if ( g_nFailures )
 	{

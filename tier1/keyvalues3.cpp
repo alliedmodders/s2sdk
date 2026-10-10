@@ -894,6 +894,19 @@ KeyValues3* KeyValues3::FindMember( const CKV3MemberName &name, KeyValues3* defa
 	return m_Data.m_pTable->GetMember( id );
 }
 
+KeyValues3* KeyValues3::FindMember( const CKV3MemberName &name, KV3MemberId_t &hint, KeyValues3* defaultValue )
+{
+	if ( GetType() != KV3_TYPE_TABLE )
+		return defaultValue;
+
+	KV3MemberId_t id = m_Data.m_pTable->FindMember( name, hint );
+
+	if ( id == KV3_INVALID_MEMBER )
+		return defaultValue;
+
+	return m_Data.m_pTable->GetMember( id );
+}
+
 KeyValues3* KeyValues3::FindOrCreateMember( const CKV3MemberName &name, bool *pCreated )
 {
 	if ( GetType() != KV3_TYPE_TABLE )
@@ -1792,6 +1805,12 @@ KV3MemberId_t CKeyValues3Table::FindMember( const KeyValues3* kv ) const
 
 KV3MemberId_t CKeyValues3Table::FindMember( const CKV3MemberName &name )
 {
+	KV3MemberId_t hint = KV3_INVALID_MEMBER;
+	return FindMember( name, hint );
+}
+
+KV3MemberId_t CKeyValues3Table::FindMember( const CKV3MemberName &name, KV3MemberId_t &hint )
+{
 	bool bFastSearch = false;
 
 	if ( m_pFastSearch )
@@ -1821,10 +1840,16 @@ KV3MemberId_t CKeyValues3Table::FindMember( const CKV3MemberName &name )
 	{
 		const Hash_t* pHashes = HashesBase();
 
+		if ( (uint32)hint < (uint32)m_nCount && pHashes[hint] == name.GetHashCode() )
+			return hint++;
+
 		for ( int i = 0; i < m_nCount; ++i )
 		{
 			if ( pHashes[i] == name.GetHashCode() )
+			{
+				hint = i + 1;
 				return i;
+			}
 		}
 	}
 

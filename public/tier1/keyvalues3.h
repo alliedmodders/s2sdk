@@ -535,6 +535,11 @@ public:
 
 	KeyValues3* FindMember( const CKV3MemberName &name, KeyValues3* defaultValue = nullptr );
 	const KeyValues3 *FindMember( const CKV3MemberName &name, KeyValues3 *defaultValue = nullptr ) const { return const_cast<KeyValues3 *>(this)->FindMember( name, defaultValue ); };
+
+	// AMNOTE: Checks the member at hint first and sets hint to the index after the member found,
+	// except in large tables that find members through a hash of their names, which leave hint unchanged
+	KeyValues3* FindMember( const CKV3MemberName &name, KV3MemberId_t &hint, KeyValues3* defaultValue = nullptr );
+	const KeyValues3 *FindMember( const CKV3MemberName &name, KV3MemberId_t &hint, KeyValues3 *defaultValue = nullptr ) const { return const_cast<KeyValues3 *>(this)->FindMember( name, hint, defaultValue ); };
 	KeyValues3* FindOrCreateMember( const CKV3MemberName &name, bool *pCreated = nullptr );
 
 	bool RemoveMember( KV3MemberId_t id );
@@ -855,6 +860,7 @@ public:
 
 	KV3MemberId_t FindMember( const KeyValues3* kv ) const;
 	KV3MemberId_t FindMember( const CKV3MemberName &name );
+	KV3MemberId_t FindMember( const CKV3MemberName &name, KV3MemberId_t &hint );
 	KV3MemberId_t CreateMember( KeyValues3 *parent, const CKV3MemberName &name, bool name_external = false );
 
 	void CopyFrom( KeyValues3 *parent, const KeyValues3 *src_parent, const CKeyValues3Table* src );
