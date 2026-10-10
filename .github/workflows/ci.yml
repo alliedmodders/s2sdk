@@ -20,9 +20,21 @@ jobs:
             configure_args: --enable-optimize
           - os: windows-2022
             cc: msvc
+          - os: ubuntu-22.04
+            cc: clang-22
+            cxx: clang++-22
+            container_image: ghcr.io/alliedmodders/build-containers/debian11-clang22:latest
+            configure_args: --enable-debug
+            debug: true
+          - os: ubuntu-22.04
+            cc: gcc
+            cxx: g++
+            container_image: ghcr.io/alliedmodders/build-containers/debian11-clang22:latest
+            configure_args: --enable-debug
+            debug: true
       fail-fast: false
 
-    name: ${{ matrix.os }} - ${{ matrix.cc }}
+    name: ${{ matrix.os }} - ${{ matrix.cc }}${{ matrix.debug && ' - debug' || '' }}
     runs-on: ${{ matrix.os }}
     container:
       image: ${{ matrix.container_image }}
@@ -84,7 +96,7 @@ jobs:
           LD_LIBRARY_PATH=lib/linux64 build/check/utlsymbollarge_test/linux-x86_64/utlsymbollarge_test
 
       - name: Upload artifact
-        if: matrix.cc != 'gcc'
+        if: matrix.cc != 'gcc' && !matrix.debug
         uses: actions/upload-artifact@v7
         with:
           name: libs_${{ runner.os }}
