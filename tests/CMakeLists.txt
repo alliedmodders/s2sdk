@@ -17,6 +17,9 @@ target_compile_definitions(s2sdk_check PRIVATE ${S2SDK_OWN_DEFINITIONS})
 target_compile_options(s2sdk_check PRIVATE ${S2SDK_OWN_OPTIONS})
 s2sdk_protobufs(s2sdk_check
 	common/network_connection.proto
+	common/networkbasetypes.proto
+	common/netmessages.proto
+	common/valveextensions.proto
 	# Messages for the tests, from a proto without imports
 	common/source2_steam_stats.proto
 )
