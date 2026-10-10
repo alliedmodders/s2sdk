@@ -623,7 +623,8 @@ static void TestMetaData()
 	KeyValues3 *root = arena.Root();
 	root->SetToEmptyTable();
 
-	const int count = 200;
+	// Spans several arena clusters
+	const int count = 600;
 	char name[32];
 	for ( int i = 0; i < count; ++i )
 	{
@@ -685,6 +686,15 @@ static void TestMetaData()
 	arena.EnableMetaData( true );
 	KV3MetaData_t *meta = root->FindMember( "m151" )->GetMetaData();
 	CHECK( meta && meta->m_nLine == 0 && meta->m_Comments.Count() == 0 );
+	meta = root->FindMember( "m551" )->GetMetaData();
+	CHECK( meta && meta->m_nLine == 0 && meta->m_Comments.Count() == 0 );
+
+	arena.Purge();
+	CHECK( arena.IsMetaDataEnabled() );
+	meta = arena.Root()->GetMetaData();
+	CHECK( meta && meta->m_Comments.Count() == 0 );
+	if ( meta )
+		meta->m_Comments.Insert( 1, CBufferString( "a comment long enough to be allocated on the heap" ) );
 }
 
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
