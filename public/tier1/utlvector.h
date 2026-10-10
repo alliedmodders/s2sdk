@@ -25,7 +25,6 @@
 #include "tier0/dbg.h"
 #include "tier0/threadtools.h"
 #include "tier1/utlvectormemory.h"
-#include "tier1/utlblockmemory.h"
 
 #define FOR_EACH_VEC( vecName, iteratorName ) \
 	for ( int iteratorName = 0; iteratorName < (vecName).Count(); iteratorName++ )
@@ -239,17 +238,6 @@ template< class T, class I = int, class A = CUtlVectorMemory_Growable< T, I > >
 class CUtlVector : public CUtlVectorBase< T, I, A >
 {
 	typedef CUtlVectorBase< T, I, A > BaseClass;
-public:
-
-	using BaseClass::BaseClass;
-};
-
-
-// this is kind of ugly, but until C++ gets templatized typedefs in C++0x, it's our only choice
-template < class T, class I = int >
-class CUtlBlockVector : public CUtlVectorBase< T, I, CUtlBlockMemory< T, I > >
-{
-	typedef CUtlVectorBase< T, I, CUtlBlockMemory< T, I > > BaseClass;
 public:
 
 	using BaseClass::BaseClass;

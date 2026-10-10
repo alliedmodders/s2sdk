@@ -5,6 +5,7 @@
 #include "tier1/utlmap.h"
 #include "tier1/utldict.h"
 #include "tier1/utlstring.h"
+#include "tier0/utlblockvector.h"
 
 #include <algorithm>
 #include <iterator>

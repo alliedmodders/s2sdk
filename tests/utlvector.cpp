@@ -1,6 +1,7 @@
 #include "tier1/utlvector.h"
 #include "tier1/utlleanvector.h"
 #include "tier1/utlstring.h"
+#include "tier0/utlblockvector.h"
 
 template class CUtlVectorBase<CUtlString>;
 template class CUtlVectorMemory_Growable<CUtlString>;
@@ -21,9 +22,9 @@ template class CUtlVectorMemory_Fixed<CUtlString, 4>;
 template class CUtlVectorMemory_FixedGrowable<CUtlString, 4>;
 template class CUtlVectorMemory_Conservative<CUtlString>;
 template class CUtlVectorMemory_RawAllocator<CUtlString, CMemAllocAllocator>;
-template class CUtlBlockMemory<CUtlString, int>;
 template class CUtlVectorFixed<CUtlString, 4>;
 template class CUtlVectorFixedGrowable<CUtlString, 4>;
 template class CUtlVectorConservative<CUtlString>;
 template class CUtlVectorRawAllocator<CUtlString>;
 template class CUtlBlockVector<CUtlString>;
+template class CUtlBlockVector<CUtlString, unsigned short>;

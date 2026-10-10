@@ -25,6 +25,7 @@
 #include "tier1/utlntree.h"
 #include "tier1/utlintrusivelist.h"
 #include "tier1/memstack.h"
+#include "tier0/utlblockvector.h"
 
 #ifdef _MSC_VER
 // Copy constructors are declared without a definition to make containers non-copyable
@@ -114,6 +115,7 @@ class CRBTreeAllocator : public CMemAllocAllocator
 };
 
 template class CUtlRBTree<CUtlString, int, bool ( * )( const CUtlString &, const CUtlString & ), CUtlLeanVector<UtlRBTreeNode_t<CUtlString, int>, int, CRBTreeAllocator>>;
+template class CUtlRBTree<CUtlString, int, bool ( * )( const CUtlString &, const CUtlString & ), CUtlBlockVector<UtlRBTreeNode_t<CUtlString, int>, int>>;
 
 // Intrusive lists link the nodes through their own members
 struct IntrusiveNode_t
