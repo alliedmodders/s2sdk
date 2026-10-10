@@ -556,7 +556,7 @@ public:
 
 	// Returns true on success ( based on current list of search paths, otherwise false if 
 	//  it can't be resolved )
-	virtual bool			FullPathToRelativePath( const char *pFullpath, const char *pPathID, char *pRelative, int maxlen ) = 0;
+	virtual bool			FullPathToRelativePath( const char *pFullpath, const char *pPathID, CBufferString &pRelative ) = 0;
 
 	// Gets the current working directory
 	virtual bool			GetCurrentDirectory( CBufferString &pDirectory ) = 0;
@@ -609,7 +609,7 @@ public:
 	virtual KeyValues	*LoadKeyValues( KeyValuesPreloadType_t type, char const *filename, char const *pPathID = 0 ) = 0;
 	virtual bool		LoadKeyValues( KeyValues& head, KeyValuesPreloadType_t type, char const *filename, char const *pPathID = 0 ) = 0;
 
-	virtual bool			GetFileTypeForFullPath( char const *pFullPath, wchar_t *buf, size_t bufSizeInBytes ) = 0;
+	virtual bool			GetFileTypeForFullPath( char const *pFullPath, CBufferString &buf ) = 0;
 
 	//--------------------------------------------------------
 	//--------------------------------------------------------
