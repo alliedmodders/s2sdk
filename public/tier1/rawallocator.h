@@ -33,7 +33,7 @@ public:
 	{
 		size_t byte_size = nCount * sizeof( T );
 		T *ptr = (T *)malloc( byte_size );
-		nAdjustedCount = MIN( (I)(MAX( _msize( ptr ), byte_size ) / sizeof( T )), (std::numeric_limits<I>::max)() );
+		nAdjustedCount = (I)MIN( MAX( _msize( ptr ), byte_size ) / sizeof( T ), (size_t)(std::numeric_limits<I>::max)() );
 		return ptr;
 	}
 
@@ -42,7 +42,7 @@ public:
 	{
 		size_t byte_size = nCount * sizeof( T );
 		T *ptr = (T *)realloc( base, byte_size );
-		nAdjustedCount = MIN( (I)(MAX( _msize( ptr ), byte_size ) / sizeof( T )), (std::numeric_limits<I>::max)() );
+		nAdjustedCount = (I)MIN( MAX( _msize( ptr ), byte_size ) / sizeof( T ), (size_t)(std::numeric_limits<I>::max)() );
 		return ptr;
 	}
 

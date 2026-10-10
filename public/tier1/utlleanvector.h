@@ -196,9 +196,9 @@ void CUtlLeanVectorBase<T, I, A>::EnsureCapacity( int num, bool force )
 		return;
 	
 	I nMinAllocated = (31 + sizeof( T )) / sizeof( T );
-	I nMaxAllocated = (std::numeric_limits<I>::max)();
+	I nMaxAllocated = (std::numeric_limits<std::make_signed_t<I>>::max)();
 
-	if ( num > nMaxAllocated )
+	if ( (uint64)num > (uint64)nMaxAllocated )
 	{
 		Msg( "%s allocation count overflow( %llu > %llu )\n", __FUNCTION__, ( uint64 )num, ( uint64 )nMaxAllocated );
 		Plat_FatalError( "%s allocation count overflow", __FUNCTION__ );
@@ -221,7 +221,7 @@ void CUtlLeanVectorBase<T, I, A>::EnsureCapacity( int num, bool force )
 	}
 
 	m_pElements = pNew;
-	m_nAllocated = nNewAllocated;
+	m_nAllocated = MIN( nNewAllocated, nMaxAllocated );
 }
 
 //-----------------------------------------------------------------------------
@@ -392,12 +392,12 @@ void CUtlLeanVectorFixedGrowableBase<T, N, I, A>::EnsureCapacity( int num, bool 
 		return;
 	
 	I nMinAllocated = (31 + sizeof( T )) / sizeof( T );
-	I nMaxAllocated = (std::numeric_limits<I>::max)();
+	I nMaxAllocated = (std::numeric_limits<std::make_signed_t<I>>::max)();
 	I nNewAllocated = num;
 
 	if ( ( size_t )num > FIXED_CAPACITY )
 	{
-		if ( num > nMaxAllocated )
+		if ( (uint64)num > (uint64)nMaxAllocated )
 		{
 			Msg( "%s allocation count overflow( %llu > %llu )\n", __FUNCTION__, ( uint64 )num, ( uint64 )nMaxAllocated );
 			Plat_FatalError( "%s allocation count overflow", __FUNCTION__ );
@@ -420,7 +420,7 @@ void CUtlLeanVectorFixedGrowableBase<T, N, I, A>::EnsureCapacity( int num, bool 
 	}
 	
 	m_pElements = pNew;
-	m_nAllocated = nNewAllocated;
+	m_nAllocated = MIN( nNewAllocated, nMaxAllocated );
 }
 
 //-----------------------------------------------------------------------------
@@ -579,28 +579,28 @@ inline CUtlLeanVectorImpl<B, T, I>& CUtlLeanVectorImpl<B, T, I>::operator=( cons
 template< class B, class T, class I >
 inline T& CUtlLeanVectorImpl<B, T, I>::operator[]( int i )
 {
-	Assert( i < this->m_nCount );
+	Assert( i < Count() );
 	return this->Base()[ i ];
 }
 
 template< class B, class T, class I >
 inline const T& CUtlLeanVectorImpl<B, T, I>::operator[]( int i ) const
 {
-	Assert( i < this->m_nCount );
+	Assert( i < Count() );
 	return this->Base()[ i ];
 }
 
 template< class B, class T, class I >
 inline T& CUtlLeanVectorImpl<B, T, I>::Element( int i )
 {
-	Assert( i < this->m_nCount );
+	Assert( i < Count() );
 	return this->Base()[ i ];
 }
 
 template< class B, class T, class I >
 inline const T& CUtlLeanVectorImpl<B, T, I>::Element( int i ) const
 {
-	Assert( i < this->m_nCount );
+	Assert( i < Count() );
 	return this->Base()[ i ];
 }
 
@@ -647,7 +647,7 @@ inline int CUtlLeanVectorImpl<B, T, I>::Count() const
 template< class B, class T, class I >
 inline bool CUtlLeanVectorImpl<B, T, I>::IsValidIndex( int i ) const
 {
-	return (i >= 0) && (i < this->m_nCount);
+	return (i >= 0) && (i < Count());
 }
 
 //-----------------------------------------------------------------------------
@@ -693,7 +693,7 @@ int CUtlLeanVectorImpl<B, T, I>::AddMultipleToTail( int nSize )
 
 	if ( nSize > 0 )
 	{
-		int nMaxSize = (std::numeric_limits<I>::max)();
+		int nMaxSize = (std::numeric_limits<std::make_signed_t<I>>::max)();
 
 		if ( ( nMaxSize - nOldSize ) < nSize )
 		{
@@ -736,7 +736,7 @@ T* CUtlLeanVectorImpl<B, T, I>::InsertBeforeGetPtr( int nBeforeIndex, int nSize 
 		DebuggerBreak();
 	}
 
-	int nMaxSize = (std::numeric_limits<I>::max)();
+	int nMaxSize = (std::numeric_limits<std::make_signed_t<I>>::max)();
 
 	if ( ( nMaxSize - nOldSize ) < nSize )
 	{
@@ -766,9 +766,9 @@ void CUtlLeanVectorImpl<B, T, I>::SetCount( int count )
 
 	T* pBase = this->Base();
 
-	if ( this->m_nCount < count )
+	if ( Count() < count )
 		ConstructElements( &pBase[ this->m_nCount ], &pBase[ count ] );
-	else if ( this->m_nCount > count )
+	else if ( Count() > count )
 		DestructElements( &pBase[ count ], &pBase[ this->m_nCount ] );
 
 	this->m_nCount = count;
@@ -816,7 +816,7 @@ void CUtlLeanVectorImpl<B, T, I>::FastRemove( int elem )
 	Destruct( &pBase[ elem ] );
 	if ( this->m_nCount > 0 )
 	{
-		if ( elem != this->m_nCount - 1 )
+		if ( elem != Count() - 1 )
 			V_memmove( &pBase[ elem ], &pBase[ this->m_nCount - 1 ], sizeof( T ) );
 		--this->m_nCount;
 	}

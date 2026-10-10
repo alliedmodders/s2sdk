@@ -201,6 +201,11 @@ static void TestLinkedLists()
 	}
 
 	{
+		CUtlLinkedList<int, unsigned int> list;
+		TestList( list );
+	}
+
+	{
 		CUtlFixedLinkedList<int> list;
 		TestList( list );
 	}

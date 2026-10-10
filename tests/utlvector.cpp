@@ -10,6 +10,12 @@ template class CUtlLeanVectorImpl<CUtlLeanVectorBase<CUtlString, int, CMemAllocA
 template class CUtlLeanVectorBase<CUtlString, int, CMemAllocAllocator>;
 template class CUtlLeanVectorImpl<CUtlLeanVectorFixedGrowableBase<CUtlString, 4, int, CMemAllocAllocator>, CUtlString, int>;
 template class CUtlLeanVectorFixedGrowableBase<CUtlString, 4, int, CMemAllocAllocator>;
+template class CUtlLeanVectorImpl<CUtlLeanVectorBase<CUtlString, unsigned short, CMemAllocAllocator>, CUtlString, unsigned short>;
+template class CUtlLeanVectorBase<CUtlString, unsigned short, CMemAllocAllocator>;
+template class CUtlLeanVectorImpl<CUtlLeanVectorBase<CUtlString, unsigned int, CMemAllocAllocator>, CUtlString, unsigned int>;
+template class CUtlLeanVectorBase<CUtlString, unsigned int, CMemAllocAllocator>;
+template class CUtlLeanVectorImpl<CUtlLeanVectorFixedGrowableBase<CUtlString, 4, unsigned int, CMemAllocAllocator>, CUtlString, unsigned int>;
+template class CUtlLeanVectorFixedGrowableBase<CUtlString, 4, unsigned int, CMemAllocAllocator>;
 template class CUtlVectorMemory_Aligned<CUtlString, 16>;
 template class CUtlVectorBase<CUtlString, int, CUtlVectorMemory_Aligned<CUtlString, 16>>;
 template class CUtlVectorAutoPurge<CUtlString *>;
