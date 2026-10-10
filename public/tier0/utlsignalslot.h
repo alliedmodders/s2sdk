@@ -7,7 +7,7 @@
 
 #include "tier0/threadtools.h"
 #include "tier0/utldelegate.h"
-#include "tier1/utlvector.h"
+#include "tier0/utlvector.h"
 
 // AMNOTE: Layout only, to derive the engine classes that are slots from it. The engine connects signallers
 // to a slot, like a net channel when a net message handler is registered for it, and the slot's destructor

@@ -73,6 +73,9 @@ for sdk_target in SdkHelpers.sdk_targets:
 
   binary.custom = [builder.tools.Protoc(protoc = sdk_target.protoc, sources = [
     os.path.join(builder.sourcePath, 'common', 'network_connection.proto'),
+    os.path.join(builder.sourcePath, 'common', 'networkbasetypes.proto'),
+    os.path.join(builder.sourcePath, 'common', 'netmessages.proto'),
+    os.path.join(builder.sourcePath, 'common', 'valveextensions.proto'),
     # Messages for the tests, from a proto without imports
     os.path.join(builder.sourcePath, 'common', 'source2_steam_stats.proto'),
   ])]
