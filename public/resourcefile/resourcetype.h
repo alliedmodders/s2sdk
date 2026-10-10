@@ -53,6 +53,9 @@ enum ResourceBindingFlags_t
 
 struct ResourceId_t
 {
+	ResourceId_t() : m_Value( 0 ) {}
+	ResourceId_t( uint64 nValue ) : m_Value( nValue ) {}
+
 	uint64 m_Value;
 };
 
