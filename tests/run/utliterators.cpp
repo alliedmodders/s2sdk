@@ -191,6 +191,11 @@ static void TestLinkedLists()
 		CUtlFixedLinkedList<int> list;
 		TestList( list );
 	}
+
+	{
+		CUtlBlockLinkedList<int> list;
+		TestList( list );
+	}
 }
 
 static void TestRBTree()

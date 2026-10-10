@@ -16,7 +16,7 @@
 #include "tier0/basetypes.h"
 #include "utlfixedmemory.h"
 #include "utlleanvector.h"
-#include "utlblockmemory.h"
+#include "tier0/utlblockvector.h"
 #include "utliterator.h"
 #include "tier0/dbg.h"
 
@@ -216,11 +216,11 @@ private:
 
 // this is kind of ugly, but until C++ gets templatized typedefs in C++0x, it's our only choice
 template < class T, class I = unsigned short >
-class CUtlBlockLinkedList : public CUtlLinkedList< T, I, true, I, CUtlBlockMemory< UtlLinkedListElem_t< T, I >, I > >
+class CUtlBlockLinkedList : public CUtlLinkedList< T, I, true, I, CUtlBlockVector< UtlLinkedListElem_t< T, I >, I > >
 {
 public:
 	CUtlBlockLinkedList( int growSize = 0, int initSize = 0 )
-		: CUtlLinkedList< T, I, true, I, CUtlBlockMemory< UtlLinkedListElem_t< T, I >, I > >( growSize, initSize ) {}
+		: CUtlLinkedList< T, I, true, I, CUtlBlockVector< UtlLinkedListElem_t< T, I >, I > >( growSize, initSize ) {}
 };
 
 

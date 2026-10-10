@@ -55,6 +55,8 @@ template class CUtlStableHashtable<CUtlString, CUtlString>;
 template class CUtlLinkedList<CUtlString>;
 template class CUtlLinkedList<CUtlString, unsigned short, true>;
 template class CUtlFixedLinkedList<CUtlString>;
+template class CUtlBlockLinkedList<CUtlString>;
+template class CUtlLinkedList<CUtlString, unsigned short, true, unsigned short, CUtlBlockVector<UtlLinkedListElem_t<CUtlString, unsigned short>, unsigned short>>;
 template class CUtlPtrLinkedList<CUtlString>;
 template class CUtlNTree<CUtlString>;
 template class CUtlMemoryStack<CUtlString, int, 1024>;
