@@ -13,7 +13,7 @@
 
 #include "const.h"
 #include "playerslot.h"
-#include "inetchannel.h"
+#include "networksystem/inetchannel.h"
 
 //-----------------------------------------------------------------------------
 // Purpose: Generic interface for routing messages to users
