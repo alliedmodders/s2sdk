@@ -86,9 +86,6 @@
     <ClInclude Include="..\public\tier1\uniqueid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\tier1\utlblockmemory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\tier1\utlbuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
