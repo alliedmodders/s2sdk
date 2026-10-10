@@ -1,6 +1,6 @@
 # The CMake side of CheckScript: the tests' template instantiations and the
 # sources plugins compile themselves, in a library linked like a plugin, and
-# the KeyValues3 test program. Built with -DS2SDK_BUILD_TESTS=ON.
+# the test programs in run/. Built with -DS2SDK_BUILD_TESTS=ON.
 
 file(GLOB _test_sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB _plugin_sources CONFIGURE_DEPENDS "${S2SDK_DIR}/entity2/*.cpp" "${S2SDK_DIR}/tier1/*.cpp")
@@ -34,3 +34,12 @@ add_executable(keyvalues3_test
 target_link_libraries(keyvalues3_test PRIVATE s2sdk::s2sdk)
 target_compile_definitions(keyvalues3_test PRIVATE ${S2SDK_OWN_DEFINITIONS})
 target_compile_options(keyvalues3_test PRIVATE ${S2SDK_OWN_OPTIONS})
+
+# Iterates the utl containers, which allocate through tier0
+add_executable(utliterators_test
+	"${CMAKE_CURRENT_SOURCE_DIR}/run/utliterators.cpp"
+	"${S2SDK_DIR}/public/tier0/memoverride.cpp"
+)
+target_link_libraries(utliterators_test PRIVATE s2sdk::s2sdk)
+target_compile_definitions(utliterators_test PRIVATE ${S2SDK_OWN_DEFINITIONS})
+target_compile_options(utliterators_test PRIVATE ${S2SDK_OWN_OPTIONS})

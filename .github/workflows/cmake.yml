@@ -41,3 +41,4 @@ jobs:
         shell: bash
         run: |
           LD_LIBRARY_PATH=lib/linux64 build/tests/keyvalues3_test
+          LD_LIBRARY_PATH=lib/linux64 build/tests/utliterators_test
