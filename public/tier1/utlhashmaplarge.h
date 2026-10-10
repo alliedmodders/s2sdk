@@ -24,8 +24,6 @@
 #include <new>
 #include <utility>
 
-#include "tier0/memdbgon.h"
-
 // Case sensitive hash and compare for const char * keys
 struct MurmurHash3ConstCharPtr
 {
@@ -752,7 +750,5 @@ inline void CUtlHashMapLarge<K, T, L, H>::Purge()
 	m_memNodes.Purge();
 	m_vecHashBuckets.Purge();
 }
-
-#include "tier0/memdbgoff.h"
 
 #endif // UTLHASHMAPLARGE_H

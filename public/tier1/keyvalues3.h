@@ -316,6 +316,18 @@ namespace KV3Helpers
 	{
 		return ((ALIGN_VALUE( size * sizeof( Ts ), ALIGN )) + ... + 0);
 	}
+
+	// Destruct for nodes allocated with TotalSizeOf, which can be smaller than T,
+	// so the debug fill covers only the allocation
+	template <typename T>
+	inline void DestructSized( T *pMemory, size_t nAllocatedBytes )
+	{
+		pMemory->~T();
+
+#ifdef _DEBUG
+		memset( reinterpret_cast<void *>( pMemory ), 0xDD, nAllocatedBytes );
+#endif
+	}
 }
 
 struct KV3MetaData_t
@@ -1108,6 +1120,13 @@ protected:
 
 		bool IsWithinRange( NODE *element ) { return AllocatedBytes() > 0 && element >= (void *)Head() && element < (void *)Tail(); }
 
+		// Entries are sized by TotalSizeOf, so an element ends where the next entry starts
+		static size_t SizeOf( NODE *element )
+		{
+			auto entry = reinterpret_cast<ListEntry *>( (uint8 *)element - offsetof( ListEntry, m_Value ) );
+			return (uint8 *)entry->m_pNext - (uint8 *)element;
+		}
+
 	private:
 		void EnsureByteSize( int bytes_needed );
 
@@ -1187,6 +1206,8 @@ public:
 
 	bool IsArrayRawAllocated( CKeyValues3Array *element ) { return m_RawArrayEntries.IsWithinRange( element ); }
 	bool IsTableRawAllocated( CKeyValues3Table *element ) { return m_RawTableEntries.IsWithinRange( element ); }
+	size_t RawAllocatedSizeOf( CKeyValues3Array *element ) { return NodeList<CKeyValues3Array>::SizeOf( element ); }
+	size_t RawAllocatedSizeOf( CKeyValues3Table *element ) { return NodeList<CKeyValues3Table>::SizeOf( element ); }
 
 private:
 	template <typename CLUSTER>
@@ -1315,7 +1336,7 @@ inline T *KeyValues3::AllocateOnHeap( int initial_size )
 template<typename T>
 inline void KeyValues3::FreeOnHeap( T *element )
 {
-	Destruct( element );
+	KV3Helpers::DestructSized( element, g_pMemAlloc->GetSize( element ) );
 
 	g_pMemAlloc->RegionFree( MEMALLOC_REGION_FREE_4, element );
 }
@@ -1644,7 +1665,7 @@ inline void CKV3ArenaBase::NodeList<NODE>::Clear()
 		for(auto iter = Head(); iter != Tail(); )
 		{
 			auto next = iter->m_pNext;
-			Destruct( iter );
+			KV3Helpers::DestructSized( &iter->m_Value, SizeOf( &iter->m_Value ) );
 			iter = next;
 		}
 	}

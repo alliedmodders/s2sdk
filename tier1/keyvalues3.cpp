@@ -146,6 +146,19 @@ CKeyValues3Table* KeyValues3::AllocTable( int initial_size )
 	return AllocateOnHeap<CKeyValues3Table>( initial_size );
 }
 
+// Arrays and tables are allocated with TotalSizeOf, which can be smaller than their type
+template <typename T>
+static size_t AllocatedSizeOf( CKV3Arena *context, T *element, bool raw_allocated )
+{
+	if(raw_allocated)
+		return context->RawAllocatedSizeOf( element );
+
+	if(element->GetClusterElement() >= 0)
+		return sizeof( T );
+
+	return g_pMemAlloc->GetSize( element );
+}
+
 void KeyValues3::FreeArray( CKeyValues3Array *element, bool clearing_context )
 {
 	if(!element)
@@ -155,7 +168,8 @@ void KeyValues3::FreeArray( CKeyValues3Array *element, bool clearing_context )
 
 	if(!m_bFreeArrayMemory)
 	{
-		Destruct( element );
+		auto context = GetContext();
+		KV3Helpers::DestructSized( element, AllocatedSizeOf( context, element, context && context->IsArrayRawAllocated( element ) ) );
 	}
 	else
 	{
@@ -171,7 +185,7 @@ void KeyValues3::FreeArray( CKeyValues3Array *element, bool clearing_context )
 			if(!raw_allocated)
 				context->FreeArray( element );
 			else
-				Destruct( element );
+				KV3Helpers::DestructSized( element, context->RawAllocatedSizeOf( element ) );
 		}
 	}
 }
@@ -185,7 +199,8 @@ void KeyValues3::FreeTable( CKeyValues3Table *element, bool clearing_context )
 
 	if(!m_bFreeArrayMemory)
 	{
-		Destruct( element );
+		auto context = GetContext();
+		KV3Helpers::DestructSized( element, AllocatedSizeOf( context, element, context && context->IsTableRawAllocated( element ) ) );
 	}
 	else
 	{
@@ -201,7 +216,7 @@ void KeyValues3::FreeTable( CKeyValues3Table *element, bool clearing_context )
 			if(!raw_allocated)
 				context->FreeTable( element );
 			else
-				Destruct( element );
+				KV3Helpers::DestructSized( element, context->RawAllocatedSizeOf( element ) );
 		}
 	}
 }
