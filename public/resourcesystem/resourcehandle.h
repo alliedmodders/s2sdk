@@ -11,6 +11,10 @@
 // AMNOTE: Made-up name, the engine's name is unknown. Holds a binding pointer packed with its allocation serial
 struct ResourceSerialHandle_t
 {
+	// Having a constructor makes MSVC return it through memory, like the engine does
+	ResourceSerialHandle_t() : m_Value( 0 ) {}
+	explicit ResourceSerialHandle_t( uint64 nValue ) : m_Value( nValue ) {}
+
 	uint64 m_Value;
 };
 

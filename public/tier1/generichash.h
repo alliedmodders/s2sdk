@@ -471,6 +471,66 @@ inline uint32 MurmurHash2LowerCase( const char *key, int len, uint32 seed )
 template <typename T, std::enable_if_t<std::is_same_v<T, const char *>, int> = 0>
 inline uint32 MurmurHash2LowerCase( T key, uint32 seed ) { return MurmurHash2LowerCase( key, (int)strlen( key ), seed ); }
 
+inline uint64 MurmurHash64( const void *key, int len, uint32 seed )
+{
+	// 'm' and 'r' are mixing constants generated offline.
+	// They're not really 'magic', they just happen to work well.
+
+	const uint32 m = 0x5bd1e995;
+	const int r = 24;
+
+	// Initialize the hash to a 'random' value
+
+	uint32 h1 = seed ^ len;
+	uint32 h2 = 0;
+
+	// Mix 4 bytes at a time into the hash
+
+	const uint32 *data = (const uint32 *)key;
+
+	while(len >= 8)
+	{
+		uint32 k1 = LittleDWord( *data++ );
+		k1 *= m; k1 ^= k1 >> r; k1 *= m;
+		h1 *= m; h1 ^= k1;
+		len -= 4;
+
+		uint32 k2 = LittleDWord( *data++ );
+		k2 *= m; k2 ^= k2 >> r; k2 *= m;
+		h2 *= m; h2 ^= k2;
+		len -= 4;
+	}
+
+	if(len >= 4)
+	{
+		uint32 k1 = LittleDWord( *data++ );
+		k1 *= m; k1 ^= k1 >> r; k1 *= m;
+		h1 *= m; h1 ^= k1;
+		len -= 4;
+	}
+
+	// Handle the last few bytes of the input array
+
+	switch(len)
+	{
+		case 3: h2 ^= ((const uint8 *)data)[2] << 16;
+		case 2: h2 ^= ((const uint8 *)data)[1] << 8;
+		case 1: h2 ^= ((const uint8 *)data)[0];
+			h2 *= m;
+	};
+
+	h1 ^= h2 >> 18; h1 *= m;
+	h2 ^= h1 >> 22; h2 *= m;
+	h1 ^= h2 >> 17; h1 *= m;
+	h2 ^= h1 >> 19; h2 *= m;
+
+	uint64 h = h1;
+
+	h = (h << 32) | h2;
+
+	return h;
+}
+
 inline uint32 HashString( const char *pszKey )
 {
 	return MurmurHash2( pszKey, (int)strlen( pszKey ), 0x3501A674 );
