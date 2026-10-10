@@ -40,7 +40,7 @@ for header in sorted(headers):
   content = '#include "{}"\n'.format(os.path.join(builder.sourcePath, header).replace('\\', '/'))
   sources.append(builder.AddOutputFile(os.path.join('headers', header.replace('/', '_') + '.cpp'), content.encode('utf-8')))
 
-for folder in ['entity2', 'tier1']:
+for folder in ['entity2', 'tier0_perproject']:
   for file in sorted(os.listdir(os.path.join(builder.sourcePath, folder))):
     if file.endswith('.cpp'):
       sources.append(os.path.join(folder, file))
@@ -83,7 +83,7 @@ builder.Add(project)
 kv3test = builder.ProgramProject('keyvalues3_test')
 kv3test.sources = [
   os.path.join('tests', 'run', 'keyvalues3.cpp'),
-  os.path.join('tier1', 'keyvalues3.cpp'),
+  os.path.join('tier0_perproject', 'keyvalues3.cpp'),
   os.path.join('public', 'tier0', 'memoverride.cpp'),
 ]
 
