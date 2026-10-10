@@ -789,6 +789,8 @@ public:
 	static constexpr size_t TotalSizeOfData( int size ) { return MAX( (KV3Helpers::PackSizeOf<DATA_ALIGNMENT, Element_t>( size )), sizeof( m_pDynamicElements ) ); }
 	static constexpr size_t TotalSizeWithoutStaticData() { return sizeof( CKeyValues3Array ) - sizeof( m_StaticElements ); }
 
+	size_t GetAllocatedSize() const { return TotalSizeOf( m_nInitialSize ); }
+
 private:
 	int GetAllocatedChunks() const { return m_nAllocatedChunks; }
 	bool IsBaseStatic() { return !m_bIsDynamicallySized; }
@@ -875,6 +877,8 @@ public:
 	static constexpr size_t TotalSizeOf( int initial_size ) { return ALIGN_VALUE( TotalSizeWithoutStaticData() + TotalSizeOfData( MAX( initial_size, 0 ) ), 8 ); }
 	static constexpr size_t TotalSizeOfData( int size ) { return MAX( (KV3Helpers::PackSizeOf<DATA_ALIGNMENT, Hash_t, Member_t, Name_t, Flags_t>( size )), sizeof(m_pDynamicBuffer) ); }
 	static constexpr size_t TotalSizeWithoutStaticData() { return sizeof(CKeyValues3Table) - sizeof(m_StaticBuffer); }
+
+	size_t GetAllocatedSize() const { return TotalSizeOf( m_nInitialSize ); }
 
 private:
 	void PurgeNameBuffer( KeyValues3 *parent, KV3MemberId_t id );
@@ -1315,7 +1319,7 @@ inline T *KeyValues3::AllocateOnHeap( int initial_size )
 template<typename T>
 inline void KeyValues3::FreeOnHeap( T *element )
 {
-	Destruct( element );
+	Destruct( element, element->GetAllocatedSize() );
 
 	g_pMemAlloc->RegionFree( MEMALLOC_REGION_FREE_4, element );
 }
@@ -1644,7 +1648,7 @@ inline void CKV3ArenaBase::NodeList<NODE>::Clear()
 		for(auto iter = Head(); iter != Tail(); )
 		{
 			auto next = iter->m_pNext;
-			Destruct( iter );
+			Destruct( &iter->m_Value, iter->m_Value.GetAllocatedSize() );
 			iter = next;
 		}
 	}

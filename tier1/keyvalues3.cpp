@@ -155,7 +155,7 @@ void KeyValues3::FreeArray( CKeyValues3Array *element, bool clearing_context )
 
 	if(!m_bFreeArrayMemory)
 	{
-		Destruct( element );
+		Destruct( element, element->GetAllocatedSize() );
 	}
 	else
 	{
@@ -171,7 +171,7 @@ void KeyValues3::FreeArray( CKeyValues3Array *element, bool clearing_context )
 			if(!raw_allocated)
 				context->FreeArray( element );
 			else
-				Destruct( element );
+				Destruct( element, element->GetAllocatedSize() );
 		}
 	}
 }
@@ -185,7 +185,7 @@ void KeyValues3::FreeTable( CKeyValues3Table *element, bool clearing_context )
 
 	if(!m_bFreeArrayMemory)
 	{
-		Destruct( element );
+		Destruct( element, element->GetAllocatedSize() );
 	}
 	else
 	{
@@ -201,7 +201,7 @@ void KeyValues3::FreeTable( CKeyValues3Table *element, bool clearing_context )
 			if(!raw_allocated)
 				context->FreeTable( element );
 			else
-				Destruct( element );
+				Destruct( element, element->GetAllocatedSize() );
 		}
 	}
 }

@@ -1426,14 +1426,21 @@ inline T* MoveConstruct( T* pMemory, T&& src )
 	return reinterpret_cast<T*>(::new( pMemory ) T(std::move(src)));
 }
 
+// nAllocatedSize is for objects allocated with fewer bytes than sizeof(T)
 template <class T>
-inline void Destruct( T* pMemory )
+inline void Destruct( T* pMemory, size_t nAllocatedSize )
 {
 	pMemory->~T();
 
 #ifdef _DEBUG
-	memset( reinterpret_cast<void*>( pMemory ), 0xDD, sizeof(T) );
+	memset( reinterpret_cast<void*>( pMemory ), 0xDD, nAllocatedSize );
 #endif
+}
+
+template <class T>
+inline void Destruct( T* pMemory )
+{
+	Destruct( pMemory, sizeof(T) );
 }
 
 // The above will error when binding to a type of: foo(*)[] -- there is no provision in c++ for knowing how many objects
