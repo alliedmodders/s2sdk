@@ -521,6 +521,10 @@ public:
 	CKeyValues3Table *GetTable();
 	CKeyValues3Table *GetTable() const { return const_cast<KeyValues3 *>(this)->GetTable(); };
 
+	// AMNOTE: The engine's KV3 savers refuse a table that has invalid member names
+	bool HasInvalidMemberNames() const;
+	void SetHasInvalidMemberNames( bool state );
+
 	KeyValues3* GetMember( KV3MemberId_t id );
 	const KeyValues3* GetMember( KV3MemberId_t id ) const { return const_cast<KeyValues3*>(this)->GetMember( id ); }
 
@@ -837,6 +841,9 @@ public:
 	const char *GetMemberName( const KeyValues3 *parent, KV3MemberId_t id ) const;
 	const Hash_t GetMemberHash( KV3MemberId_t id ) const;
 	CKV3MemberName GetKV3MemberName( const KeyValues3 *parent, KV3MemberId_t id ) const;
+
+	bool HasInvalidMemberNames() const { return m_bHasInvalidMemberNames; }
+	void SetHasInvalidMemberNames( bool state ) { m_bHasInvalidMemberNames = state; }
 
 	void PurgeFastSearch();
 	void EnableFastSearch();

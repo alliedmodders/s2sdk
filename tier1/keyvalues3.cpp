@@ -835,6 +835,20 @@ CKeyValues3Table *KeyValues3::GetTable()
 	return m_Data.m_pTable;
 }
 
+bool KeyValues3::HasInvalidMemberNames() const
+{
+	if ( GetType() != KV3_TYPE_TABLE )
+		return false;
+
+	return m_Data.m_pTable->HasInvalidMemberNames();
+}
+
+void KeyValues3::SetHasInvalidMemberNames( bool state )
+{
+	if ( GetType() == KV3_TYPE_TABLE )
+		m_Data.m_pTable->SetHasInvalidMemberNames( state );
+}
+
 KeyValues3* KeyValues3::GetMember( KV3MemberId_t id )
 {
 	if ( GetType() != KV3_TYPE_TABLE || id < 0 || id >= m_Data.m_pTable->GetMemberCount() )

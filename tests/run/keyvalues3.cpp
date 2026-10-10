@@ -446,6 +446,21 @@ static void TestTypeChecks( KeyValues3 *root )
 	CHECK( !root->IsArray() && !root->IsTable() );
 }
 
+static void TestInvalidMemberNames( KeyValues3 *root )
+{
+	root->SetToNull();
+	root->SetHasInvalidMemberNames( true );
+	CHECK( !root->HasInvalidMemberNames() );
+
+	root->SetToEmptyTable();
+	CHECK( !root->HasInvalidMemberNames() );
+	root->SetHasInvalidMemberNames( true );
+	CHECK( root->HasInvalidMemberNames() );
+	CHECK( root->GetTable()->HasInvalidMemberNames() );
+	root->SetHasInvalidMemberNames( false );
+	CHECK( !root->HasInvalidMemberNames() );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -476,6 +491,7 @@ int main()
 	TestBinaryTypes();
 	TestInt16Arrays();
 	RunTest( TestTypeChecks );
+	RunTest( TestInvalidMemberNames );
 
 	if ( g_nFailures )
 	{
