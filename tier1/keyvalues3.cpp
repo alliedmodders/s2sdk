@@ -963,6 +963,24 @@ bool KeyValues3::RemoveMember( const CKV3MemberName &name )
 	return true;
 }
 
+KeyValues3* KeyValues3::RenameMember( const CKV3MemberName &name, const CKV3MemberName &newName )
+{
+	if ( GetType() != KV3_TYPE_TABLE || !newName.GetString() || !newName.GetString()[0] )
+		return nullptr;
+
+	if ( m_Data.m_pTable->FindMember( newName ) != KV3_INVALID_MEMBER )
+		return nullptr;
+
+	KV3MemberId_t id = m_Data.m_pTable->FindMember( name );
+
+	if ( id == KV3_INVALID_MEMBER )
+		return nullptr;
+
+	m_Data.m_pTable->RenameMember( this, id, newName );
+
+	return m_Data.m_pTable->GetMember( id );
+}
+
 const char* KeyValues3::GetTypeAsString() const
 {
 	static const char* s_Types[] =
@@ -1953,6 +1971,17 @@ void CKeyValues3Table::RemoveMember( KeyValues3 *parent, KV3MemberId_t id )
 		m_pFastSearch->m_ignore = true;
 		m_pFastSearch->m_ignores_counter = 1;
 	}
+}
+
+void CKeyValues3Table::RenameMember( KeyValues3 *parent, KV3MemberId_t id, const CKV3MemberName &newName )
+{
+	PurgeNameBuffer( parent, id );
+
+	HashesBase()[id] = newName.GetHashCode();
+	StoreKeyName( parent, NamesBase()[id], FlagsBase()[id], newName.GetString(), newName.GetSymId() );
+
+	if ( m_pFastSearch )
+		m_pFastSearch->m_ignore = true;
 }
 
 void CKeyValues3Table::RemoveAll( KeyValues3 *parent, int new_size )

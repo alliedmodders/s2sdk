@@ -461,6 +461,65 @@ static void TestInvalidMemberNames( KeyValues3 *root )
 	CHECK( !root->HasInvalidMemberNames() );
 }
 
+static void TestRenameMember( KeyValues3 *root )
+{
+	FillTable( root );
+
+	KeyValues3 *value = root->FindMember( "int" );
+	CHECK( root->RenameMember( "int", "renamed" ) == value );
+	CHECK( root->FindMember( "int" ) == nullptr );
+	CHECK( root->FindMember( "renamed" ) == value );
+	CHECK( root->GetMemberInt( "renamed" ) == -12345 );
+	CHECK( root->GetMemberCount() == 8 );
+	CHECK( !strcmp( root->GetMemberName( 1 ), "renamed" ) );
+	CHECK( root->GetMemberHash( 1 ) == CUtlStringToken( "renamed" ) );
+
+	CHECK( root->RenameMember( "missing", "other" ) == nullptr );
+	CHECK( root->FindMember( "other" ) == nullptr );
+
+	CHECK( root->RenameMember( "renamed", "bool" ) == nullptr );
+	CHECK( root->GetMemberInt( "renamed" ) == -12345 );
+	CHECK( root->GetMemberBool( "bool" ) == true );
+
+	CHECK( root->RenameMember( "renamed", "" ) == nullptr );
+	CHECK( root->FindMember( "renamed" ) == value );
+
+	CHECK( root->RenameMember( "renamed", "int" ) == value );
+	CheckTable( root );
+
+	// Large tables also find members through a hash of their names
+	root->SetToEmptyTable();
+	char name[32];
+	char newName[32];
+	for ( int i = 0; i < 200; ++i )
+	{
+		snprintf( name, sizeof( name ), "m%d", i );
+		root->SetMemberInt( CKV3MemberName( (const char *)name ), i );
+	}
+
+	for ( int i = 0; i < 200; i += 2 )
+	{
+		snprintf( name, sizeof( name ), "m%d", i );
+		snprintf( newName, sizeof( newName ), "r%d", i );
+		CHECK( root->RenameMember( CKV3MemberName( (const char *)name ), CKV3MemberName( (const char *)newName ) ) );
+	}
+
+	for ( int pass = 0; pass < 2; ++pass )
+	{
+		for ( int i = 0; i < 200; ++i )
+		{
+			snprintf( name, sizeof( name ), "%c%d", ( i % 2 ) ? 'm' : 'r', i );
+			CHECK( root->GetMemberInt( CKV3MemberName( (const char *)name ), -1 ) == i );
+
+			snprintf( name, sizeof( name ), "%c%d", ( i % 2 ) ? 'r' : 'm', i );
+			CHECK( root->FindMember( CKV3MemberName( (const char *)name ) ) == nullptr );
+		}
+	}
+
+	CHECK( root->RenameMember( "r0", "m1" ) == nullptr );
+	CHECK( root->GetMemberCount() == 200 );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -492,6 +551,7 @@ int main()
 	TestInt16Arrays();
 	RunTest( TestTypeChecks );
 	RunTest( TestInvalidMemberNames );
+	RunTest( TestRenameMember );
 
 	if ( g_nFailures )
 	{

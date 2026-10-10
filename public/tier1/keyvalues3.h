@@ -541,6 +541,8 @@ public:
 	bool RemoveMember( const KeyValues3* kv );
 	bool RemoveMember( const CKV3MemberName &name );
 
+	KeyValues3* RenameMember( const CKV3MemberName &name, const CKV3MemberName &newName );
+
 	bool GetMemberBool( const CKV3MemberName &name, bool defaultValue = false ) const { auto kv = FindMember( name ); return kv ? kv->GetBool( defaultValue ) : defaultValue; }
 	char8 GetMemberChar( const CKV3MemberName &name, char8 defaultValue = 0 ) const { auto kv = FindMember( name ); return kv ? kv->GetChar( defaultValue ) : defaultValue; }
 	uchar32 GetMemberUChar32( const CKV3MemberName &name, uchar32 defaultValue = 0 ) const { auto kv = FindMember( name ); return kv ? kv->GetUChar32( defaultValue ) : defaultValue; }
@@ -855,6 +857,7 @@ public:
 
 	void CopyFrom( KeyValues3 *parent, const KeyValues3 *src_parent, const CKeyValues3Table* src );
 	void RemoveMember( KeyValues3 *parent, KV3MemberId_t id );
+	void RenameMember( KeyValues3 *parent, KV3MemberId_t id, const CKV3MemberName &newName );
 	void RemoveAll( KeyValues3 *parent, int new_size = 0 );
 
 	void Free( bool clearing_context = false ) { PurgeBuffers(); }
