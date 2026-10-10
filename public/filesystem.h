@@ -435,7 +435,7 @@ public:
 	virtual bool			IsFileWritable(char const *pFileName, const char *pPathID = 0) = 0;
 	virtual bool			SetFileWritable(char const *pFileName, bool writable, const char *pPathID = 0) = 0;
 
-	virtual long			GetFileTime(const char *pFileName, const char *pPathID = 0) = 0;
+	virtual int64			GetFileTime(const char *pFileName, const char *pPathID = 0) = 0;
 
 	//--------------------------------------------------------
 	// Reads/writes files to utlbuffers. Use this for optimal read performance when doing open/read/close
@@ -511,7 +511,7 @@ public:
 	// File I/O and info
 	virtual bool			IsDirectory( const char *pFileName, const char *pathID = 0 ) = 0;
 
-	virtual void			FileTimeToString( char* pStrip, int maxCharsIncludingTerminator, long fileTime ) = 0;
+	virtual void			FileTimeToString( int64 fileTime, CBufferString &out ) = 0;
 
 	//--------------------------------------------------------
 	// Open file operations
@@ -627,7 +627,7 @@ public:
 	//
 	//--------------------------------------------------------
 	virtual int			GetPathIndex( const FileNameHandle_t &handle ) = 0;
-	virtual long		GetPathTime( const char *pPath, const char *pPathID ) = 0;
+	virtual int64		GetPathTime( const char *pPath, const char *pPathID ) = 0;
 
 	virtual void		GetSearchPathID( CBufferString &inout ) = 0;
 
