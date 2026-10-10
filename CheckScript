@@ -105,3 +105,16 @@ for sdk_target in SdkHelpers.sdk_targets:
   SdkHelpers.configureCxx(builder, binary, sdk)
 
 builder.Add(itertest)
+
+# Adds and finds symbols through CUtlSymbolTableLarge's alternate keys
+symtest = builder.ProgramProject('utlsymbollarge_test')
+symtest.sources = [
+  os.path.join('tests', 'run', 'utlsymbollarge.cpp'),
+  os.path.join('public', 'tier0', 'memoverride.cpp'),
+]
+
+for sdk_target in SdkHelpers.sdk_targets:
+  binary = symtest.Configure(sdk_target.cxx, 'utlsymbollarge_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
+  SdkHelpers.configureCxx(builder, binary, sdk)
+
+builder.Add(symtest)
