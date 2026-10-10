@@ -24,7 +24,7 @@ public:
 	virtual void *AsProto2() const = 0;
 
 	virtual NetMessageInfo_t *GetNetMessage() const = 0;
-	virtual CNetMessage *CopyConstruct( const CNetMessage *other ) const = 0;
+	virtual CNetMessage *CopyConstruct() const = 0;
 	virtual NetworkMessageId GetMessageId() const = 0;
 
 	// Helper function to cast up the abstract message to a concrete CNetMessagePB<T> type.

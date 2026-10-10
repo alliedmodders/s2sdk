@@ -160,14 +160,14 @@ public:
 	// What is the game timescale multiplied with the host_timescale?
 	virtual float		GetTimescale( void ) const = 0;
 
-	virtual void		*FindOrCreateWorldSession( const char *pszWorldName, CResourceManifestPrerequisite * ) = 0;
+	virtual void		*FindOrCreateWorldSession( const char *pszWorldName, CResourceManifestPrerequisite *, void * ) = 0;
 
-	virtual CEntityLump	*GetEntityLumpForTemplate( const char *, bool, const char *, const char * ) = 0;
+	virtual CEntityLump	*GetEntityLumpForTemplate( const char *, bool, const char *, const char *, bool ) = 0;
 
 	virtual uint32		GetStatsAppID() const = 0;
 
-	virtual void		*UnknownFunc1(const char *pszFilename, void *pUnknown1, void *pUnknown2, void *pUnknown3) = 0;
-	virtual void		UnknownFunc2() = 0;
+	virtual void		*UnknownFunc1( const char *pszFilename, int, int, int, bool ) = 0;
+	virtual void		UnknownFunc2( void *, void * ) = 0;
 };
 
 //-----------------------------------------------------------------------------
@@ -190,9 +190,9 @@ public:
 
 	virtual void		unk101( const char *, uint16 ) = 0;
 
-	virtual void		ShowFrameTimeReport( void *, bool ) = 0;
+	virtual void		ShowFrameTimeReport( void *, bool, LoggingChannelID_t channel = -1 ) = 0;
 
-	virtual void		DumpNetStats( void *, void * ) = 0;
+	virtual void		DumpNetStats( void *, void (*pfnPrint)( const char * ) ) = 0;
 
 	virtual void		unk201() = 0;
 	virtual void		unk202() = 0;
@@ -324,7 +324,7 @@ public:
 	virtual void P2PGroupChanged() = 0;
 #endif
 
-	virtual void unk301() = 0;
+	virtual void DisconnectAllClients( ENetworkDisconnectionReason reason ) = 0;
 	virtual void unk302() = 0;
 	
 	// Use these to setup who can hear whose voice.
@@ -362,6 +362,10 @@ public:
 	virtual void unk607() = 0;
 	virtual void unk608() = 0;
 	virtual void unk609() = 0;
+	virtual void unk610() = 0;
+	virtual void unk611() = 0;
+	virtual void unk612() = 0;
+	virtual void unk613() = 0;
 };
 
 abstract_class IServerGCLobby
@@ -529,22 +533,20 @@ public:
 
 	virtual int			GetNetworkVersion( void ) = 0;
 
-	// Get the simulation interval (must be compiled with identical values into both client and game .dll for MOD!!!)
-	// Right now this is only requested at server startup time so it can't be changed on the fly, etc.
-	virtual float			GetTickInterval( void ) const = 0;
+	virtual float		GetTickInterval( void ) const = 0;
 
 	// Get server maxplayers and lower bound for same
-	virtual void			GetPlayerLimits( int& minplayers, int& maxplayers, int &defaultMaxPlayers, bool &bIsMultiplayer ) const = 0;
+	virtual void		GetPlayerLimits( int& minplayers, int& maxplayers, int &defaultMaxPlayers, bool &bIsMultiplayer ) const = 0;
 
 	// Returns max splitscreen slot count ( 1 == no splits, 2 for 2-player split screen )
-	virtual int		GetMaxSplitscreenPlayers( void ) = 0;
+	virtual int			GetMaxSplitscreenPlayers( void ) = 0;
 
 	// Return # of human slots, -1 if can't determine or don't care (engine will assume it's == maxplayers )
-	virtual int				GetMaxHumanPlayers() = 0;
+	virtual int			GetMaxHumanPlayers() = 0;
 
-	virtual bool			ShouldNotifyLocalClientConnectionStateChanges() = 0;
+	virtual bool		ShouldNotifyLocalClientConnectionStateChanges() = 0;
 
-	virtual void			OnClientFullyConnect( CEntityIndex nEntityIndex ) = 0;
+	virtual void		OnClientFullyConnect( CEntityIndex nEntityIndex ) = 0;
 
 	virtual void		GetHostStateLoopModeInfo( HostStateLoopModeType_t type, CUtlString &loopModeName, KeyValues **ppLoopModeOptions ) = 0;
 
