@@ -416,17 +416,17 @@ public:
 	// IBaseFileSystem
 	//--------------------------------------------------------
 	virtual int				Read(void* pOutput, int size, FileHandle_t file) = 0;
-	virtual int				Write(void const* pInput, int size, FileHandle_t file) = 0;
+	virtual int				Write(void const* pInput, uint64 size, FileHandle_t file) = 0;
 
 	// if pathID is NULL, all paths will be searched for the file
 	virtual FileHandle_t	Open(const char *pFileName, const char *pOptions, const char *pathID = 0) = 0;
 	virtual void			Close(FileHandle_t file) = 0;
 
 
-	virtual void			Seek(FileHandle_t file, int pos, FileSystemSeek_t seekType) = 0;
-	virtual unsigned int	Tell(FileHandle_t file) = 0;
-	virtual unsigned int	Size(FileHandle_t file) = 0;
-	virtual unsigned int	Size(const char *pFileName, const char *pPathID = 0) = 0;
+	virtual void			Seek(FileHandle_t file, int64 pos, FileSystemSeek_t seekType) = 0;
+	virtual int64			Tell(FileHandle_t file) = 0;
+	virtual int64			Size(FileHandle_t file) = 0;
+	virtual int64			Size(const char *pFileName, const char *pPathID = 0) = 0;
 
 	virtual void			Flush(FileHandle_t file) = 0;
 	virtual bool			Precache(const char *pFileName, const char *pPathID = 0) = 0;
@@ -435,7 +435,7 @@ public:
 	virtual bool			IsFileWritable(char const *pFileName, const char *pPathID = 0) = 0;
 	virtual bool			SetFileWritable(char const *pFileName, bool writable, const char *pPathID = 0) = 0;
 
-	virtual long			GetFileTime(const char *pFileName, const char *pPathID = 0) = 0;
+	virtual int64			GetFileTime(const char *pFileName, const char *pPathID = 0) = 0;
 
 	//--------------------------------------------------------
 	// Reads/writes files to utlbuffers. Use this for optimal read performance when doing open/read/close
@@ -511,7 +511,7 @@ public:
 	// File I/O and info
 	virtual bool			IsDirectory( const char *pFileName, const char *pathID = 0 ) = 0;
 
-	virtual void			FileTimeToString( char* pStrip, int maxCharsIncludingTerminator, long fileTime ) = 0;
+	virtual void			FileTimeToString( int64 fileTime, CBufferString &out ) = 0;
 
 	//--------------------------------------------------------
 	// Open file operations
@@ -556,7 +556,7 @@ public:
 
 	// Returns true on success ( based on current list of search paths, otherwise false if 
 	//  it can't be resolved )
-	virtual bool			FullPathToRelativePath( const char *pFullpath, const char *pPathID, char *pRelative, int maxlen ) = 0;
+	virtual bool			FullPathToRelativePath( const char *pFullpath, const char *pPathID, CBufferString &pRelative ) = 0;
 
 	// Gets the current working directory
 	virtual bool			GetCurrentDirectory( CBufferString &pDirectory ) = 0;
@@ -609,7 +609,7 @@ public:
 	virtual KeyValues	*LoadKeyValues( KeyValuesPreloadType_t type, char const *filename, char const *pPathID = 0 ) = 0;
 	virtual bool		LoadKeyValues( KeyValues& head, KeyValuesPreloadType_t type, char const *filename, char const *pPathID = 0 ) = 0;
 
-	virtual bool			GetFileTypeForFullPath( char const *pFullPath, wchar_t *buf, size_t bufSizeInBytes ) = 0;
+	virtual bool			GetFileTypeForFullPath( char const *pFullPath, CBufferString &buf ) = 0;
 
 	//--------------------------------------------------------
 	//--------------------------------------------------------
@@ -627,7 +627,7 @@ public:
 	//
 	//--------------------------------------------------------
 	virtual int			GetPathIndex( const FileNameHandle_t &handle ) = 0;
-	virtual long		GetPathTime( const char *pPath, const char *pPathID ) = 0;
+	virtual int64		GetPathTime( const char *pPath, const char *pPathID ) = 0;
 
 	virtual void		GetSearchPathID( CBufferString &inout ) = 0;
 
