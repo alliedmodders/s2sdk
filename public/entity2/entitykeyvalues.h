@@ -7,9 +7,34 @@
 #include "tier0/platform.h"
 #include "tier1/keyvalues3.h"
 #include "tier1/utlleanvector.h"
+#include "tier1/utlscratchmemory.h"
 #include "entity2/entitysystem.h"
+#include "entity2/variant.h"
 
 #include "tier0/memdbgon.h"
+
+class CEntityVariantAllocator
+{
+public:
+	enum { ALWAYS_COPY = 0 };
+
+	static void Free( void *pMemory ) { /* Skipped intentionally */ }
+
+	static void *Allocate( uint nSize )
+	{
+		return sm_pMemoryPool->AllocAligned( nSize, 8 * (nSize >= 16) + 8 );
+	}
+
+	static void Activate( CUtlScratchMemoryPool *pMemoryPool, bool bEnable )
+	{
+		sm_pMemoryPool = bEnable ? pMemoryPool : nullptr;
+	}
+
+private:
+	static CUtlScratchMemoryPool *sm_pMemoryPool;
+};
+
+typedef CVariantBase<CEntityVariantAllocator> CEntityVariant;
 
 #define FOR_EACH_ENTITYKEY( ekv, iter ) \
 	for ( auto iter = ekv->First(); ekv->IsValidIterator( iter ); iter = ekv->Next( iter ) )

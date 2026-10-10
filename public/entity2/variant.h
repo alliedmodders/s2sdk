@@ -15,7 +15,6 @@
 #include "entity2/entityidentity.h"
 #include "entityhandle.h"
 #include "tier1/bufferstring.h"
-#include "tier1/utlscratchmemory.h"
 #include "resourcefile/resourcetype.h"
 #include "mathlib.h"
 
@@ -142,27 +141,6 @@ public:
 	{
 		free( pMemory );
 	}
-};
-
-class CEntityVariantAllocator
-{
-public:
-	enum { ALWAYS_COPY = 0 };
-
-	static void Free( void *pMemory ) { /* Skipped intentionally */ }
-
-	static void *Allocate( uint nSize )
-	{
-		return sm_pMemoryPool->AllocAligned( nSize, 8 * (nSize >= 16) + 8 );
-	}
-
-	static void Activate( CUtlScratchMemoryPool *pMemoryPool, bool bEnable )
-	{
-		sm_pMemoryPool = bEnable ? pMemoryPool : nullptr;
-	}
-
-private:
-	static CUtlScratchMemoryPool *sm_pMemoryPool;
 };
 
 enum SVFlags_t
@@ -365,7 +343,6 @@ private:
 };
 
 typedef CVariantBase<> CVariant;
-typedef CVariantBase<CEntityVariantAllocator> CEntityVariant;
 
 typedef CVariant variant_t;
 
