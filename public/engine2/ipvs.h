@@ -12,9 +12,9 @@
 struct AABB_t;
 
 //-----------------------------------------------------------------------------
-// AMNOTE: Purpose: The potentially visible set of a spawn group, from IVEngineServer2::GetPVSForSpawnGroup().
-// AMNOTE: Positions are in world space unless a method says otherwise.
-// AMNOTE: A vis_info_t with a cluster count of 0 sees every cluster.
+// Purpose: The potentially visible set of a spawn group, from IVEngineServer2::GetPVSForSpawnGroup().
+// Positions are in world space unless a method says otherwise.
+// A vis_info_t with a cluster count of 0 sees every cluster.
 //-----------------------------------------------------------------------------
 abstract_class IPVS
 {
