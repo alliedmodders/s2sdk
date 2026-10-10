@@ -98,7 +98,7 @@
 #include "platform.h"
 #include "datamap.h"
 #include "appframework/IAppSystem.h"
-#include "tier1/functors.h"
+#include "tier0/functors.h"
 #include "tier0/memdbgon.h"
 
 #if defined( _WIN32 )

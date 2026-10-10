@@ -14,7 +14,7 @@
 #include "appframework/IAppSystem.h"
 #include "inetchannel.h"
 #include "networksystem/inetworkserializer.h"
-#include "tier1/bitbuf.h"
+#include "tier0/bitbuf.h"
 
 class IConnectionlessPacketHandler;
 

@@ -12,9 +12,9 @@
 #endif
 
 #include "appframework/IAppSystem.h"
-#include "tier1/strtools.h"
-#include "tier1/utlstring.h"
-#include "tier1/utlvector.h"
+#include "tier0/tier0_strtools.h"
+#include "tier0/utlstring.h"
+#include "tier0/utlvector.h"
 
 class KeyValues;
 

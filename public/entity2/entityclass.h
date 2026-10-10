@@ -5,8 +5,8 @@
 #pragma once
 #endif
 
-#include "tier1/utlsymbollarge.h"
-#include "tier1/utlvector.h"
+#include "tier0/utlsymbollarge.h"
+#include "tier0/utlvector.h"
 #include "entity2/entitycomponent.h"
 #include "entityhandle.h"
 #include "networksystem/iflattenedserializers.h"

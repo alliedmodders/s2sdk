@@ -9,10 +9,10 @@
 
 #include <networksystem/inetworkserializer.h>
 #include <networksystem/netmessage.h>
-#include <tier1/utldelegate.h>
-#include <tier1/utlsymbol.h>
+#include <tier0/utldelegate.h>
+#include <tier0/utlsymbol.h>
 #include <irecipientfilter.h>
-#include <inetchannel.h>
+#include <networksystem/inetchannel.h>
 #include <entity2/entityidentity.h>
 
 class CUtlSlot;

@@ -1,6 +1,6 @@
-#include "tier1/keyvalues3.h"
-#include "tier1/utlbuffer.h"
-#include "tier1/utlstring.h"
+#include "tier0/keyvalues3.h"
+#include "tier0/utlbuffer.h"
+#include "tier0/utlstring.h"
 
 #include <stdio.h>
 #include <string.h>

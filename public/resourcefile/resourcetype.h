@@ -7,7 +7,7 @@
 
 #include <tier0/platform.h>
 #include <tier0/threadtools.h>
-#include <tier1/utlsymbollarge.h>
+#include <tier0/utlsymbollarge.h>
 
 #include <initializer_list>
 

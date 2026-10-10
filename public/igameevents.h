@@ -17,9 +17,9 @@
 #endif
 
 #include "interfaces/interfaces.h"
-#include "tier1/bitbuf.h"
-#include "tier1/keyvalues3.h"
-#include "tier1/utlstring.h"
+#include "tier0/bitbuf.h"
+#include "tier0/keyvalues3.h"
+#include "tier0/utlstring.h"
 #include "entity2/entityinstance.h"
 
 class CMsgSource1LegacyGameEvent;

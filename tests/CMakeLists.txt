@@ -3,7 +3,7 @@
 # the test programs in run/. Built with -DS2SDK_BUILD_TESTS=ON.
 
 file(GLOB _test_sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-file(GLOB _plugin_sources CONFIGURE_DEPENDS "${S2SDK_DIR}/entity2/*.cpp" "${S2SDK_DIR}/tier1/*.cpp")
+file(GLOB _plugin_sources CONFIGURE_DEPENDS "${S2SDK_DIR}/entity2/*.cpp" "${S2SDK_DIR}/tier0_perproject/*.cpp")
 
 add_library(s2sdk_check SHARED
 	${_test_sources}
@@ -28,7 +28,7 @@ endif()
 # Runs KeyValues3 against tier0, so it needs the game's tier0 to start
 add_executable(keyvalues3_test
 	"${CMAKE_CURRENT_SOURCE_DIR}/run/keyvalues3.cpp"
-	"${S2SDK_DIR}/tier1/keyvalues3.cpp"
+	"${S2SDK_DIR}/tier0_perproject/keyvalues3.cpp"
 	"${S2SDK_DIR}/public/tier0/memoverride.cpp"
 )
 target_link_libraries(keyvalues3_test PRIVATE s2sdk::s2sdk)

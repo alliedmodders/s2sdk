@@ -14,7 +14,7 @@
 #include "Color.h"
 #include "entity2/entityidentity.h"
 #include "entityhandle.h"
-#include "tier1/bufferstring.h"
+#include "tier0/buffer_string.h"
 #include "resourcefile/resourcetype.h"
 #include "mathlib.h"
 

@@ -17,7 +17,6 @@ Networking:
   - changed-files:
     - any-glob-to-any-file:
       - public/networksystem/**
-      - public/inetchannel.h
       - public/networkstringtabledefs.h
       - public/irecipientfilter.h
 
@@ -34,8 +33,7 @@ Tier0:
     - any-glob-to-any-file:
       - public/tier0/**
       - public/tier1/**
-      - tier1/**
-      - public/icvar.h
+      - tier0_perproject/**
 
 Schema System:
   - changed-files:

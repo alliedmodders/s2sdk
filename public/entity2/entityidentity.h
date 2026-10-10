@@ -9,8 +9,8 @@
 #define MAX_ENTITY_LISTS 64 // 0x3F
 #define MAX_TOTAL_ENTITIES MAX_ENTITIES_IN_LIST * MAX_ENTITY_LISTS // 0x8000
 
-#include "tier1/utlstring.h"
-#include "tier1/utlsymbollarge.h"
+#include "tier0/utlstring.h"
+#include "tier0/utlsymbollarge.h"
 #include "entity2/entitycomponent.h"
 #include "entityhandle.h"
 #include "networksystem/networksystemtypes.h"

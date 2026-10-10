@@ -17,7 +17,7 @@
 
 #include "tier0/platform.h"
 #include "tier0/dbg.h"
-#include "tier1/memblockallocator.h"
+#include "tier0/memblockallocator.h"
 
 #include <iterator>
 #include <limits>

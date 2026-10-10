@@ -6,8 +6,8 @@
 #endif
 
 #include "tier0/platform.h"
-#include "tier1/keyvalues3.h"
-#include "tier1/utlsymbollarge.h"
+#include "tier0/keyvalues3.h"
+#include "tier0/utlsymbollarge.h"
 #include "entityhandle.h"
 #include "schemasystem/schematypes.h"
 
