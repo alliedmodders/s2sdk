@@ -695,9 +695,9 @@ template<> FORCEINLINE QAngleByValue Lerp<QAngleByValue>( float flPercent, const
 template <class T> 
 FORCEINLINE void V_swap( T& x, T& y )
 {
-	T temp = x;
-	x = y;
-	y = temp;
+	T temp( std::move( x ) );
+	x = std::move( y );
+	y = std::move( temp );
 }
 
 template <class T> FORCEINLINE T AVG(T a, T b)
