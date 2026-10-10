@@ -292,6 +292,9 @@ enum TakeDamageFlags_t : uint64
 	DFLAG_ALLOW_NON_AUTHORITATIVE			= (1ull << 17),
 
 	DMG_LASTDFLAG							= DFLAG_ALLOW_NON_AUTHORITATIVE,
+
+	DFLAG_IGNORE_ARMOR						= (1ull << 18),
+	DFLAG_SUPPRESS_UTILREMOVE				= (1ull << 19),
 };
 
 // settings for m_takedamage
