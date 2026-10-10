@@ -43,3 +43,12 @@ add_executable(utliterators_test
 target_link_libraries(utliterators_test PRIVATE s2sdk::s2sdk)
 target_compile_definitions(utliterators_test PRIVATE ${S2SDK_OWN_DEFINITIONS})
 target_compile_options(utliterators_test PRIVATE ${S2SDK_OWN_OPTIONS})
+
+# Adds and finds symbols through CUtlSymbolTableLarge's alternate keys
+add_executable(utlsymbollarge_test
+	"${CMAKE_CURRENT_SOURCE_DIR}/run/utlsymbollarge.cpp"
+	"${S2SDK_DIR}/public/tier0/memoverride.cpp"
+)
+target_link_libraries(utlsymbollarge_test PRIVATE s2sdk::s2sdk)
+target_compile_definitions(utlsymbollarge_test PRIVATE ${S2SDK_OWN_DEFINITIONS})
+target_compile_options(utlsymbollarge_test PRIVATE ${S2SDK_OWN_OPTIONS})
