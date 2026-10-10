@@ -12,10 +12,10 @@
 #endif
 
 #include "playerslot.h"
-#include "tier1/utlstring.h"
+#include "tier0/utlstring.h"
 #include "engine2/gameshareddefs.h"
-#include "tier1/netadr.h"
-#include "tier1/utlvector.h"
+#include "tier0/netadr.h"
+#include "tier0/utlvector.h"
 #include "const.h"
 #include "resourcefile/resourcetype.h"
 

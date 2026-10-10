@@ -13,7 +13,7 @@
 #endif
 
 #include "appframework/IAppSystem.h"
-#include "tier1/convar.h"
+#include "tier0/convar.h"
 
 //-----------------------------------------------------------------------------
 // Forward declarations

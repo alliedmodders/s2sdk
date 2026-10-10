@@ -5,9 +5,9 @@
 #pragma once
 #endif
 
-#include "tier1/utlhashtable.h"
-#include "tier1/utlleanvector.h"
-#include "tier1/utlvector.h"
+#include "tier0/utlhashtable.h"
+#include "tier0/utlleanvector.h"
+#include "tier0/utlvector.h"
 
 enum NetworkFieldChangeCallbackPerformType_t
 {

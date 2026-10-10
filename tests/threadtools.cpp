@@ -1,5 +1,5 @@
 #include "tier0/threadtools.h"
-#include "tier1/utlstring.h"
+#include "tier0/utlstring.h"
 
 template class CInterlockedIntT<int>;
 template class CInterlockedIntT<unsigned>;

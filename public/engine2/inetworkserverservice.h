@@ -12,9 +12,9 @@
 #endif
 
 #include "engine2/iengineservicemgr.h"
-#include "tier1/utlstring.h"
-#include "tier1/checksum_crc.h"
-#include "tier1/netadr.h"
+#include "tier0/utlstring.h"
+#include "tier0/checksum_crc.h"
+#include "tier0/netadr.h"
 #include "network_connection.pb.h"
 
 class CNetworkGameServerBase;

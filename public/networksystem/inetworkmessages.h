@@ -10,10 +10,10 @@
 #include <networksystem/inetworkserializer.h>
 #include <networksystem/netmessage.h>
 #include <networksystem/networksystemtypes.h>
-#include <tier1/bitbuf.h>
-#include <tier1/utlstring.h>
-#include <tier1/utlsymbol.h>
-#include <tier1/utldelegate.h>
+#include <tier0/bitbuf.h>
+#include <tier0/utlstring.h>
+#include <tier0/utlsymbol.h>
+#include <tier0/utldelegate.h>
 #include <tier0/logging.h>
 #include "Color.h"
 

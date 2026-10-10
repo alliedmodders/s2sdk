@@ -7,8 +7,8 @@
 
 #include "appframework/IAppSystem.h"
 #include "resourcefile/resourcetype.h"
-#include "tier1/utlstring.h"
-#include "tier1/utlvector.h"
+#include "tier0/utlstring.h"
+#include "tier0/utlvector.h"
 #include <memory>
 
 class CBufferString;

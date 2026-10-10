@@ -11,8 +11,8 @@
 #pragma once
 #endif
 
-#include "tier1/utlbuffer.h"
-#include "tier1/utlvector.h"
+#include "tier0/utlbuffer.h"
+#include "tier0/utlvector.h"
 #include "gcsdk/soid.h"
 
 #include <string>

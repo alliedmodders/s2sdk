@@ -11,8 +11,8 @@
 #endif
 
 #include "appframework/IAppSystem.h"
-#include "tier1/utlvector.h"
-#include "tier1/characterset.h"
+#include "tier0/utlvector.h"
+#include "tier0/characterset.h"
 #include "utllinkedlist.h"
 #include "utlhashtable.h"
 #include "tier0/memalloc.h"

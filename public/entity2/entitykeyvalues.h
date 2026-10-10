@@ -5,9 +5,9 @@
 #endif
 
 #include "tier0/platform.h"
-#include "tier1/keyvalues3.h"
-#include "tier1/utlleanvector.h"
-#include "tier1/utlscratchmemory.h"
+#include "tier0/keyvalues3.h"
+#include "tier0/utlleanvector.h"
+#include "tier0/utlscratchmemory.h"
 #include "entity2/entitysystem.h"
 #include "entity2/variant.h"
 

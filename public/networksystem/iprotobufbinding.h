@@ -5,8 +5,8 @@
 #pragma once
 #endif
 
-#include <tier1/utlstring.h>
-#include <tier1/bitbuf.h>
+#include <tier0/utlstring.h>
+#include <tier0/bitbuf.h>
 #include <inetchannel.h>
 #include "Color.h"
 

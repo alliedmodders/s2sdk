@@ -6,10 +6,10 @@
 #endif
 
 #include "tier0/basetypes.h"
-#include "tier1/utlleanvector.h"
-#include "tier1/utlstring.h"
-#include "tier1/utlsymbollarge.h"
-#include "tier1/utlvector.h"
+#include "tier0/utlleanvector.h"
+#include "tier0/utlstring.h"
+#include "tier0/utlsymbollarge.h"
+#include "tier0/utlvector.h"
 #include "tier2/fieldpath.h"
 #include "networksystem/inetworkserializer.h"
 #include "playerslot.h"
