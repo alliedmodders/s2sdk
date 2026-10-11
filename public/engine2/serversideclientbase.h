@@ -29,6 +29,7 @@ class CClientFrame;
 class CFrameSnapshot;
 class CNetworkGameServerBase;
 class INetworkStringTable;
+class ITvStreamSink;
 struct HltvReplayParams_t;
 
 class NetMessagePacketStart;
@@ -40,12 +41,33 @@ class NetMessageSplitscreenUserChanged;
 template <class T>
 class CDelayedCallBase;
 
+// AMNOTE: While the client's send job runs, the deferred methods (Disconnect, SendNetMessage, SendInitialSpawnGroups,
+// StopHltvReplay, ...) are queued in m_DelayedCalls
+enum ClientSendJobState_t : uint8
+{
+	CLIENT_SEND_JOB_IDLE = 0,
+	CLIENT_SEND_JOB_RUNNING,
+	// AMNOTE: The job is done, but its queued calls aren't flushed yet
+	CLIENT_SEND_JOB_FINISHED,
+};
+
+// AMNOTE: While it's not CLIENT_SLOT_RECYCLABLE, the slot shows as reserved and keeps its address on disconnect
+enum ClientSlotReservation_t : int
+{
+	CLIENT_SLOT_RECYCLABLE = 0,
+	// AMNOTE: INetworkGameServer::SetRecyclePlayerSlot switches between this and CLIENT_SLOT_RECYCLABLE,
+	// but leaves CLIENT_SLOT_CREATED as is
+	CLIENT_SLOT_NOT_RECYCLABLE,
+	// AMNOTE: Set by CServerSideClientBase::Create
+	CLIENT_SLOT_CREATED,
+};
+
 class CServerSideClientBase : public CUtlSlot, public INetworkChannelNotify, public INetworkMessageProcessingPreFilter
 {
 public:
 	struct BuildServerInfoMessageAsync_t;
 
-	// AMNOTE: Net spike trace, written to netspike.txt. Each sent net message adds a record of its description and size while m_unk001 isn't 0
+	// AMNOTE: Net spike trace, written to netspike.txt. Each sent net message adds a record of its description and size while m_nMinWarningBytes isn't 0
 	struct NetSpikeTrace_t
 	{
 		struct Record_t
@@ -55,9 +77,13 @@ public:
 		};
 
 		CUtlVector<Record_t> m_Records;
-		int m_unk001;
-		int m_unk002;
-		int m_unk003;
+
+		// AMNOTE: Set from the command line when the client is created, the records are discarded when the snapshot is smaller
+		int m_nMinWarningBytes;
+
+		// AMNOTE: Bits written when the snapshot started, and when the last record was added
+		int m_nStartBit;
+		int m_nCurBit;
 	};
 
 	virtual ~CServerSideClientBase() = 0;
@@ -123,8 +149,10 @@ public:
 	// Registers the message handlers above on the channel
 	virtual void ConnectionStart( INetChannel *pNetChannel ) = 0;
 
-	// AMNOTE: The second one sends the server info built by a BuildServerInfoMessageAsync_t delayed call
-	virtual void unk001() = 0;
+	// AMNOTE: The first collects the initial spawn groups to pass to SendInitialSpawnGroups and sets m_bInitialSpawnGroupsSent,
+	// the second sends the server info built by a BuildServerInfoMessageAsync_t delayed call. They share a name so that
+	// both compilers order the three slots like the engine
+	virtual void unk001( CUtlVector<void *> &spawnGroups ) = 0;
 	virtual void SendInitialSpawnGroups( const CUtlVector<void *> &spawnGroups, bool bAsync ) = 0;
 	virtual void unk001( BuildServerInfoMessageAsync_t &info ) = 0;
 
@@ -152,7 +180,9 @@ public:
 
 	virtual CServerSideClientBase *GetSplitScreenOwner() = 0;
 
-	virtual bool unk101() = 0;
+	// AMNOTE: Counts the players sharing this client's connection, itself included (non-null m_SplitScreenUsers).
+	// Split screen users forward to the client they're attached to
+	virtual int GetSplitScreenPlayerCount() = 0;
 
 	virtual bool ShouldReceiveStringTableUserData( const INetworkStringTable *pTable, int nStringNumber ) = 0;
 
@@ -170,15 +200,16 @@ public:
 	// Waits for the client's pending send job
 	virtual void Await() = 0;
 
-	// AMNOTE: unk301 sets m_unk102 and unk302 clears it
-	virtual void unk301() = 0;
-	virtual void unk302() = 0;
+	// AMNOTE: Called once the delayed calls queued during the send job are flushed, and when the send job starts
+	virtual void OnSendJobFinished() = 0;
+	virtual void OnSendJobStarted() = 0;
 
 	virtual bool ProcessSignonStateMsg( int nState, int nSpawnCount ) = 0;
 	virtual void PerformDisconnection( ENetworkDisconnectionReason reason ) = 0;
 
 public:
-	CUtlString m_unk001;
+	// AMNOTE: "BOT", "STEAM_ID_PENDING", "STEAM_ID_LAN" or the SteamID as text
+	CUtlString m_NetworkIDString;
 	CUtlString m_Name;
 	CPlayerSlot m_nClientSlot;
 	CEntityIndex m_nEntityIndex;
@@ -186,59 +217,69 @@ public:
 	INetChannel *m_pNetChannel;
 	uint8 m_nConnectionTypeFlags;
 
-	// AMNOTE: Send job state: 1 while the client's send job runs, which queues the deferred methods
-	// (Disconnect, SendNetMessage, SendInitialSpawnGroups, StopHltvReplay, ...) in m_DelayedCalls,
-	// 2 once the job is done, 0 after the queue is flushed
-	uint8 m_unk101;
+	ClientSendJobState_t m_nSendJobState;
 
-	// AMNOTE: Set on construction, cleared right before the send job starts and set again once
-	// the delayed calls are flushed after it, so it's false while the client's send job runs
-	bool m_unk102;
+	// AMNOTE: Set on construction, cleared by OnSendJobStarted and set again by OnSendJobFinished,
+	// so it's false while the client's send job runs
+	bool m_bSendJobIdle;
 	SignonState_t m_nSignonState;
 	bool m_bSplitScreenUser;
-	bool m_unk201;
+	// AMNOTE: A split screen user goes through the full disconnection only when it's set, otherwise the server sends "ss_remove"
+	bool m_bSplitAllowFastDisconnect;
 	CSplitScreenSlot m_nSplitScreenPlayerSlot;
 	CServerSideClientBase *m_SplitScreenUsers[4];
 	CServerSideClientBase *m_pAttachedTo;
 	bool m_unk301;
 
-	// AMNOTE: Create sets it to 2
-	int m_unk302;
+	ClientSlotReservation_t m_nSlotReservation;
 
 	bool m_bFakePlayer;
-	bool m_unk401;
-	int m_unk402;
+	// AMNOTE: Full updates are logged with their reason while it's set
+	bool m_bLogFullUpdate;
+	// AMNOTE: Snapshots sent without a delta frame
+	int m_nFullUpdateCount;
 	CPlayerUserId m_UserID;
 	bool m_bReceivedPacket;
 	CSteamID m_SteamID;
-	CSteamID m_unk501;
-	CSteamID m_unk502;
+	// AMNOTE: Kept when the client is cleared, a reconnecting player gets the slot that has their SteamID back
+	CSteamID m_LastSteamID;
+	// AMNOTE: The SteamID of the auth session, ended on disconnect
+	CSteamID m_AuthSessionSteamID;
 	CSteamID m_FriendsID;
 	ns_address m_Addr;
-	ns_address m_unk601;
+	// AMNOTE: Kept on disconnect, a reconnecting player gets the slot that has their address back
+	ns_address m_LastAddr;
 
-	// AMNOTE: Set from a server-wide counter
-	int m_unk602;
+	// AMNOTE: Set from a server-wide counter on disconnect, the disconnected slot with the lowest one is reused first
+	int m_nDisconnectSequence;
 
 	KeyValues *m_pUserInfo;
-	CUtlDict<empty_t, int> m_unk701;
+	// AMNOTE: Unknown userinfo convars that were already warned about
+	CUtlDict<empty_t, int> m_UnknownUserInfoConVars;
 	bool m_bConVarsChanged;
-	bool m_unk801;
+
+	// AMNOTE: Every userinfo convar is accepted until it's set, then only known ones
+	bool m_bInitialConVarsApplied;
 	bool m_bIsHLTV;
-	bool m_unk901;
+
+	// AMNOTE: Set when the server removes the TV sink
+	bool m_bTvStreamSinkRemoved;
 
 	// AMNOTE: The HLTV client's downstream TV sink, SendNetMessage forwards to it
-	void *m_unk902;
+	ITvStreamSink *m_pTvStreamSink;
 
 	uint32 m_nSendTableCRC;
 	uint32 m_nChallengeNumber;
 
 	// AMNOTE: Server tick the server info was built at
-	int m_unk1001;
+	int m_nSignonTick;
 
 	int m_nDeltaTick;
-	int m_unk1101;
-	int m_unk1102;
+
+	// AMNOTE: Tick of the last delta snapshot sent reliably while sv_disable_reliable_delta_retransmit is set,
+	// snapshots delta from it as if the client acknowledged it
+	int m_nLastReliableDeltaTick;
+	int m_nStringTableAckTick;
 	int m_unk1103;
 	CFrameSnapshot *m_pLastSnapshot;
 	CUtlVector<SpawnGroupHandle_t> m_LoadedSpawnGroups;
@@ -246,33 +287,41 @@ public:
 	CFrameSnapshot *m_pBaseline;
 
 	// AMNOTE: Reset to -1 once the client acknowledges a later tick
-	int m_unk1201;
+	int m_nBaselineUpdateTick;
 
-	CBitVec<MAX_EDICTS> m_unk1202;
-	int m_unk1203;
+	CBitVec<MAX_EDICTS> m_BaselinesSent;
+	int m_nBaselineUsed;
 	int m_nLoadingProgress;
 	int m_nForceWaitForTick;
 
 	// AMNOTE: History of the acknowledged ticks, logged when they arrive out of order
-	CCircularBuffer m_unk1301;
+	CCircularBuffer m_AckTickHistory;
 
 	bool m_bLowViolence;
-	bool m_unk1401;
-	bool m_unk1402;
-	bool m_unk1403;
-	bool m_unk1404;
-	bool m_unk1405;
+
+	// AMNOTE: The client connected through a loopback address
+	bool m_bLoopback;
+	bool m_bFullyAuthenticated;
+	bool m_bClanOfficer;
+	bool m_bClanMember;
+	bool m_bInitialSpawnGroupsSent;
 	float m_flNextMessageTime;
 	float m_flSnapshotInterval;
-	float m_unk1501;
-	float m_unk1502;
+
+	// AMNOTE: Plat_FloatTime when Steam canceled the auth ticket, -1 when there's none pending
+	float m_flAuthTicketCanceledTime;
+
+	// AMNOTE: Plat_FloatTime of the last "userinfo ignored" warning, which is printed at most every 10 seconds
+	float m_flLastUserInfoIgnoredTime;
 
 	// AMNOTE: Holds a CNetMessagePB<CSVCMsg_PacketEntities>, which the SDK only declares as an abstract class
-	alignas( CNetMessagePB<CSVCMsg_PacketEntities> ) uint8 m_unk1503[sizeof( CNetMessagePB<CSVCMsg_PacketEntities> )];
+	alignas( CNetMessagePB<CSVCMsg_PacketEntities> ) uint8 m_PacketEntitiesMsg[sizeof( CNetMessagePB<CSVCMsg_PacketEntities> )];
 
 	CTSQueue<CDelayedCallBase<CServerSideClientBase> *> m_DelayedCalls;
-	CUtlVector<CDelayedCallBase<CServerSideClientBase> *> m_unk1601;
-	CUtlVector<CDelayedCallBase<CServerSideClientBase> *> m_unk1602;
+
+	// AMNOTE: The send job runs the delayed calls of the first, which it swaps in from the second, where they're queued meanwhile
+	CUtlVector<CDelayedCallBase<CServerSideClientBase> *> m_SendJobDelayedCalls;
+	CUtlVector<CDelayedCallBase<CServerSideClientBase> *> m_PendingSendJobDelayedCalls;
 
 	// ProcessStringCmd's rate limit: at most m_nMaxCommandsPerWindow commands
 	// and m_nMaxBytesPerWindow bytes per m_nMaxTicksPerWindow ticks
@@ -287,11 +336,10 @@ public:
 
 	// Failed commands within a second of each other, the client is kicked after 16
 	int m_nFailedCommands;
-	int m_unk1701;
 	double m_flLastFailedCommandTime;
 
 	// AMNOTE: Set when the signon state goes back to connected, a connected signon state message is processed only while it's set
-	bool m_unk1801;
+	bool m_bConnectedSignonStatePending;
 
 	// Values of the client's userinfo convars
 	ConVarUserInfoSet_t m_ConVarUserInfoSet;

@@ -61,8 +61,8 @@ public:
 	int m_nOldestTick;
 
 	// AMNOTE: Frames older than m_nOldestTick are looked up in it when it's set, and the manager hands it
-	// frames older than a tick limit instead of freeing them. In CHLTVServer it points into the server itself
-	void *m_unk101;
+	// frames older than a tick limit instead of freeing them. CHLTVServerAsync points it at its frame stash
+	void *m_pFrameStash;
 };
 
 #endif // CLIENTFRAME_H
