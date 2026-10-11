@@ -17,6 +17,7 @@
 #include "color.h"
 #include "tier0/loggingtypes.h"
 #include "tier0/logginglisteners.h"
+#include "tier0/loggingresponsepolicies.h"
 #include "icommandline.h"
 #include <stdio.h>
 
@@ -90,52 +91,6 @@ enum ModificationFlags_t : int
 	MODIFIED_FLAGS = 1,
 	MODIFIED_VERBOSITY = 2,
 	MODIFIED_SPEWCOLOR = 4,
-};
-
-//////////////////////////////////////////////////////////////////////////
-// Common Logging Listeners & Logging Response Policies
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------------
-// Default logging response policy used when one is not specified.
-//-----------------------------------------------------------------------------
-class CDefaultLoggingResponsePolicy : public ILoggingResponsePolicy
-{
-public:
-	virtual LoggingResponse_t OnLog( const LoggingContext_t *pContext )
-	{
-		if ( pContext->m_Severity == LS_ASSERT && !CommandLine()->FindParm( "-noassert" ) ) 
-		{
-			return LR_DEBUGGER;
-		}
-		else if ( pContext->m_Severity == LS_ERROR )
-		{
-			return LR_ABORT;
-		}
-		else
-		{
-			return LR_CONTINUE;
-		}
-	}
-};
-
-//-----------------------------------------------------------------------------
-// A logging response policy which never terminates the process, even on error.
-//-----------------------------------------------------------------------------
-class CNonFatalLoggingResponsePolicy : public ILoggingResponsePolicy
-{
-public:
-	virtual LoggingResponse_t OnLog( const LoggingContext_t *pContext )
-	{
-		if ( ( pContext->m_Severity == LS_ASSERT && !CommandLine()->FindParm( "-noassert" ) ) || pContext->m_Severity == LS_ERROR )
-		{
-			return LR_DEBUGGER;
-		}
-		else
-		{
-			return LR_CONTINUE;
-		}
-	}
 };
 
 //////////////////////////////////////////////////////////////////////////
