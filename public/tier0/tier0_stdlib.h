@@ -7,7 +7,7 @@
 
 #include "tier0/platform.h"
 
-// Wrappers of the C runtime math functions.
+// Wrappers of the C runtime functions.
 // The d suffix takes and returns double and the f suffix float. Angles are in radians.
 
 // Trigonometric functions
@@ -86,5 +86,10 @@ PLATFORM_INTERFACE int V_fpclassifyd( double x );
 PLATFORM_INTERFACE int V_isfinited( double x );
 PLATFORM_INTERFACE int V_isinfd( double x );
 PLATFORM_INTERFACE int V_isnand( double x );
+
+// String functions
+PLATFORM_INTERFACE int64		V_atoi( const char *str );
+PLATFORM_INTERFACE int			V_snprintf( OUT_Z_CAP( destLen ) char *pDest, int destLen, PRINTF_FORMAT_STRING const char *pFormat, ... ) FMTFUNCTION( 3, 4 );
+PLATFORM_INTERFACE char *		V_strtok( const char *str, const char *delim );
 
 #endif // TIER0_STDLIB_H

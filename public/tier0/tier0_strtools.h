@@ -11,6 +11,7 @@
 
 #include "tier0/basetypes.h"
 #include "tier0/tier0_unicode.h"
+#include "tier0/tier0_stdlib.h"
 
 #ifdef _WIN32
 #pragma once
@@ -123,7 +124,6 @@ PLATFORM_INTERFACE char *		V_strlower_fast( char *start );
 PLATFORM_INTERFACE uchar32 *	V_towlower32( uchar32 *start );
 PLATFORM_INTERFACE wchar_t *	V_towlower( wchar_t *start );
 
-PLATFORM_INTERFACE int64		V_atoi( const char *str );
 PLATFORM_INTERFACE int64 		V_atoi64( const char *str );
 PLATFORM_INTERFACE uint64 		V_atoui64( const char *str );
 PLATFORM_INTERFACE double		V_atof( const char *str );
@@ -136,8 +136,6 @@ PLATFORM_INTERFACE int64		V_strtoi64( const char *str, char **endptr = NULL );
 PLATFORM_INTERFACE int64		V_wcstoi64( const wchar_t *str, wchar_t **endptr = NULL );
 PLATFORM_INTERFACE uint64		V_strtoui64( const char *str, char **endptr = NULL );
 PLATFORM_INTERFACE uint64		V_wcstoui64( const wchar_t *str, wchar_t **endptr = NULL );
-
-PLATFORM_INTERFACE char *		V_strtok( const char *str, const char *delim );
 
 PLATFORM_OVERLOAD const char *	V_stristr_fast( const char *str, const char *search );
 PLATFORM_INTERFACE const char *	_V_strnistr_fast( const char *str, const char *search, int n );
@@ -169,8 +167,6 @@ template <size_t cchDest> wchar_t *V_wcscat_safe( INOUT_Z_ARRAY wchar_t( &pDest 
 {
 	return _V_wcsncat_cch( pDest, pSrc, cchDest, nMaxCharsToCopy );
 }
-
-PLATFORM_INTERFACE int			V_snprintf( OUT_Z_CAP( destLen ) char *pDest, int destLen, PRINTF_FORMAT_STRING const char *pFormat, ... ) FMTFUNCTION( 3, 4 );
 
 PLATFORM_INTERFACE int			V_snprintfcat( OUT_Z_CAP( destLen ) char *pDest, int destLen, PRINTF_FORMAT_STRING const char *pFormat, ... ) FMTFUNCTION( 3, 4 );
 PLATFORM_INTERFACE int			V_snwprintf_bytes( OUT_Z_CAP( bytes ) wchar_t *pDest, int bytes, PRINTF_FORMAT_STRING const wchar_t *pFormat, ... );
