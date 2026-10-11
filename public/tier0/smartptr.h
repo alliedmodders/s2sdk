@@ -47,6 +47,20 @@ public:
 	}
 };
 
+class CNullRefCountAccessor
+{
+public:
+	template< class T >
+	static void AddRef( T *pObj )
+	{
+	}
+
+	template< class T >
+	static void Release( T *pObj )
+	{
+	}
+};
+
 
 //
 //	CPlainAutoPtr
