@@ -3,6 +3,7 @@
 #include "tier1/utlstring.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static int g_nFailures = 0;
@@ -697,6 +698,40 @@ static void TestMetaData()
 		meta->m_Comments.Insert( 1, CBufferString( "a comment long enough to be allocated on the heap" ) );
 }
 
+// Tables and arrays allocated smaller than their type, freed from an arena's raw entries and from the heap
+static void TestUndersizedNodes()
+{
+	CKV3Arena src;
+	src.Root()->SetToEmptyTable();
+	src.Root()->SetMemberInt( "a", 1 );
+
+	CUtlBuffer buf;
+	CUtlString error;
+	CHECK( SaveKV3( g_KV3Encoding_Binary, g_KV3Format_Generic, src.Root(), &error, &buf ) );
+
+	for ( int i = 0; i < 8; ++i )
+	{
+		CUtlBuffer in( buf.Base(), buf.TellPut(), CUtlBuffer::READ_ONLY );
+		CKV3Arena arena;
+		CHECK( LoadKV3( arena.Root(), &error, &in, g_KV3Format_Generic, "test" ) );
+		CHECK( arena.Root()->GetMemberInt( "a" ) == 1 );
+	}
+
+	for ( int i = 0; i < 8; ++i )
+	{
+		KeyValues3 kv;
+		kv.SetToEmptyTable();
+		kv.SetMemberVector( "vector", Vector( 1.0f, 2.0f, 3.0f ) );
+
+		CUtlBuffer text( 0, 0, CUtlBuffer::TEXT_BUFFER );
+		CHECK( SaveKV3( g_KV3Encoding_Text, g_KV3Format_Generic, &kv, &error, &text ) );
+	}
+
+	// A damaged heap shows up in later allocations
+	for ( int i = 0; i < 1000; ++i )
+		free( malloc( 16 + i * 8 ) );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -732,6 +767,7 @@ int main()
 	RunTest( TestOverlayKeysFrom );
 	RunTest( TestFindMemberHint );
 	TestMetaData();
+	TestUndersizedNodes();
 
 	if ( g_nFailures )
 	{
