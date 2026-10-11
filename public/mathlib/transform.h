@@ -7,6 +7,7 @@
 
 #include "mathlib/vector.h"
 #include "mathlib/vectoraligned.h"
+#include "mathlib/quaternionaligned.h"
 #include "mathlib/mathlib.h"
 
 class ALIGN16 CTransform

@@ -12,6 +12,7 @@
 
 
 #include "mathlib/ssemath.h"
+#include "mathlib/quaternionaligned.h"
 
 // Use this #define to allow SSE versions of Quaternion math
 // to exist on PC.
