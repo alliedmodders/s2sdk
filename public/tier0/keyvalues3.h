@@ -16,7 +16,7 @@
 #include "tier0/utlmap.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlstringtoken.h"
-#include "tier0/utlsymbollarge.h"
+#include "tier0/utlsymboltablelarge.h"
 #include "mathlib/vector4d.h"
 #include "color.h"
 #include "bitvec.h"

@@ -5,7 +5,7 @@
 #include "tier0/threadtools.h"
 #include "tier0/generichash.h"
 #include "tier0/keyvalues3.h"
-#include "tier0/utlsymbollarge.h"
+#include "tier0/utlsymboltablelarge.h"
 #include "tier0/utlvector.h"
 #include "tier0/utldict.h"
 #include "tier0/utlmap.h"

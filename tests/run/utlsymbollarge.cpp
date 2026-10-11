@@ -1,4 +1,4 @@
-#include "tier0/utlsymbollarge.h"
+#include "tier0/utlsymboltablelarge.h"
 
 #include <stdio.h>
 #include <string.h>

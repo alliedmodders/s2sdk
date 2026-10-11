@@ -14,7 +14,7 @@
 #include "tier0/memblockallocator.h"
 #include "tier0/utldelegate.h"
 #include "tier0/utlstring.h"
-#include "tier0/utlsymbollarge.h"
+#include "tier0/utlsymboltablelarge.h"
 #include "tier0/utlmultilist.h"
 #include "tier0/utlhandletable.h"
 #include "tier0/utlhashdict.h"
