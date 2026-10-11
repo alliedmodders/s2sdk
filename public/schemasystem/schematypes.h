@@ -11,8 +11,8 @@
 #include "tier0/utlmap.h"
 #include "tier0/utlstring.h"
 #include "schemasystem/baseschema.h"
+#include "schemasystem/minschema.h"
 
-class ISchemaSystemTypeScope;
 class CSchemaSystemTypeScope;
 class CSchemaClassInfo;
 class CSchemaEnumInfo;
@@ -77,16 +77,6 @@ enum SchemaTypeCategory_t : uint8
 	SCHEMA_TYPE_INVALID,
 };
 
-enum SchemaAtomicCategory_t : uint8
-{
-	SCHEMA_ATOMIC_PLAIN = 0,
-	SCHEMA_ATOMIC_T,
-	SCHEMA_ATOMIC_COLLECTION_OF_T,
-	SCHEMA_ATOMIC_TT,
-	SCHEMA_ATOMIC_I,
-	SCHEMA_ATOMIC_INVALID,
-};
-
 // Works in combination with SchemaClassManipulatorFn_t
 enum SchemaClassManipulatorAction_t
 {
@@ -114,17 +104,6 @@ inline uint32 CSchemaType_Hash( const char *pString, int len )
 {
 	return MurmurHash2( pString, len, 0xBAADFEED ); 
 }
-
-template <class T>
-struct SchemaMetaInfoHandle_t
-{
-	SchemaMetaInfoHandle_t() : m_pObj( NULL ) {}
-	SchemaMetaInfoHandle_t( T *obj ) : m_pObj( obj ) {}
-	T* Get() const { return m_pObj; }
-	bool operator<( const SchemaMetaInfoHandle_t& rhs ) const { return m_pObj < rhs.m_pObj; }
-
-	T* m_pObj;
-};
 
 template <class K, class V>
 class CSchemaPtrMap
