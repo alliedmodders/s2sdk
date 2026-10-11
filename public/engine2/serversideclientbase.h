@@ -208,6 +208,25 @@ public:
 	virtual void PerformDisconnection( ENetworkDisconnectionReason reason ) = 0;
 
 public:
+	CPlayerSlot GetPlayerSlot() const { return m_nClientSlot; }
+	CPlayerUserId GetUserID() const { return m_UserID; }
+	CEntityIndex GetEntityIndex() const { return m_nEntityIndex; }
+	const char *GetClientName() const { return m_Name.Get(); }
+	const char *GetNetworkIDString() const { return m_NetworkIDString.Get(); }
+	CSteamID GetClientSteamID() const { return m_SteamID; }
+	const netadr_t *GetRemoteAddress() const { return &m_Addr.GetAddress(); }
+	INetChannel *GetNetChannel() const { return m_pNetChannel; }
+	CNetworkGameServerBase *GetServer() const { return m_pServer; }
+
+	SignonState_t GetSignonState() const { return m_nSignonState; }
+	bool IsConnected() const { return m_nSignonState >= SIGNONSTATE_CONNECTED; }
+	bool IsSpawned() const { return m_nSignonState >= SIGNONSTATE_NEW; }
+	bool IsActive() const { return m_nSignonState == SIGNONSTATE_FULL; }
+
+	bool IsHLTV() const { return m_bIsHLTV; }
+	bool IsFullyAuthenticated() const { return m_bFullyAuthenticated; }
+
+public:
 	// AMNOTE: "BOT", "STEAM_ID_PENDING", "STEAM_ID_LAN" or the SteamID as text
 	CUtlString m_NetworkIDString;
 	CUtlString m_Name;
