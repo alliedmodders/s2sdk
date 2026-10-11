@@ -1,5 +1,5 @@
 #include "entityidentity.h"
-#include "entitysystem.h"
+#include "gameentitysystem.h"
 #include "tier0/tier0_strtools.h"
 
 bool CEntityIdentity::NameMatches( const char* pszNameOrWildcard ) const

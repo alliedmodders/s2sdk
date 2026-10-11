@@ -1,5 +1,5 @@
 #include "const.h"
-#include "entity2/entitysystem.h"
+#include "gameentitysystem.h"
 #include "entity2/entityclass.h"
 #include "entity2/entityinstance.h"
 #include "engine2/igameresourceservice.h"

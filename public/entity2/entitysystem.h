@@ -29,7 +29,6 @@ class CPulseCallContextInfo;
 class CEntityClass;
 class CEntityComponentHelper;
 class CEntityKeyValues;
-class CGameEntitySystem;
 class IEntityIONotify;
 class INetworkFieldChangedEventQueue;
 class INetworkFieldScratchData;
@@ -44,19 +43,10 @@ class IHandleEntity;
 struct ComponentUnserializerFieldInfo_t;
 struct EntOutput_t;
 
-// Null before ISource2Server::Init and after its Shutdown
-extern CGameEntitySystem* GameEntitySystem();
-
 enum EntityIterType_t
 {
 	ENTITY_ITER_OVER_ACTIVE = 0x0,
 	ENTITY_ITER_OVER_DORMANT = 0x1,
-};
-
-enum SpawnGroupEntityFilterType_t
-{
-	SPAWN_GROUP_ENTITY_FILTER_FALLBACK = 0x0,
-	SPAWN_GROUP_ENTITY_FILTER_MOD_SPECIFIC = 0x1,
 };
 
 enum ClearEntityDatabaseMode_t
@@ -154,15 +144,6 @@ public:
 
 	// Sets the entity whose resources are being added, returns the previous one
 	virtual EntitySpawnInfo_t SetCurrentPrecacheEntity(const EntitySpawnInfo_t& info) = 0;
-};
-
-class IEntityListener
-{
-public:
-	virtual void OnEntityCreated(CEntityInstance* pEntity) {};
-	virtual void OnEntitySpawned(CEntityInstance* pEntity) {};
-	virtual void OnEntityDeleted(CEntityInstance* pEntity) {};
-	virtual void OnEntityParentChanged(CEntityInstance* pEntity, CEntityInstance* pNewParent) {};
 };
 
 struct EntityNameHandles_t
@@ -313,29 +294,6 @@ public:
 	matrix3x4a_t m_vSpawnOriginOffset;
 	IEntityDataInstantiator* m_Accessors[ MAX_ACCESSORS ];
 	CUtlHashtable<CUtlString, void*> m_EntityMaterialAttributes;
-};
-
-class CGameEntitySystem : public CEntitySystem
-{
-	struct SpawnGroupEntityFilterInfo_t
-	{
-		ISpawnGroupEntityFilter* m_pFilter;
-		SpawnGroupEntityFilterType_t m_nType;
-	};
-
-public:
-	virtual ~CGameEntitySystem() = 0;
-
-	void AddListenerEntity(IEntityListener* pListener);
-	void RemoveListenerEntity(IEntityListener* pListener);
-
-public:
-	int m_iNetworkedEntCount;
-	int m_iNonNetworkedSavedEntCount;
-	CUtlDict<SpawnGroupEntityFilterInfo_t> m_spawnGroupEntityFilters;
-	CUtlVector<IEntityListener*> m_entityListeners;
-	IEntity2SaveRestore* m_pEntity2SaveRestore;
-	IEntity2Networkables* m_pEntity2Networkables;
 };
 
 abstract_class IEntityIONotify

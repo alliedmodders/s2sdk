@@ -1,4 +1,5 @@
 #include "entity2/entitykeyvalues.h"
+#include "gameentitysystem.h"
 #include "tier0/logging.h"
 
 // memdbgon must be the last include file in a .cpp file!!!

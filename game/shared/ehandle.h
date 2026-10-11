@@ -11,7 +11,7 @@
 #pragma once
 #endif
 
-#include "entity2/entitysystem.h"
+#include "gameentitysystem.h"
 #include "entity2/entityinstance.h"
 #include "entityhandle.h"
 
