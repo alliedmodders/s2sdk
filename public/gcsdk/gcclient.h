@@ -17,20 +17,12 @@
 #include "tier0/utlleanvector.h"
 #include "tier0/utlmap.h"
 #include "gcsdk/gcclient_sharedobjectcache.h"
+#include "gcsdk/jobmgr.h"
 
 class CTestEvent;
 
 namespace GCSDK
 {
-
-// AMNOTE: Opaque, only its size matches the game's. Its work thread pool embeds a CThreadEvent, which
-// is 112 bytes larger on Linux (pthread mutex and condition) than on Windows (a HANDLE)
-class CJobMgr
-{
-protected:
-	uint8 m_unk001[784];
-	CThreadEvent m_unk002;
-};
 
 //-----------------------------------------------------------------------------
 // Purpose: The game's connection to the GC and its shared object caches
