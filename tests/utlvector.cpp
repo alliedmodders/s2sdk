@@ -1,5 +1,6 @@
 #include "tier0/utlvector.h"
 #include "tier0/utlvectormt.h"
+#include "tier0/utlvectorultraconservative.h"
 #include "tier0/utlleanvector.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlblockvector.h"
