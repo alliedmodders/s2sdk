@@ -244,23 +244,6 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-// The CUtlVectorMT class:
-// A array class with some sort of mutex protection. Not sure which operations are protected from
-// which others.
-//-----------------------------------------------------------------------------
-
-template< class BASE_UTLVECTOR, class MUTEX_TYPE = CThreadFastMutex >
-class CUtlVectorMT : public BASE_UTLVECTOR, public MUTEX_TYPE
-{
-	typedef BASE_UTLVECTOR BaseClass;
-public:
-	MUTEX_TYPE Mutex_t;
-
-	using BaseClass::BaseClass;
-};
-
-
-//-----------------------------------------------------------------------------
 // The CUtlVectorFixed class:
 // A array class with a fixed allocation scheme
 //-----------------------------------------------------------------------------
