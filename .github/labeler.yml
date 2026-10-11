@@ -39,6 +39,7 @@ Schema System:
   - changed-files:
     - any-glob-to-any-file:
       - public/schemasystem/**
+      - public/schemalib/**
 
 Mathlib:
   - changed-files:
