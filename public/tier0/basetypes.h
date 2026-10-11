@@ -35,6 +35,7 @@
 #include "tier0/platform.h"
 #include "commonmacros.h"
 #include "wchartypes.h"
+#include "tier0/basetypes_schema.h"
 
 #include "tier0/valve_off.h"
 
@@ -245,13 +246,6 @@ typedef wchar_t ucs2; // under windows wchar_t is ucs2
 #else
 typedef unsigned short ucs2;
 #endif
-
-enum ThreeState_t
-{
-	TRS_FALSE,
-	TRS_TRUE,
-	TRS_NONE,
-};
 
 typedef float vec_t;
 #ifdef _WIN32
