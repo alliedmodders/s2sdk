@@ -52,3 +52,12 @@ add_executable(utlsymbollarge_test
 target_link_libraries(utlsymbollarge_test PRIVATE s2sdk::s2sdk)
 target_compile_definitions(utlsymbollarge_test PRIVATE ${S2SDK_OWN_DEFINITIONS})
 target_compile_options(utlsymbollarge_test PRIVATE ${S2SDK_OWN_OPTIONS})
+
+# Purges CUtlLeanVectors, including over external buffers
+add_executable(utlleanvector_test
+	"${CMAKE_CURRENT_SOURCE_DIR}/run/utlleanvector.cpp"
+	"${S2SDK_DIR}/public/tier0/memoverride.cpp"
+)
+target_link_libraries(utlleanvector_test PRIVATE s2sdk::s2sdk)
+target_compile_definitions(utlleanvector_test PRIVATE ${S2SDK_OWN_DEFINITIONS})
+target_compile_options(utlleanvector_test PRIVATE ${S2SDK_OWN_OPTIONS})

@@ -118,3 +118,16 @@ for sdk_target in SdkHelpers.sdk_targets:
   SdkHelpers.configureCxx(builder, binary, sdk)
 
 builder.Add(symtest)
+
+# Purges CUtlLeanVectors, including over external buffers
+lvtest = builder.ProgramProject('utlleanvector_test')
+lvtest.sources = [
+  os.path.join('tests', 'run', 'utlleanvector.cpp'),
+  os.path.join('public', 'tier0', 'memoverride.cpp'),
+]
+
+for sdk_target in SdkHelpers.sdk_targets:
+  binary = lvtest.Configure(sdk_target.cxx, 'utlleanvector_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
+  SdkHelpers.configureCxx(builder, binary, sdk)
+
+builder.Add(lvtest)
