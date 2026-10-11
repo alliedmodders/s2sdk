@@ -10,7 +10,7 @@
 #pragma once
 #endif
 
-#include "utlsymbol.h"
+#include "utlsymboltable.h"
 
 template <class T>
 class CUtlStringMap
