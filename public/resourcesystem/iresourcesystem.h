@@ -7,6 +7,7 @@
 
 #include "appframework/iappsystem.h"
 #include "resourcefile/resourcetype.h"
+#include "resourcesystem/resourcesystemtypes.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlvector.h"
 #include <memory>

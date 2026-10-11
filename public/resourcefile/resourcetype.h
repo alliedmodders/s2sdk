@@ -15,14 +15,6 @@
 
 #include <initializer_list>
 
-enum ResourceStatus_t
-{
-	RESOURCE_STATUS_UNKNOWN = 0,
-	RESOURCE_STATUS_KNOWN_BUT_NOT_RESIDENT,
-	RESOURCE_STATUS_PARTIALLY_RESIDENT,
-	RESOURCE_STATUS_RESIDENT,
-};
-
 enum ResourceManifestLoadBehavior_t : int8
 {
 	RESOURCE_MANIFEST_LOAD_DEFAULT = -1,
