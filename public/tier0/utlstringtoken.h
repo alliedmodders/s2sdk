@@ -15,6 +15,7 @@
 
 #include <limits.h>
 #include "tier0/generichash.h"
+#include "tier0/iutlstringtokensystem.h"
 
 #include <type_traits>
 
@@ -23,10 +24,6 @@
 class CUtlString;
 class IFormatOutputStream;
 class CFormatStringElement;
-
-// AMNOTE: See VStringTokenSystem001
-// Interact with stringtokendatabase.txt
-PLATFORM_INTERFACE void RegisterStringToken( uint32 nHashCode, const char *pStart, const char *pEnd = NULL, bool bExtraAddToDatabase = true );
 
 class CUtlStringToken
 {
