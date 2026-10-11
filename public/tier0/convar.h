@@ -45,30 +45,6 @@ public:
 	uint8 *m_pData;
 };
 
-struct CSplitScreenSlot
-{
-	CSplitScreenSlot() :
-		m_Data(0)
-	{}
-	
-	CSplitScreenSlot( int index )
-	{
-		m_Data = index;
-	}
-	
-	int Get() const
-	{
-		return m_Data;
-	}
-
-	operator int() const
-	{
-		return m_Data;
-	}
-	
-	int m_Data;
-};
-
 //-----------------------------------------------------------------------------
 // Purpose: Internal structure of ConVar objects
 //-----------------------------------------------------------------------------

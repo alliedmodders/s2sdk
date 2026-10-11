@@ -619,6 +619,30 @@ private:
 	int _index;
 };
 
+struct CSplitScreenSlot
+{
+	CSplitScreenSlot() :
+		m_Data(0)
+	{}
+	
+	CSplitScreenSlot( int index )
+	{
+		m_Data = index;
+	}
+	
+	int Get() const
+	{
+		return m_Data;
+	}
+
+	operator int() const
+	{
+		return m_Data;
+	}
+	
+	int m_Data;
+};
+
 #include "tier0/valve_on.h"
 
 #endif // BASETYPES_H
