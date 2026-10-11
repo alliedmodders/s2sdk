@@ -5,6 +5,7 @@
 #pragma once
 #endif
 
+#include "tier0/basetypes.h"
 #include "tier0/utlhashtable.h"
 #include "tier0/utlleanvector.h"
 #include "tier0/utlvector.h"
@@ -57,5 +58,47 @@ struct VarChangeInfo_t
 	uint32 m_nFieldOffset : 31;
 	uint32 m_bResolved : 1;
 };
+
+enum NetworkSerializationMode_t
+{
+	NET_SERIALIZATION_MODE_0 = 0x0,
+	NET_SERIALIZATION_MODE_1 = 0x1,
+	NET_SERIALIZATION_MODE_COUNT = 0x2,
+	NET_SERIALIZATION_MODE_DEFAULT = 0x0,
+	NET_SERIALIZATION_MODE_SERVER = 0x0,
+	NET_SERIALIZATION_MODE_CLIENT = 0x1,
+};
+
+enum NetworkOverrideType_t
+{
+	MNetworkOverride_Invalid = -1,
+	MNetworkSerializer = 0,
+	MNetworkEncoder,
+	MNetworkChangeCallback,
+	MNetworkChangeTag,
+	MNetworkBitCount,
+	MNetworkUserGroup,
+	MNetworkPriority,
+	MNetworkOutOfPVSUpdates,
+	MNetworkRemoveAll,
+};
+
+struct NetworkOverride_t
+{
+	const char *m_ParentClass;
+	const char *m_FieldName;
+	const char *m_Value;
+	NetworkOverrideType_t m_Type;
+};
+
+enum NetChannelBufType_t : int8
+{
+	BUF_DEFAULT = -1,
+	BUF_UNRELIABLE = 0,
+	BUF_RELIABLE,
+	BUF_VOICE,
+};
+
+DECLARE_POINTER_HANDLE( FlattenedSerializerHandle_t );
 
 #endif // NETWORKSYSTEMTYPES_H

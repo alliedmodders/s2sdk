@@ -11,6 +11,7 @@
 #endif
 
 #include "tier0/platform.h"
+#include "networksystem/networksystemtypes.h"
 #include "inetchannelinfo.h"
 #include "steam/steamnetworkingtypes.h"
 #include "tier0/bitbuf.h"
@@ -51,14 +52,6 @@ struct NetPacket_t
 	struct NetPacket_t *pNext;	// for internal use, should be NULL in public
 };
 #endif // NET_PACKET_ST_DEFINED
-
-enum NetChannelBufType_t : int8
-{
-	BUF_DEFAULT = -1,
-	BUF_UNRELIABLE = 0,
-	BUF_RELIABLE,
-	BUF_VOICE,
-};
 
 abstract_class INetworkChannelNotify
 {

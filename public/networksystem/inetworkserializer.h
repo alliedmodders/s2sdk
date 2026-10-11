@@ -8,6 +8,7 @@
 #include <platform.h>
 
 #include <networksystem/inetchannel.h>
+#include <networksystem/networksystemtypes.h>
 #include <tier0/utlstring.h>
 #include <tier0/utlcommon.h>
 #include <tier0/bitbuf.h>
@@ -29,16 +30,6 @@ struct NetMessageInfo_t;
 enum NetworkValidationMode_t
 {
 
-};
-
-enum NetworkSerializationMode_t
-{
-	NET_SERIALIZATION_MODE_0 = 0x0,
-	NET_SERIALIZATION_MODE_1 = 0x1,
-	NET_SERIALIZATION_MODE_COUNT = 0x2,
-	NET_SERIALIZATION_MODE_DEFAULT = 0x0,
-	NET_SERIALIZATION_MODE_SERVER = 0x0,
-	NET_SERIALIZATION_MODE_CLIENT = 0x1,
 };
 
 typedef int NetworkMessageId;
@@ -96,33 +87,11 @@ struct NetworkChangePointerCallback_t
 	int8 m_unk101;
 };
 
-enum NetworkOverrideType_t
-{
-	MNetworkOverride_Invalid = -1,
-	MNetworkSerializer = 0,
-	MNetworkEncoder,
-	MNetworkChangeCallback,
-	MNetworkChangeTag,
-	MNetworkBitCount,
-	MNetworkUserGroup,
-	MNetworkPriority,
-	MNetworkOutOfPVSUpdates,
-	MNetworkRemoveAll,
-};
-
 enum OOPVSUpdates_t
 {
 	OOPVSUpdates_OptOut = 0,
 	OOPVSUpdates_OptIn,
 	OOPVSUpdates_Default,
-};
-
-struct NetworkOverride_t
-{
-	const char *m_ParentClass;
-	const char *m_FieldName;
-	const char *m_Value;
-	NetworkOverrideType_t m_Type;
 };
 
 struct VarTypeOverride_t

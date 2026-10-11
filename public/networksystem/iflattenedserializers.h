@@ -12,9 +12,8 @@
 #include "tier0/utlvector.h"
 #include "tier2/fieldpath.h"
 #include "networksystem/inetworkserializer.h"
+#include "networksystem/networksystemtypes.h"
 #include "playerslot.h"
-
-DECLARE_POINTER_HANDLE( FlattenedSerializerHandle_t );
 
 struct FlattenedSerializerDesc_t
 {
