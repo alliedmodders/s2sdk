@@ -6,7 +6,7 @@
 #endif
 
 #include "tier0/platwindow.h"
-#include "inputsystem/InputEnums.h"
+#include "inputsystem/inputenums.h"
 #include "rendersystem/rendersystemtypes.h"
 
 struct EngineLoopState_t

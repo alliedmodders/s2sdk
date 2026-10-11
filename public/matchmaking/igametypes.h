@@ -11,7 +11,7 @@
 #pragma once
 #endif
 
-#include "appframework/IAppSystem.h"
+#include "appframework/iappsystem.h"
 #include "tier0/tier0_strtools.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlvector.h"

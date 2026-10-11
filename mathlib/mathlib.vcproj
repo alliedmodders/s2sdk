@@ -227,7 +227,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\IceKey.cpp"
+				RelativePath=".\icekey.cpp"
 				>
 			</File>
 			<File
@@ -316,7 +316,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\public\mathlib\IceKey.H"
+				RelativePath="..\public\mathlib\icekey.h"
 				>
 			</File>
 			<File

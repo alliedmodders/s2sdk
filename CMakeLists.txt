@@ -123,7 +123,7 @@ if(S2SDK_BUILD_LIBS)
 		mathlib/bumpvects.cpp
 		mathlib/color_conversion.cpp
 		mathlib/halton.cpp
-		mathlib/IceKey.cpp
+		mathlib/icekey.cpp
 		mathlib/imagequant.cpp
 		mathlib/lightdesc.cpp
 		mathlib/mathlib_base.cpp

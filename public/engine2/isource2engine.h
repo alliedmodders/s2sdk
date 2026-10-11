@@ -13,7 +13,7 @@
 #pragma once
 #endif
 
-#include "appframework/IAppSystem.h"
+#include "appframework/iappsystem.h"
 #include "worldrenderer/iworldrenderermgr.h"
 #include "engine2/iscreenshotcallback.h"
 #include "mathlib/mathlib.h"

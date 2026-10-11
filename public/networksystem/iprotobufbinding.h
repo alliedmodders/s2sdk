@@ -8,7 +8,7 @@
 #include <tier0/utlstring.h>
 #include <tier0/bitbuf.h>
 #include <networksystem/inetchannel.h>
-#include "Color.h"
+#include "color.h"
 
 class CNetMessage;
 

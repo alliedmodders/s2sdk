@@ -10,9 +10,9 @@
 #pragma once
 #endif
 
-#include <appframework/IAppSystem.h>
+#include <appframework/iappsystem.h>
 #include "engine2/hoststate.h"
-#include <inputsystem/InputEnums.h>
+#include <inputsystem/inputenums.h>
 #include <tier0/keyvalues.h>
 #include <tier0/eventdispatcher.h>
 #include <tier0/convar.h>

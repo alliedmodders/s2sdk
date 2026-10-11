@@ -13,7 +13,7 @@
 #pragma once
 #endif
 
-#include "appframework/IAppSystem.h"
+#include "appframework/iappsystem.h"
 #include "tier0/utlstring.h"
 #include "tier0/keyvalues.h"
 #include "entity2/entityidentity.h"

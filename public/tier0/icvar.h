@@ -10,7 +10,7 @@
 #pragma once
 #endif
 
-#include "appframework/IAppSystem.h"
+#include "appframework/iappsystem.h"
 #include "tier0/utlvector.h"
 #include "tier0/tier0_strtools.h"
 #include "utllinkedlist.h"

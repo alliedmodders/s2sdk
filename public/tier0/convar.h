@@ -23,7 +23,7 @@
 #include "mathlib/vector4d.h"
 #include "buffer_string.h"
 #include "tier0/tier0_strtools.h"
-#include "Color.h"
+#include "color.h"
 #include "vectorws.h"
 #include "playerslot.h"
 #include "schemasystem/schematypes.h"

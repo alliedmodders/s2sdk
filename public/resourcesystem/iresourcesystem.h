@@ -5,7 +5,7 @@
 #pragma once
 #endif
 
-#include "appframework/IAppSystem.h"
+#include "appframework/iappsystem.h"
 #include "resourcefile/resourcetype.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlvector.h"

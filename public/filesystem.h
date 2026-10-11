@@ -22,7 +22,7 @@
 #include "tier0/utldelegate.h"
 #include "tier0/utlqueue.h"
 #include "tier0/buffer_string.h"
-#include "appframework/IAppSystem.h"
+#include "appframework/iappsystem.h"
 #include "tier2/tier2.h"
 #include "steam/isteamremotestorage.h"
 

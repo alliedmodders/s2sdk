@@ -11,7 +11,7 @@
 #endif
 
 #include "tier0/platform.h"
-#include "appframework/IAppSystem.h"
+#include "appframework/iappsystem.h"
 #include "inetchannel.h"
 #include "networksystem/inetworkserializer.h"
 #include "tier0/bitbuf.h"

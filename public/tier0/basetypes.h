@@ -596,7 +596,7 @@ protected:
 	inline Type  operator--( Type &a, int ) { Type t = a; --a; return t; }
 
 #define MAX_SPLITSCREEN_CLIENT_BITS 0
-// this should == MAX_JOYSTICKS in InputEnums.h
+// this should == MAX_JOYSTICKS in inputenums.h
 #define MAX_SPLITSCREEN_CLIENTS	( 1 << MAX_SPLITSCREEN_CLIENT_BITS ) // 4
 
 #include "tier0/valve_on.h"

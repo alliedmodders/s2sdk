@@ -35,7 +35,7 @@ LIB_OBJS= \
 	$(LIB_OBJ_DIR)/bumpvects.o \
 	$(LIB_OBJ_DIR)/color_conversion.o \
 	$(LIB_OBJ_DIR)/halton.o \
-	$(LIB_OBJ_DIR)/IceKey.o \
+	$(LIB_OBJ_DIR)/icekey.o \
 	$(LIB_OBJ_DIR)/imagequant.o \
 	$(LIB_OBJ_DIR)/lightdesc.o \
 	$(LIB_OBJ_DIR)/mathlib_base.o \

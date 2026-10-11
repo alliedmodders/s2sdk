@@ -11,7 +11,7 @@
 #include "tier0/utlstringmap.h"
 #include "tier0/utltshash.h"
 #include "tier0/utlvector.h"
-#include "appframework/IAppSystem.h"
+#include "appframework/iappsystem.h"
 #include "schemasystem/schematypes.h"
 
 class CBufferString;

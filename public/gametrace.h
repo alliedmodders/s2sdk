@@ -12,7 +12,7 @@
 
 
 #include "ray.h"
-#include "Color.h"
+#include "color.h"
 #include "entity2/entityinstance.h"
 #include "mathlib/transform.h"
 #include "tier0/generichash.h"

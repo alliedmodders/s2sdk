@@ -13,7 +13,7 @@
 #pragma once
 #endif
 
-#include "appframework/IAppSystem.h"
+#include "appframework/iappsystem.h"
 #include "mathlib/vector.h"
 #include "tier0/bitbuf.h"
 #include "tier0/keyvalues.h"

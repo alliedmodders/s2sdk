@@ -4,7 +4,7 @@
 
 #if !defined(_STATIC_LINKED) || defined(_SHARED_LIB)
 
-#include "mathlib/IceKey.H"
+#include "mathlib/icekey.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4244)

@@ -22,7 +22,7 @@
 
 #include "platform.h"
 #include "utlvector.h"
-#include "Color.h"
+#include "color.h"
 #include "exprevaluator.h"
 #include "ikeyvaluessystem.h"
 

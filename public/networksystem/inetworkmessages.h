@@ -15,7 +15,7 @@
 #include <tier0/utlsymbol.h>
 #include <tier0/utldelegate.h>
 #include <tier0/logging.h>
-#include "Color.h"
+#include "color.h"
 
 class CSchemaClassBindingBase;
 class INetworkSerializerBindingBuildFilter;

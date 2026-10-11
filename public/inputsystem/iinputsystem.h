@@ -12,10 +12,10 @@
 
 #include "tier0/platform.h"
 #include "tier0/platwindow.h"
-#include "appframework/IAppSystem.h"
-#include "inputsystem/InputEnums.h"
-#include "inputsystem/ButtonCode.h"
-#include "inputsystem/AnalogCode.h"
+#include "appframework/iappsystem.h"
+#include "inputsystem/inputenums.h"
+#include "inputsystem/buttoncode.h"
+#include "inputsystem/analogcode.h"
 #include "tier0/utlvector.h"
 
 

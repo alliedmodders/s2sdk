@@ -13,7 +13,7 @@
 #include <tier0/bitbuf.h>
 #include <tier0/utldict.h>
 #include <tier0/utlhash.h>
-#include "Color.h"
+#include "color.h"
 #include "schemasystem/schematypes.h"
 
 #include <memory>

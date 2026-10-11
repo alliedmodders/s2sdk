@@ -97,7 +97,7 @@
 
 #include "platform.h"
 #include "datamap.h"
-#include "appframework/IAppSystem.h"
+#include "appframework/iappsystem.h"
 #include "tier0/functors.h"
 #include "tier0/memdbgon.h"
 

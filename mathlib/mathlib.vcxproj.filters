@@ -30,7 +30,7 @@
     <ClCompile Include="halton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="IceKey.cpp">
+    <ClCompile Include="icekey.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="imagequant.cpp">
@@ -95,7 +95,7 @@
     <ClInclude Include="..\public\mathlib\halton.h">
       <Filter>Public Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\mathlib\IceKey.H">
+    <ClInclude Include="..\public\mathlib\icekey.h">
       <Filter>Public Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\public\mathlib\lightdesc.h">

@@ -11,7 +11,7 @@
 #include "vector2d.h"
 #include "vector4d.h"
 #include "vectorws.h"
-#include "Color.h"
+#include "color.h"
 #include "entity2/entityidentity.h"
 #include "entityhandle.h"
 #include "tier0/buffer_string.h"
