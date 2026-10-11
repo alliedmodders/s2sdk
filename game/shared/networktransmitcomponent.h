@@ -10,7 +10,7 @@
 #include "mathlib/vector.h"
 #include "entity2/entityidentity.h"
 #include "game/entitynetworkable.h"
-#include "schemasystem/schematypes.h"
+#include "schemasystem/minschema.h"
 #include "timedeventmgr.h"
 
 class CEntityInstance;

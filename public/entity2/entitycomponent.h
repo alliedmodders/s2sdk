@@ -9,7 +9,7 @@
 #include "tier0/utlsymbollarge.h"
 #include "tier0/utlstring.h"
 #include "datamap.h"
-#include "schemasystem/schematypes.h"
+#include "schemasystem/minschema.h"
 
 class CEntityIdentity;
 class CEntityInstance;

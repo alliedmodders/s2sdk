@@ -9,7 +9,7 @@
 #include "tier0/keyvalues3.h"
 #include "tier0/utlsymbollarge.h"
 #include "entityhandle.h"
-#include "schemasystem/schematypes.h"
+#include "schemasystem/minschema.h"
 
 class CKV3TransferLoadContext;
 class CKV3TransferSaveContext;

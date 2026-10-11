@@ -26,7 +26,7 @@
 #include "color.h"
 #include "vectorws.h"
 #include "playerslot.h"
-#include "schemasystem/schematypes.h"
+#include "schemasystem/minschema.h"
 
 #include <cstdint>
 #include <cinttypes>

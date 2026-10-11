@@ -8,7 +8,7 @@
 #include "entity2/entitycomponent.h"
 #include "entity2/entityidentity.h"
 #include "variant.h"
-#include "schemasystem/schematypes.h"
+#include "schemasystem/minschema.h"
 #include <initializer_list>
 
 class CNetworkSerializerClassInfo;
