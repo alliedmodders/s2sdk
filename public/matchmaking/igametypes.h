@@ -12,6 +12,7 @@
 #endif
 
 #include "appframework/iappsystem.h"
+#include "tier0/utlstringlist.h"
 #include "tier0/tier0_strtools.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlvector.h"
