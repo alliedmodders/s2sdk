@@ -230,10 +230,13 @@ void CUtlLeanVectorBase<T, I, A>::EnsureCapacity( int num, bool force )
 template< class T, class I, class A >
 void CUtlLeanVectorBase<T, I, A>::RemoveAll()
 {
+	// External memory belongs to its owner and may be read-only, so it gets no debug fill
+	const size_t nFillSize = IsExternallyAllocated() ? 0 : sizeof( T );
+
 	T* pElement = Base();
 	const T* pEnd = &pElement[ m_nCount ];
 	while ( pElement != pEnd )
-		Destruct( pElement++ );
+		Destruct( pElement++, nFillSize );
 
 	m_nCount = 0;
 }
@@ -243,19 +246,18 @@ void CUtlLeanVectorBase<T, I, A>::RemoveAll()
 //-----------------------------------------------------------------------------
 template< class T, class I, class A >
 inline void CUtlLeanVectorBase<T, I, A>::Purge()
-{	
-	if(!IsExternallyAllocated())
+{
+	RemoveAll();
+
+	if(NumAllocated() > 0)
 	{
-		RemoveAll();
-
-		if(NumAllocated() > 0)
-		{
+		if(!IsExternallyAllocated())
 			CAllocator::Free( m_pElements );
-			m_pElements = nullptr;
-		}
 
-		m_nAllocated = 0;
+		m_pElements = nullptr;
 	}
+
+	m_nAllocated = 0;
 }
 
 template< class T, size_t N, class I, class A >
