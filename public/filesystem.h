@@ -17,6 +17,7 @@
 #include "tier0/threadtools.h"
 #include "tier0/interface.h"
 #include "tier0/utlsymbol.h"
+#include "tier0/filenamesymboltable.h"
 #include "tier0/utlstring.h"
 #include "tier0/checksum_crc.h"
 #include "tier0/utldelegate.h"
