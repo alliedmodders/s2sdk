@@ -23,6 +23,7 @@
 
 #include "mathlib/mathlib.h"
 #include "mathlib/vector.h"
+#include "mathlib/vectoraligned.h"
 #if !defined( _X360 )
 #include "sse.h"
 #endif

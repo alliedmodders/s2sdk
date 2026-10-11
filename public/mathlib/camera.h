@@ -19,6 +19,7 @@
 // For vec_t, put this somewhere else?
 #include "tier0/basetypes.h"
 #include "mathlib/vector.h"
+#include "mathlib/vectoraligned.h"
 
 #include "tier0/dbg.h"
 #include "mathlib/vector2d.h"

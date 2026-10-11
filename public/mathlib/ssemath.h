@@ -16,6 +16,7 @@
 #endif
 
 #include <mathlib/vector.h>
+#include <mathlib/vectoraligned.h>
 #include <mathlib/mathlib.h>
 #include <mathlib/compressed_vector.h>
 
