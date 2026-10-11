@@ -16,6 +16,7 @@
 #include "tier0/basetypes.h"
 #include "dbgflag.h"
 #include "logging.h"
+#include "tier0/messages_base.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -246,8 +247,6 @@ PLATFORM_INTERFACE LoggingChannelID_t LOG_VPROF;
 
 // Legacy logging functions
 
-PLATFORM_INTERFACE void Msg( const tchar* pMsg, ... );
-PLATFORM_INTERFACE void Warning( const tchar *pMsg, ... ) FMTFUNCTION( 1, 2 );
 PLATFORM_INTERFACE void Warning_SpewCallStack( int iMaxCallStackLength, const tchar *pMsg, ... ) FMTFUNCTION( 2, 3 );
 
 // AMNOTE: Required for Error method, without including whole strtools.h
@@ -272,14 +271,7 @@ PLATFORM_INTERFACE void _Warning_AlwaysSpewCallStack_Length( int iMaxCallStackLe
 PLATFORM_INTERFACE void _Error_AlwaysSpewCallStack_Enable( bool bEnable );
 PLATFORM_INTERFACE void _Error_AlwaysSpewCallStack_Length( int iMaxCallStackLength );
 
-PLATFORM_INTERFACE void DevMsg( int level, const tchar* pMsg, ... ) FMTFUNCTION( 2, 3 );
-PLATFORM_INTERFACE void DevWarning( int level, const tchar *pMsg, ... ) FMTFUNCTION( 2, 3 );
-
-PLATFORM_OVERLOAD void DevMsg( const tchar* pMsg, ... ) FMTFUNCTION( 1, 2 );
-PLATFORM_OVERLOAD void DevWarning( const tchar *pMsg, ... ) FMTFUNCTION( 1, 2 );
-
 PLATFORM_OVERLOAD void ConColorMsg( const Color& clr, const tchar* pMsg, ... ) FMTFUNCTION( 2, 3 );
-PLATFORM_OVERLOAD void ConMsg( const tchar* pMsg, ... ) FMTFUNCTION( 1, 2 );
 
 PLATFORM_INTERFACE void ConDMsg( const tchar* pMsg, ... ) FMTFUNCTION( 1, 2 );
 
@@ -301,8 +293,6 @@ PLATFORM_INTERFACE void ConDMsg( const tchar* pMsg, ... ) FMTFUNCTION( 1, 2 );
 #else
 #define DebugMsg(...)
 #endif
-
-PLATFORM_INTERFACE void COM_TimestampedLog( char const *fmt, ... ) FMTFUNCTION( 1, 2 );
 
 /* Code macros, debugger interface */
 
