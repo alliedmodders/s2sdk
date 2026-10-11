@@ -599,6 +599,26 @@ protected:
 // this should == MAX_JOYSTICKS in inputenums.h
 #define MAX_SPLITSCREEN_CLIENTS	( 1 << MAX_SPLITSCREEN_CLIENT_BITS ) // 4
 
+class CEntityIndex
+{
+public:
+	CEntityIndex( int index )
+	{
+		_index = index;
+	}
+
+	int Get() const
+	{
+		return _index;
+	}
+
+	bool operator==( const CEntityIndex &other ) const { return other._index == _index; }
+	bool operator!=( const CEntityIndex &other ) const { return other._index != _index; }
+	
+private:
+	int _index;
+};
+
 #include "tier0/valve_on.h"
 
 #endif // BASETYPES_H

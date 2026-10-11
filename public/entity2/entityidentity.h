@@ -32,26 +32,6 @@ public:
 	uint32 m_nId;
 };
 
-class CEntityIndex
-{
-public:
-	CEntityIndex( int index )
-	{
-		_index = index;
-	}
-
-	int Get() const
-	{
-		return _index;
-	}
-
-	bool operator==( const CEntityIndex &other ) const { return other._index == _index; }
-	bool operator!=( const CEntityIndex &other ) const { return other._index != _index; }
-	
-private:
-	int _index;
-};
-
 enum EntityFlags_t : uint32
 {
 	EF_IS_INVALID_EHANDLE = 0x1,
