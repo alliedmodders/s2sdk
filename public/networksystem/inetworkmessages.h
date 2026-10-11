@@ -123,9 +123,9 @@ struct NetMessageInfo_t
 	NetworkMessageId m_MessageId;
 	NetworkGroupId m_GroupId;
 
-	// Bits 0..5 - IProtobufBinding::GetBufType()
-	// (1 << 6) - FLAG_AUTOASSIGNEDID
-	// (1 << 7) - FLAG_UNK001
+	// AMNOTE: Bits 0..5 - IProtobufBinding::GetBufType() (signed)
+	// (1 << 6) - the message can't be networked, see FindOrCreateNetMessage's bCannotBeNetworked
+	// (1 << 7) - unknown
 	uint8 m_nFlags;
 
 	// AMNOTE: A second category mask, AddCategoryMask ORs nMask into it too when its bool is true
@@ -163,8 +163,10 @@ public:
 
 	virtual void AssociateNetMessageWithChannelCategoryAbstract(INetworkMessageInternal *pNetMessage, NetworkCategoryId nCategoryId, bool) = 0;
 
-	// Passing nMessasgeId as -1 would auto-assign the id even if bAutoAssignId is false based on the message name hash.
-	virtual INetworkMessageInternal *FindOrCreateNetMessage(int nMessageId, IProtobufBinding const *pProtoBinding, uint nMessageSize, INetworkSerializerBindingBuildFilter *pUnused, bool bCreateIfNotFound = true, bool bAutoAssignId = false) = 0;
+	// Passing nMessasgeId as -1 would auto-assign the id based on the message name hash.
+	// AMNOTE: bCannotBeNetworked marks the message as never sent over the network, Serialize rejects it,
+	// and its id is auto-assigned too
+	virtual INetworkMessageInternal *FindOrCreateNetMessage(int nMessageId, IProtobufBinding const *pProtoBinding, uint nMessageSize, INetworkSerializerBindingBuildFilter *pUnused, bool bCreateIfNotFound = true, bool bCannotBeNetworked = false) = 0;
 
 	virtual bool Serialize(bf_write &pBuf, const CNetMessage *pData) = 0;
 
