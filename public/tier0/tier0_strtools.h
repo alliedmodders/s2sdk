@@ -733,15 +733,6 @@ PLATFORM_INTERFACE void V_URLEncode( OUT_Z_CAP(nDestLen) char *pchDest, int nDes
 // Returns the amount of space actually used in the output buffer.  
 PLATFORM_INTERFACE size_t V_URLDecode( OUT_CAP(nDecodeDestLen) char *pchDecodeDest, int nDecodeDestLen, const char *pchEncodedSource, int nEncodedSourceLen );
 
-// 3d memcpy. Copy (up-to) 3 dimensional data with arbitrary source and destination
-// strides. Optimizes to just a single memcpy when possible. For 2d data, set numslices to 1.
-PLATFORM_INTERFACE void V_CopyMemory3D(
-	void *pDestAdr, void const *pSrcAdr,
-	int nNumCols, int nNumRows, int nNumSlices, // dimensions of copy
-	int nSrcBytesPerRow, int nSrcBytesPerSlice, // strides for source.
-	int nDestBytesPerRow, int nDestBytesPerSlice // strides for dest
-);
-
 // NOTE: This is for backward compatability!
 // We need to DLL-export the Q methods in vstdlib but not link to them in other projects
 #if !defined( VSTDLIB_BACKWARD_COMPAT )
