@@ -36,6 +36,7 @@
 #include "commonmacros.h"
 #include "wchartypes.h"
 #include "tier0/basetypes_schema.h"
+#include "tier0/recttypes.h"
 
 #include "tier0/valve_off.h"
 
@@ -409,38 +410,6 @@ struct vrect_t
 };
 
 #endif
-
-
-//-----------------------------------------------------------------------------
-// MaterialRect_t struct - used for DrawDebugText
-//-----------------------------------------------------------------------------
-struct Rect_t
-{
-	int x, y;
-	int width, height;
-};
-
-struct Rect3D_t
-{
-	int x, y, z;
-	int width, height, depth;
-
-	FORCEINLINE Rect3D_t( int nX, int nY, int nZ, int nWidth, int nHeight, int nDepth )
-	{
-		x = nX;
-		y = nY;
-		z = nZ;
-		width = nWidth;
-		height = nHeight;
-		depth = nDepth;
-	}
-
-	FORCEINLINE Rect3D_t( void )
-	{
-	}
-
-};
-
 
 
 //-----------------------------------------------------------------------------
