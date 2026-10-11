@@ -21,6 +21,7 @@
 #include "entitydatainstantiator.h"
 #include "entity2/ientity2_entityio.h"
 #include "entity2/entitystructs.h"
+#include "entity2/entityinterfaces.h"
 #include "gametime.h"
 
 class CKV3Arena;
@@ -45,8 +46,6 @@ struct EntOutput_t;
 
 // Null before ISource2Server::Init and after its Shutdown
 extern CGameEntitySystem* GameEntitySystem();
-
-typedef void (*EntityResourceManifestCreationCallback_t)(IEntityResourceManifest *, void *);
 
 enum EntityIterType_t
 {
@@ -106,24 +105,10 @@ public:
 
 // Entity notifications //
 
-struct EntityNotification_t
-{
-	CEntityIdentity* m_pEntity;
-};
-
 struct EntityDormancyChange_t : EntityNotification_t
 {
 	EntityDormancyType_t m_nPrevDormancyType;
 	EntityDormancyType_t m_nNewDormancyType;
-};
-
-struct EntitySpawnInfo_t : EntityNotification_t
-{
-	const CEntityKeyValues* m_pKeyValues;
-	int m_Unk1;
-	uint16 m_SpawnOrder;
-	uint8 m_Depth;
-	uint8 m_OriginalSpawnOrder;
 };
 
 struct EntityActivation_t : EntityNotification_t
@@ -137,14 +122,6 @@ struct EntityDeletion_t : EntityNotification_t
 struct PostDataUpdateInfo_t : EntityNotification_t
 {
 	DataUpdateType_t m_updateType;
-};
-
-// Keeps the member function pointers below as small as the engine's
-class SINGLE_INHERITANCE CEntityInstance;
-
-struct SecondaryPrecacheMemberCallback_t
-{
-	void (CEntityInstance::*pfnPrecache)(ResourceHandle_t hResource, const CEntityPrecacheContext* pContext);
 };
 
 // Called with each added resource once it's loaded, to add the resources it uses
@@ -186,34 +163,6 @@ public:
 	virtual void OnEntitySpawned(CEntityInstance* pEntity) {};
 	virtual void OnEntityDeleted(CEntityInstance* pEntity) {};
 	virtual void OnEntityParentChanged(CEntityInstance* pEntity, CEntityInstance* pNewParent) {};
-};
-
-struct CEntityResourceManifestLock
-{
-	IEntityResourceManifestBuilder* m_pBuilder;
-	matrix3x4a_t m_vSpawnGroupOffset;
-	SpawnGroupHandle_t m_hSpawnGroup;
-	IEntityPrecacheConfiguration* m_pConfig;
-	IEntityResourceManifest* m_pManifest;
-	bool m_bIsLocked;
-	bool m_bPrecacheEnable;
-};
-
-// Manifest executor //
-
-abstract_class IEntityResourceManifestBuilder
-{
-public:
-	virtual void		BuildResourceManifest(SpawnGroupHandle_t hSpawnGroup, int nCount, const EntitySpawnInfo_t *pEntities, const matrix3x4a_t *vWorldOffset, IEntityPrecacheConfiguration* pConfig, IEntityResourceManifest* pResourceManifest) = 0;
-	virtual void		BuildResourceManifest(SpawnGroupHandle_t hSpawnGroup, int iCount, const CEntityKeyValues **ppKeyValues, IEntityPrecacheConfiguration* pConfig, IEntityResourceManifest* pResourceManifest) = 0;
-	virtual void		BuildResourceManifest(SpawnGroupHandle_t hSpawnGroup, const CUtlVector<const CEntityKeyValues*>* pEntityKeyValues, const char* pFilterName /* Usually, "mapload" and "cs_respawn"/"respawn". See CSpawnGroupEntityFilterRegistrar ctors */, IEntityPrecacheConfiguration* pConfig, IEntityResourceManifest* pResourceManifest) = 0;
-	virtual void		BuildResourceManifest(const char* pManifestNameOrGroupName, IEntityPrecacheConfiguration* pConfig, IEntityResourceManifest* pResourceManifest) = 0;
-	virtual void		BuildResourceManifest(EntityResourceManifestCreationCallback_t callback, void* pContext, IEntityPrecacheConfiguration* pConfig, IEntityResourceManifest* pResourceManifest) = 0;
-	virtual void		BuildResourceManifestForEntity(const char* pEntityDesignerName, IEntityPrecacheConfiguration* pConfig, IEntityResourceManifest* pResourceManifest, CKV3Arena* pEntityAllocator) = 0;
-	virtual void		InvokePrecacheCallback(ResourceHandle_t hResource, const EntitySpawnInfo_t* info, IEntityPrecacheConfiguration* pConfig, IEntityResourceManifest* pResourceManifest, SecondaryPrecacheMemberCallback_t callback) = 0;
-	virtual void		AddRefKeyValues(const CEntityKeyValues* pKeyValues) = 0;
-	virtual void		ReleaseKeyValues(const CEntityKeyValues* pKeyValues) = 0;
-	virtual void		LockResourceManifest(bool bLock, CEntityResourceManifestLock* const context) = 0;
 };
 
 struct EntityNameHandles_t
