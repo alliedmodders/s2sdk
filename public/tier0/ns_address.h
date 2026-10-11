@@ -14,6 +14,7 @@ enum ENSAddressType
 	kAddressP2P,
 	kAddressProxiedGameServer,
 	kAddressProxiedClient,
+	kAddressLoopback,
 
 	kAddressMax
 };
