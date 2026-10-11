@@ -34,6 +34,22 @@ class ISteamNetworkingUtils;
 class ISteamNetworkingSockets;
 class ISteamNetworkingMessages;
 
+#ifndef NET_PACKET_ST_DEFINED
+#define NET_PACKET_ST_DEFINED
+struct NetPacket_t
+{
+	netadr_t		from;		// sender IP
+	int				source;		// received source
+	double			received;	// received time
+	unsigned char	*data;		// pointer to raw packet data
+	bf_read			message;	// easy bitbuf data access
+	int				size;		// size in bytes
+	int				wiresize;   // size in bytes before decompression
+	bool			stream;		// was send as stream
+	struct NetPacket_t *pNext;	// for internal use, should be NULL in public
+};
+#endif // NET_PACKET_ST_DEFINED
+
 enum ENSAddressType
 {
 	kAddressDirect,
