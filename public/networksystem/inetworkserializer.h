@@ -24,6 +24,7 @@ class CCheckTransmitInfo;
 class CEntityInstance;
 class CChoreoComponent;
 class CNetworkSerializerClassInfo;
+struct NetMessageInfo_t;
 
 enum NetworkValidationMode_t
 {
@@ -43,24 +44,6 @@ enum NetworkSerializationMode_t
 typedef int NetworkMessageId;
 typedef uint8 NetworkGroupId;
 typedef uint NetworkCategoryId;
-
-struct NetMessageInfo_t
-{
-	int m_nCategories;
-	IProtobufBinding *m_pBinding;
-	CUtlString m_szGroup;
-	NetworkMessageId m_MessageId;
-	NetworkGroupId m_GroupId;
-
-	// Bits 0..5 - IProtobufBinding::GetBufType()
-	// (1 << 6) - FLAG_AUTOASSIGNEDID
-	// (1 << 7) - FLAG_UNK001
-	uint8 m_nFlags;
-
-	// AMNOTE: A second category mask, AddCategoryMask ORs nMask into it too when its bool is true
-	int m_unk101;
-	bool m_bOkayToRedispatch;
-};
 
 abstract_class INetworkMessageInternal
 {
