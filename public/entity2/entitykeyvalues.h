@@ -7,7 +7,7 @@
 #include "tier0/platform.h"
 #include "tier0/keyvalues3.h"
 #include "tier0/utlleanvector.h"
-#include "tier0/utlscratchmemory.h"
+#include "tier0/mempool.h"
 #include "entity2/entitysystem.h"
 #include "entity2/variant.h"
 

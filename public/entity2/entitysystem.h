@@ -11,7 +11,7 @@
 #include "tier0/utlmap.h"
 #include "tier0/utlhashtable.h"
 #include "tier0/utldelegate.h"
-#include "tier0/utlscratchmemory.h"
+#include "tier0/mempool.h"
 #include "tier0/utlstring.h"
 #include "networksystem/inetworkserializer.h"
 #include "vscript/ivscript.h"
