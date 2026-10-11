@@ -128,8 +128,9 @@ struct NetMessageInfo_t
 	// (1 << 7) - unknown
 	uint8 m_nFlags;
 
-	// AMNOTE: A second category mask, AddCategoryMask ORs nMask into it too when its bool is true
-	int m_unk101;
+	// AMNOTE: AddCategoryMask ORs nMask into it too when bRequireHandler is true. ConfirmAllMessageHandlersInstalled
+	// reports channels in these categories that have no handler registered for the message
+	int m_nRequiredHandlerCategories;
 	bool m_bOkayToRedispatch;
 };
 

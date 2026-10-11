@@ -45,7 +45,7 @@ public:
 
 	virtual void SetMessageId( NetworkMessageId nMessageId ) = 0;
 
-	virtual void AddCategoryMask( int nMask, bool ) = 0;
+	virtual void AddCategoryMask( int nMask, bool bRequireHandler ) = 0;
 
 	virtual void SwitchMode( NetworkValidationMode_t nMode ) = 0;
 
@@ -94,9 +94,9 @@ struct NetworkChangePointerCallback_t
 
 	const char *m_CallbackName;
 	const char *m_ClassName;
-	CCallbackOwner *m_unk001;
+	CCallbackOwner *m_CallbackOwner;
 	ChangeCb m_CallbackFn;
-	CallbackOwnerType m_unk101;
+	CallbackOwnerType m_CallbackOwnerType;
 };
 
 enum OOPVSUpdates_t
@@ -256,7 +256,7 @@ public:
 	CUtlVector<int> m_ParentClassOffset;
 
 	// AMNOTE: Maps member names like __m_pChainEntity and m_PathIndex to their offsets in the class
-	CUtlDict<uint16> m_unk101;
+	CUtlDict<uint16> m_MemberOffsets;
 
 	CUtlVector<NetworkOverride_t *> m_NetworkOverrides;
 	// Includes this class and parent overreides
@@ -269,7 +269,7 @@ public:
 	CNetworkSerializerCodeGenDatabase *m_pDatabase;
 
 	int32_t m_nClassSize;
-	int m_NetworkOutOfPVSUpdates;
+	OOPVSUpdates_t m_NetworkOutOfPVSUpdates;
 	// AMNOTE: Allocation mode, only 1 and 2 allow allocating and freeing through m_pfnManipulator
 	int m_unk201;
 
