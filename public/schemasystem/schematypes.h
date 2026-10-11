@@ -34,17 +34,6 @@ public:
 	CThreadFastMutex m_Mutex;
 };
 
-struct SchemaAtomicTypeInfo_t
-{
-	const char* m_pszName;
-	const char* m_pszTokenName;
-	
-	int m_nAtomicID;
-	
-	int m_nStaticMetadataCount;
-	SchemaMetadataEntryData_t* m_pStaticMetadata;
-};
-
 struct AtomicTypeInfo_T_t
 {
 	bool operator<( const AtomicTypeInfo_T_t& rhs ) const 

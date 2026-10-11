@@ -10,12 +10,23 @@
 #include "tier0/utlstring.h"
 #include "schemasystem/baseschema.h"
 #include "schemasystem/minschema.h"
+#include "schemalib/schemametadata_data.h"
 
 class CSchemaSystemTypeScope;
 class CSchemaClassInfo;
 class CSchemaEnumInfo;
 class CBufferString;
-struct SchemaAtomicTypeInfo_t;
+
+struct SchemaAtomicTypeInfo_t
+{
+	const char* m_pszName;
+	const char* m_pszTokenName;
+	
+	int m_nAtomicID;
+	
+	int m_nStaticMetadataCount;
+	SchemaMetadataEntryData_t* m_pStaticMetadata;
+};
 
 template <typename T>
 struct SchemaTypeMap {};
