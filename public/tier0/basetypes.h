@@ -362,11 +362,6 @@ inline float FloatNegate( vec_t f )
 #endif
 
 // FIXME: why are these here?  Hardly anyone actually needs them.
-struct color24
-{
-	byte r, g, b;
-};
-
 typedef struct color32_s
 {
 	bool operator!=( const struct color32_s &other ) const;

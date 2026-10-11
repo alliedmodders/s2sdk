@@ -14,6 +14,11 @@
 
 #include "tier0/basetypes.h"
 
+struct color24
+{
+	byte r, g, b;
+};
+
 //-----------------------------------------------------------------------------
 // Purpose: Basic handler for an rgb set of colors
 //			This class is fully inline
