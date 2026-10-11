@@ -8,7 +8,7 @@
 #include "tier0/threadtools.h"
 #include "tier0/utlvector.h"
 #include "tier0/utlhashtable.h"
-#include "tier0/memblockallocator.h"
+#include "tier0/mempool.h"
 #include "tier0/utlsymbollarge.h"
 
 typedef uint32 LargeSymbolTableHashDecoration_t; 

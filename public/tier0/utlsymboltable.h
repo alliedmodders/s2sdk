@@ -11,7 +11,7 @@
 #include "tier0/utllinkedlist.h"
 #include "tier0/stringpool.h"
 #include "tier0/utlhashtable.h"
-#include "tier0/memblockallocator.h"
+#include "tier0/mempool.h"
 #include "tier0/utlsymbol.h"
 
 //-----------------------------------------------------------------------------

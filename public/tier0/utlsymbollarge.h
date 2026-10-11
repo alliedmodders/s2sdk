@@ -17,7 +17,7 @@
 #include "tier0/generichash.h"
 #include "tier0/utlvector.h"
 #include "tier0/utlhashtable.h"
-#include "tier0/memblockallocator.h"
+#include "tier0/mempool.h"
 
 //-----------------------------------------------------------------------------
 // CUtlSymbolTableLarge:

@@ -11,7 +11,7 @@
 #include "tier0/utltshash.h"
 #include "tier0/utlhash.h"
 #include "tier0/mempool.h"
-#include "tier0/memblockallocator.h"
+#include "tier0/mempool.h"
 #include "tier0/utldelegate.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlsymboltablelarge.h"
