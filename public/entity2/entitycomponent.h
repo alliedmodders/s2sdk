@@ -6,6 +6,7 @@
 #endif
 
 #include "tier0/platform.h"
+#include "tier0/smartptr.h"
 #include "tier0/utlsymbollarge.h"
 #include "tier0/utlstring.h"
 #include "datamap.h"
@@ -131,6 +132,16 @@ public:
 	virtual void KV3TransferSave( CKV3TransferSaveContext* pContext ) const = 0;
 	virtual void KV3TransferLoad( CKV3TransferLoadContext* pContext ) = 0;
 	virtual CEntityComponentHelper* GetComponentHelper() = 0;
+};
+
+// AMNOTE: The engine's default constructor takes CEntitySpawnHelper::tm_pCurEntityPtr, a thread local the game doesn't export
+class CEntityOwnerPtr : public CSmartPtr<CEntityInstance, CNullRefCountAccessor>
+{
+public:
+	operator CEntityInstance*() { return operator->(); }
+	operator const CEntityInstance*() const { return operator->(); }
+
+	void Set( CEntityInstance* pEntity ) { CSmartPtr<CEntityInstance, CNullRefCountAccessor>::operator=( pEntity ); }
 };
 
 #endif // ENTITYCOMPONENT_H
