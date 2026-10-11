@@ -8,6 +8,7 @@
 #include "engine2/iengineservicemgr.h"
 #include "entity2/entitysystem.h"
 #include "resourcefile/resourcetype.h"
+#include "resourcesystem/iresourcesystem.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlvector.h"
 

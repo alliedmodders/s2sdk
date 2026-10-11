@@ -18,6 +18,7 @@
 #include "engine2/iscreenshotcallback.h"
 #include "mathlib/mathlib.h"
 #include "resourcefile/resourcetype.h"
+#include "resourcesystem/iresourcesystem.h"
 #include "tier0/logging.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlvector.h"
