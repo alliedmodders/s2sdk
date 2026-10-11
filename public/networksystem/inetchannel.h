@@ -17,6 +17,7 @@
 #include "tier0/bitbuf.h"
 #include "tier0/netadr.h"
 #include "tier0/utldelegate.h"
+#include "tier0/utlqueue.h"
 #include "convar.h"
 #include "network_connection.pb.h"
 
@@ -71,7 +72,8 @@ public:
 
 	virtual void	UpdateMessageStats( int msggroup, int bits, bool ) = 0;
 	
-	virtual void	unk111() = 0;
+	// AMNOTE: Moves the encoding stats collected since the last call into the current incoming frame
+	virtual void	StoreEncodingStatsInFrame() = 0;
 	
 	virtual bool	CanPacket( void ) const = 0;
 	virtual bool	IsOverflowed( void ) const = 0;
@@ -90,8 +92,8 @@ public:
 	virtual bool	IsTimedOut( void ) const = 0;
 	virtual void	UpdateLastReceivedTime( void ) = 0;
 
-	// AMNOTE: Latency in seconds above which packets are flagged and counted in the flow stats
-	virtual void	unk211( float ) = 0;
+	// AMNOTE: Jitter in milliseconds above which incoming frames count as late (GetAvgChoke)
+	virtual void	SetLateFrameJitterThreshold( float flJitterMs ) = 0;
 	// AMNOTE: Also sets the outgoing flow's loss and choke from the message
 	virtual void	SetRemoteFramerate( const CNetMessagePB<CNETMsg_Tick> *pMsg ) = 0;
 	
@@ -118,7 +120,7 @@ public:
 	
 	virtual void	PostReceivedNetMessage( CNetMessage *pData ) = 0;
 	// AMNOTE: Same as PostReceivedNetMessage, but adds the message to the front of the queue
-	virtual void	unk311( CNetMessage *pData ) = 0;
+	virtual void	PostReceivedNetMessageToFront( CNetMessage *pData ) = 0;
 	virtual void	InsertReplayMessage( InstantReplayMessage_t &msg ) = 0;
 	virtual bool	HasQueuedNetMessages( int nMessageId ) const = 0;
 
@@ -133,9 +135,11 @@ public:
 	
 	virtual void	NotifyOutboundTick( int nTick ) = 0;
 	// AMNOTE: Returns the queue of received messages that ProcessMessages dispatches
-	virtual void	*unk411() = 0;
-	virtual void	unk412( CNetMessagePB<CNETMsg_Tick> *pMsg ) = 0;
-	virtual void	unk413( CConVar<int> *pQueuedMessageLimit ) = 0;
+	virtual CUtlQueue<CNetMessage *> *GetReceivedMessageQueue() = 0;
+	// AMNOTE: Writes the incoming flow's dropped and late frame percentages, which the peer reads in SetRemoteFramerate
+	virtual void	WriteFrameQualityToTick( CNetMessagePB<CNETMsg_Tick> *pMsg ) = 0;
+	// AMNOTE: Received messages beyond the convar's value are reported
+	virtual void	SetQueuedMessageLimitConVar( CConVar<int> *pQueuedMessageLimit ) = 0;
 };
 
 

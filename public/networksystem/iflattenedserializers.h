@@ -6,6 +6,7 @@
 #endif
 
 #include "tier0/basetypes.h"
+#include "tier0/utldelegate.h"
 #include "tier0/utlleanvector.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlsymbollarge.h"
@@ -30,6 +31,9 @@ class IFlattenedSerializerSpewFunc;
 class IFlattenedSerializerSpewListener;
 class INetworkFieldChangedEventQueue;
 class IPolymorphicMetadataHelper;
+
+// AMNOTE: Names array elements in field path spew instead of "[%d]" when it returns a non-empty string
+typedef CUtlDelegate<CUtlString ( int, const char *pszName, int nArrayIndex )> ArrayElementNameFormatterDelegate_t;
 
 // AMNOTE: void pointers are engine structs whose layout isn't known yet
 abstract_class IFlattenedSerializers
@@ -57,7 +61,8 @@ public:
 	virtual void ResolveChanges( const FlattenedSerializerDesc_t &serializer, IPolymorphicMetadataHelper *pMetadataHelper, NetworkSerializationMode_t nMode, const CUtlLeanVectorFixedGrowable<uint32> *pFieldPaths, void *pChanges, CUtlLeanVectorFixedGrowable<uint32> *pOut, CUtlVector<int> * ) = 0;
 	virtual CFieldPath FindFieldPathByAddress( const FlattenedSerializerDesc_t &serializer, const void *pObject, const void *pField, bool *pbFound ) = 0;
 	virtual bool unk101( const FlattenedSerializerDesc_t &serializer, IPolymorphicMetadataHelper *pMetadataHelper, NetworkSerializationMode_t nMode, const CFieldPath &path, CUtlVector<int> * ) = 0;
-	virtual bool unk102( const FlattenedSerializerDesc_t &serializer, void *pObject, IPolymorphicMetadataHelper *pMetadataHelper, int nEntityIndex, NetworkSerializationMode_t nMode, const CFieldPath &path, void * ) = 0;
+	// AMNOTE: GatherSendProxyResults starting at path
+	virtual bool GatherSendProxyResultsForPath( const FlattenedSerializerDesc_t &serializer, void *pObject, IPolymorphicMetadataHelper *pMetadataHelper, int nEntityIndex, NetworkSerializationMode_t nMode, const CFieldPath &path, void * ) = 0;
 	virtual void *LookupOffsetsToIgnoreForPath( const FlattenedSerializerDesc_t &serializer, const CFieldPath &path, IPolymorphicMetadataHelper *pMetadataHelper, NetworkSerializationMode_t nMode ) = 0;
 	virtual bool IsUnflattenedField( const FlattenedSerializerDesc_t &serializer, const char *pszFieldName ) = 0;
 	virtual bool IsFieldNetworked( const FlattenedSerializerDesc_t &serializer, const char *pszFieldName ) = 0;
@@ -68,19 +73,22 @@ public:
 	virtual void RemoveSpewListener( IFlattenedSerializerSpewListener *pListener ) = 0;
 	virtual bool WriteSerializerInfos( void *pSerializers, CSVCMsg_FlattenedSerializer *pMsg ) = 0;
 	virtual void Report( NetworkSerializationMode_t nMode, bool bVerbose ) = 0;
-	virtual void unk201( const void * ) = 0;
-	virtual void unk202( const void * ) = 0;
+	virtual void AddArrayElementNameFormatter( const ArrayElementNameFormatterDelegate_t &formatter ) = 0;
+	virtual void RemoveArrayElementNameFormatter( const ArrayElementNameFormatterDelegate_t &formatter ) = 0;
 	virtual INetworkFieldChangedEventQueue *CreateNetworkFieldChangedEventQueue( void *, void * ) = 0;
-	virtual void unk301( bool ) = 0;
-	virtual void unk302() = 0;
-	// AMNOTE: Logs "Setting FS <serializer> field <name> to On/Off"; On removes the field from a per-serializer list and Off adds it
-	virtual void unk303( const FlattenedSerializerDesc_t &serializer, const char *pszFieldName, bool bOn ) = 0;
-	virtual void unk304( const FlattenedSerializerDesc_t &serializer, void *pObject, int nEntityIndex, NetworkSerializationMode_t nMode, void * ) = 0;
-	virtual void unk305( const FlattenedSerializerDesc_t &serializer, const void *, void *, CUtlVector<CUtlString> *pOutLines ) = 0;
-	virtual bool unk306( const FlattenedSerializerDesc_t &serializer ) = 0;
+	// AMNOTE: Begin resets every serializer's matched meta variant, End reports the matches
+	virtual void BeginSerializerMetaMatching( bool bTrack ) = 0;
+	virtual void EndSerializerMetaMatching() = 0;
+	// AMNOTE: Disabled fields are skipped when gathering send proxy results, building deltas and gathering polymorphic metadata
+	virtual void SetFieldEnabled( const FlattenedSerializerDesc_t &serializer, const char *pszFieldName, bool bEnabled ) = 0;
+	virtual void GatherPolymorphicMetadata( const FlattenedSerializerDesc_t &serializer, void *pObject, int nEntityIndex, NetworkSerializationMode_t nMode, void * ) = 0;
+	// AMNOTE: Writes the variant class names of metadata gathered by GatherPolymorphicMetadata, the third argument is unused
+	virtual void GetPolymorphicMetadataDescription( const FlattenedSerializerDesc_t &serializer, const void *pMetadata, void *, CUtlVector<CUtlString> *pOutLines ) = 0;
+	virtual bool HasPolymorphicFields( const FlattenedSerializerDesc_t &serializer ) = 0;
 	virtual void PurgeTemporaryData() = 0;
-	virtual bool unk401( const FlattenedSerializerDesc_t &serializer, const char *pszFieldName ) = 0;
-	virtual bool unk402( const FlattenedSerializerDesc_t &serializer, void **, void ** ) = 0;
+	virtual bool UserGroupHasFields( const FlattenedSerializerDesc_t &serializer, const char *pszUserGroup ) = 0;
+	// AMNOTE: The fields MNetworkOutOfPVSUpdates opts in and out
+	virtual bool GetOutOfPVSUpdateFields( const FlattenedSerializerDesc_t &serializer, void **ppOptIn, void **ppOptOut ) = 0;
 };
 
 #endif /* FLATTENEDSERIALIZERS_H */
