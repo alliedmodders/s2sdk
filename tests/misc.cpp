@@ -28,6 +28,7 @@ template class CFmtStrN<256>;
 template class CUtlConstStringBase<char>;
 template class CHandle<CEntityInstance>;
 template class CSmartPtr<CRefCounted<>>;
+template class CSmartPtr<CEntityInstance, CNullRefCountAccessor>;
 template class CTSQueue<CUtlString>;
 template class CTSPool<CUtlString>;
 template class CTSList<CUtlString>;
