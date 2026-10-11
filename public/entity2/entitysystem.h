@@ -66,26 +66,6 @@ enum ClearEntityDatabaseMode_t
 	CED_NETWORKEDONLY_AND_DONTCLEARSTRINGPOOL = 0x1,
 };
 
-enum ActivateType_t
-{
-	ACTIVATE_TYPE_INITIAL_CREATION = 0x0,
-	ACTIVATE_TYPE_DATAUPDATE_CREATION = 0x1,
-	ACTIVATE_TYPE_ONRESTORE = 0x2,
-};
-
-enum DataUpdateType_t
-{
-	DATA_UPDATE_CREATED = 0x0,
-	DATA_UPDATE_DATATABLE_CHANGED = 0x1,
-};
-
-enum EntityDormancyType_t
-{
-	ENTITY_NOT_DORMANT = 0x0,
-	ENTITY_DORMANT = 0x1,
-	ENTITY_SUSPENDED = 0x2,
-};
-
 // Event queue //
 
 struct CPulseArgumentPack
