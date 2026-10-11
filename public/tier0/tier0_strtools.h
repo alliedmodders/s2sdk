@@ -534,7 +534,6 @@ PLATFORM_INTERFACE bool V_RemoveDotSlashes( char *pFilename, char separator = CO
 // using the current working directory as the base, or pStartingDir if it's non-NULL.
 // Returns false if it runs out of room in the string, or if pPath tries to ".." past the root directory.
 PLATFORM_INTERFACE void _V_MakeAbsolutePath( OUT_Z_CAP( outLen ) char *pOut, int outLen, const char *pPath, const char *pStartingDir = NULL );
-PLATFORM_INTERFACE bool V_MakeAbsolutePathBuffer( CBufferString &buf, const char *pPath, const char *pStartingDir = NULL );
 #define V_MakeAbsolutePath _V_MakeAbsolutePath
 
 PLATFORM_INTERFACE void V_RemoveFormatSpecifications( const char *pszFrom, char *pszTo, size_t sizeDest );
@@ -544,7 +543,6 @@ PLATFORM_INTERFACE void V_RemoveFormatSpecifications( const char *pszFrom, char 
 // The second is the full path of the directory to make the first file relative to
 // Returns false if they can't be made relative (on separate drives, for example)
 PLATFORM_INTERFACE bool _V_MakeRelativePath( const char *pFullPath, const char *pDirectory, OUT_Z_CAP( nBufLen ) char *pRelativePath, int nBufLen, bool );
-PLATFORM_INTERFACE bool V_MakeRelativePathBuffer( const char *pFullPath, const char *pDirectory, CBufferString &buf, bool );
 #define V_MakeRelativePath _V_MakeRelativePath
 
 // Fixes up a file name, removing dot slashes, fixing slashes, converting to lowercase, etc.
