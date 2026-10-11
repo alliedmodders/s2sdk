@@ -16,8 +16,17 @@
 namespace GCSDK
 {
 
-// SOID_t::m_type of a player's own caches, the one a SteamID owns
-const uint32 k_SOID_Type_SteamID = 1;
+//----------------------------------------------------------------------------
+// Shared type for object caches. This can hold SteamIDs, LobbyIDs, PartyIds,
+// etc.  Make sure they don't conflict!
+//----------------------------------------------------------------------------
+
+const uint32_t k_SOID_Type_SteamID = 1;
+const uint32_t k_SOID_Type_PartyGroupID = 2;
+const uint32_t k_SOID_Type_LobbyGroupID = 3;
+const uint32_t k_SOID_Type_PartyInvite = 4;
+const uint32_t k_SOID_Type_CheatReport = 5;
+const uint32_t k_SOID_Type_NqmmRating = 6;
 
 //----------------------------------------------------------------------------
 // Purpose: Owner of a shared object cache, CMsgSOIDOwner on the wire
