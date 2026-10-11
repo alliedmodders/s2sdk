@@ -643,6 +643,8 @@ struct CSplitScreenSlot
 	int m_Data;
 };
 
+DECLARE_POINTER_HANDLE( HSCRIPT );
+
 #include "tier0/valve_on.h"
 
 #endif // BASETYPES_H

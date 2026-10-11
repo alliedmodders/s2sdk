@@ -19,8 +19,6 @@ class CKV3TransferSaveContext;
 class CNetworkSerializerClassInfo;
 struct ComponentUnserializerClassInfo_t;
 
-FORWARD_DECLARE_HANDLE( HSCRIPT );
-
 struct ComponentUnserializerKeyNamesChunk_t
 {
 	CUtlStringToken m_keyNames[4];

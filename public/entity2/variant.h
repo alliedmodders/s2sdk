@@ -20,8 +20,6 @@
 
 #include "tier0/memdbgon.h"
 
-FORWARD_DECLARE_HANDLE( HSCRIPT );
-
 typedef enum _fieldtypes : uint8
 {
 	FIELD_VOID = 0,			// No type or value
