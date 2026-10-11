@@ -27,6 +27,25 @@ struct NetworkableData_t;
 struct NetworkFieldInfo_t;
 struct FieldMetaInfo_t;
 class CSchemaType;
+class CNetMessage;
+
+abstract_class IProtobufBinding
+{
+public:
+	virtual const char *GetName() = 0;
+	virtual int GetSize() = 0;
+
+	virtual const char *ToString(const void *pData, CUtlString &sResult) = 0;
+
+	virtual const char *GetGroup() = 0;
+	virtual Color GetGroupColor() = 0;
+	virtual NetChannelBufType_t GetBufType() = 0;
+
+	virtual CNetMessage *AllocateMessage() = 0;
+
+	virtual bool OkToRedispatch() = 0;
+	virtual bool unk001() = 0;
+};
 
 struct NetMessageInfo_t
 {

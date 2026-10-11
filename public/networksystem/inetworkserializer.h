@@ -7,7 +7,7 @@
 
 #include <platform.h>
 
-#include <networksystem/iprotobufbinding.h>
+#include <networksystem/inetchannel.h>
 #include <tier0/utlstring.h>
 #include <tier0/utlcommon.h>
 #include <tier0/bitbuf.h>
