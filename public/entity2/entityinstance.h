@@ -6,6 +6,7 @@
 
 #include "tier0/utlsymbollarge.h"
 #include "entity2/entitycomponent.h"
+#include "entity2/entityscriptframework.h"
 #include "entity2/entityidentity.h"
 #include "variant.h"
 #include "schemasystem/minschema.h"
