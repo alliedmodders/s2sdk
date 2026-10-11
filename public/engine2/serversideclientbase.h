@@ -11,7 +11,7 @@
 #include "playerslot.h"
 #include "entity2/entityidentity.h"
 #include "networksystem/inetworksystem.h"
-#include "networksystem/netmessage.h"
+#include "networksystem/inetworkmessages.h"
 #include "steam/steamclientpublic.h"
 #include "tier0/annotations.h"
 #include "tier0/tslist.h"

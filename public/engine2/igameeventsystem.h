@@ -8,7 +8,7 @@
 #include <appframework/iappsystem.h>
 
 #include <networksystem/inetworkserializer.h>
-#include <networksystem/netmessage.h>
+#include <networksystem/inetworkmessages.h>
 #include <tier0/utldelegate.h>
 #include <tier0/utlsymbol.h>
 #include <irecipientfilter.h>

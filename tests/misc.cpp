@@ -19,7 +19,7 @@
 #include "entity2/entitykeyvalues.h"
 #include "tier0/eventdispatcher.h"
 #include "schemasystem/schemasystem.h"
-#include "networksystem/netmessage.h"
+#include "networksystem/inetworkmessages.h"
 #include "engine2/iengineservicemgr.h"
 #include "source2_steam_stats.pb.h"
 
