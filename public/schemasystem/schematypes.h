@@ -13,6 +13,7 @@
 #include "schemasystem/baseschema.h"
 #include "schemasystem/minschema.h"
 #include "schemalib/schematype.h"
+#include "schemalib/schemametadata_data.h"
 
 class CSchemaSystemTypeScope;
 class CSchemaClassInfo;
@@ -85,12 +86,6 @@ class CSchemaPtrMap
 public:
 	CUtlOrderedMap<K, V, CDefLess<K>, unsigned short> m_Map;
 	CThreadFastMutex m_Mutex;
-};
-
-struct SchemaMetadataEntryData_t
-{
-	const char* m_pszName;
-	void* m_pData;
 };
 
 struct SchemaClassFieldData_t
