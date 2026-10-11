@@ -20,7 +20,7 @@
 #include "tier0/utlhashdict.h"
 #include "tier0/utlfixedmemory.h"
 #include "tier0/utlcommon.h"
-#include "tier0/circularbuffer.h"
+#include "tier0/fixedsizecircularbuffer.h"
 #include "tier0/utlntree.h"
 #include "tier0/utlintrusivelist.h"
 #include "tier0/memstack.h"
