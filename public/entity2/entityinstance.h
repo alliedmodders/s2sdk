@@ -41,11 +41,11 @@ enum AcceptInputResult_t
 
 struct NetworkStateChangedData
 {
-	inline NetworkStateChangedData() : m_unk001(1), m_nLine(-1), m_nArrayIndex(-1), m_nPathIndex(ChangeAccessorFieldPathIndex_t()), m_unk101(0) { }
+	inline NetworkStateChangedData() : m_unk001(1), m_nLine(-1), m_nArrayIndex(-1), m_nPathIndex(ChangeAccessorFieldPathIndex_t()), m_bRequiresPathIndex(false), m_unk101(false) { }
 	inline explicit NetworkStateChangedData( bool bFullChanged ) :
 		m_unk001(static_cast<uint32>(!bFullChanged)), m_nLine(-1),
 		m_nArrayIndex(-1), m_nPathIndex(ChangeAccessorFieldPathIndex_t()),
-		m_unk101(0)
+		m_bRequiresPathIndex(false), m_unk101(false)
 	{ }
 
 	// nLocalOffset is the flattened field offset
@@ -57,13 +57,13 @@ struct NetworkStateChangedData
 	//		if the path to the field goes through one or more pointers, otherwise pass -1
 	// 		this value is usually a member of the CNetworkVarChainer and belongs to the last object in the chain
 	inline NetworkStateChangedData( uint32 nLocalOffset, int32 nArrayIndex = -1, ChangeAccessorFieldPathIndex_t nPathIndex = ChangeAccessorFieldPathIndex_t() ) :
-		m_unk001(1), m_LocalOffsets(0, 1), m_nLine(-1), m_nArrayIndex(nArrayIndex), m_nPathIndex(nPathIndex), m_unk101(0)
+		m_unk001(1), m_LocalOffsets(0, 1), m_nLine(-1), m_nArrayIndex(nArrayIndex), m_nPathIndex(nPathIndex), m_bRequiresPathIndex(false), m_unk101(false)
 	{
 		m_LocalOffsets.AddToHead(nLocalOffset);
 	}
 
 	inline NetworkStateChangedData(const std::initializer_list< uint32 > nLocalOffsets, int32 nArrayIndex = -1, ChangeAccessorFieldPathIndex_t nPathIndex = ChangeAccessorFieldPathIndex_t()) :
-		m_unk001(1), m_LocalOffsets(0, (int)nLocalOffsets.size()), m_nLine(-1), m_nArrayIndex(nArrayIndex), m_nPathIndex(nPathIndex), m_unk101(1)
+		m_unk001(1), m_LocalOffsets(0, (int)nLocalOffsets.size()), m_nLine(-1), m_nArrayIndex(nArrayIndex), m_nPathIndex(nPathIndex), m_bRequiresPathIndex(true), m_unk101(false)
 	{
 		for ( const uint32& nLocalOffset : nLocalOffsets )
 		{
@@ -81,7 +81,10 @@ struct NetworkStateChangedData
 	int32 m_nArrayIndex;
 	ChangeAccessorFieldPathIndex_t m_nPathIndex;
 
-	int16 m_unk101; // default 0, if m_LocalOffsets has multiple values, it is set to 1
+	// AMNOTE: Set for the field offsets a networked vector sends for one of its elements.
+	// CNetworkVarChainer drops such a change when no path index is known
+	bool m_bRequiresPathIndex;
+	bool m_unk101;
 };
 
 class CEntityInstance
