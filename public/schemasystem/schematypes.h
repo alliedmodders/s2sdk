@@ -15,6 +15,7 @@
 #include "schemalib/schematype.h"
 #include "schemalib/schemametadata_data.h"
 #include "schemalib/schemaclassinfo_data.h"
+#include "schemalib/schemaclassinfo.h"
 
 class CSchemaSystemTypeScope;
 class CSchemaClassInfo;
@@ -39,10 +40,6 @@ class CSchemaPtrMap
 public:
 	CUtlOrderedMap<K, V, CDefLess<K>, unsigned short> m_Map;
 	CThreadFastMutex m_Mutex;
-};
-
-class CSchemaClassInfo : public SchemaClassInfoData_t
-{
 };
 
 struct SchemaEnumeratorInfoData_t
