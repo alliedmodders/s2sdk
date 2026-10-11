@@ -18,6 +18,7 @@
 #include "tier0/cbyteswap.h"
 #include "tier0/buffer_string.h"
 #include "tier0/utlleanvector.h"
+#include "tier0/tier0_strtools.h"
 #include <stdarg.h>
 
 
@@ -27,83 +28,6 @@
 struct characterset_t;
 
 	
-//-----------------------------------------------------------------------------
-// Description of character conversions for string output
-// Here's an example of how to use the macros to define a character conversion
-// BEGIN_CHAR_CONVERSION( CStringConversion, '\\' )
-//	{ '\n', "n" },
-//	{ '\t', "t" }
-// END_CHAR_CONVERSION( CStringConversion, '\\' )
-//-----------------------------------------------------------------------------
-class DLL_CLASS_IMPORT CUtlCharConversion
-{
-public:
-	struct ConversionArray_t
-	{
-		char m_nActualChar;
-		const char *m_pReplacementString;
-	};
-
-	CUtlCharConversion( char nEscapeChar, const char *pDelimiter, int nCount, const ConversionArray_t *pArray );
-
-	CUtlCharConversion( CUtlCharConversion &&rhs );
-	CUtlCharConversion( const CUtlCharConversion &rhs );
-
-	CUtlCharConversion &operator=( CUtlCharConversion &&rhs );
-	CUtlCharConversion &operator=( const CUtlCharConversion &rhs );
-
-	char GetEscapeChar() const { return m_nEscapeChar; }
-	const char *GetDelimiter() const { return m_pDelimiter; }
-	int GetDelimiterLength() const { return m_nDelimiterLength; }
-
-	const char *GetConversionString( char c ) const { return m_pReplacements[(unsigned char)c].m_pReplacementString; }
-	int GetConversionLength( char c ) const { return m_pReplacements[(unsigned char)c].m_nLength; }
-	int MaxConversionLength() const { return m_nMaxConversionLength; }
-
-	// Finds a conversion for the passed-in string, returns length
-	virtual char FindConversion( const char *pString, int *pLength );
-
-protected:
-	struct ConversionInfo_t
-	{
-		int m_nLength;
-		const char *m_pReplacementString;
-	};
-
-	char m_nEscapeChar;
-	const char *m_pDelimiter;
-	int m_nDelimiterLength;
-	int m_nCount;
-	int m_nMaxConversionLength;
-	char m_pList[255];
-	ConversionInfo_t m_pReplacements[255];
-};
-
-#define BEGIN_CHAR_CONVERSION( _name, _delimiter, _escapeChar )	\
-	static CUtlCharConversion::ConversionArray_t s_pConversionArray ## _name[] = {
-
-#define END_CHAR_CONVERSION( _name, _delimiter, _escapeChar ) \
-	}; \
-	CUtlCharConversion _name( _escapeChar, _delimiter, sizeof( s_pConversionArray ## _name ) / sizeof( CUtlCharConversion::ConversionArray_t ), s_pConversionArray ## _name );
-
-#define BEGIN_CUSTOM_CHAR_CONVERSION( _className, _name, _delimiter, _escapeChar ) \
-	static CUtlCharConversion::ConversionArray_t s_pConversionArray ## _name[] = {
-
-#define END_CUSTOM_CHAR_CONVERSION( _className, _name, _delimiter, _escapeChar ) \
-	}; \
-	_className _name( _escapeChar, _delimiter, sizeof( s_pConversionArray ## _name ) / sizeof( CUtlCharConversion::ConversionArray_t ), s_pConversionArray ## _name );
-
-//-----------------------------------------------------------------------------
-// Character conversions for C strings
-//-----------------------------------------------------------------------------
-PLATFORM_INTERFACE CUtlCharConversion *GetCStringCharConversion();
-
-//-----------------------------------------------------------------------------
-// Character conversions for JSON strings
-//-----------------------------------------------------------------------------
-PLATFORM_INTERFACE CUtlCharConversion *GetJSONCharConversion();
-
-
 //-----------------------------------------------------------------------------
 // Macro to set overflow functions easily
 //-----------------------------------------------------------------------------
