@@ -134,7 +134,7 @@ public:
 	IndexType_t InsertWithDupes( KeyType_t &&key, const ElemType_t &insert )		{ return InsertWithDupes_Internal( std::move( key ), insert ); }
 	IndexType_t InsertWithDupes( KeyType_t &&key, ElemType_t &&insert )				{ return InsertWithDupes_Internal( std::move( key ), std::move( insert ) ); }
 
-	// Find-or-insert, one-arg - inserts a value-initialized element
+	// Find-or-insert, one-arg - inserts a default-constructed element
 	IndexType_t FindOrInsert( const KeyType_t &key )						{ return FindOrInsert_Internal( key, false ); }
 	IndexType_t FindOrInsert( KeyType_t &&key )								{ return FindOrInsert_Internal( std::move( key ), false ); }
 
@@ -385,7 +385,7 @@ inline int CUtlHashMapLarge<K, T, L, H>::InsertUnconstructed( pf_key &&key, Inde
 	IndexType_t iNewNode = AllocNode();
 	Node_t &node = m_memNodes[iNewNode];
 	node.m_iNextNode = kInvalidIndex;
-	::new( &node.m_key ) KeyType_t( std::forward<pf_key>( key ) );
+	Construct( &node.m_key, std::forward<pf_key>( key ) );
 
 	LinkNodeIntoBucket( iBucket, iNewNode );
 
@@ -396,7 +396,7 @@ inline int CUtlHashMapLarge<K, T, L, H>::InsertUnconstructed( pf_key &&key, Inde
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: inserts a value-initialized item into the map, or finds the existing one
+// Purpose: inserts a default-constructed item into the map, or finds the existing one
 //-----------------------------------------------------------------------------
 template <typename K, typename T, typename L, typename H>
 template <typename pf_key>
@@ -406,14 +406,14 @@ inline int CUtlHashMapLarge<K, T, L, H>::FindOrInsert_Internal( pf_key &&key, bo
 	IndexType_t iNodeInserted = InsertUnconstructed( std::forward<pf_key>( key ), &iNodeExisting, false );
 	if ( iNodeInserted != kInvalidIndex )
 	{
-		::new( &m_memNodes[iNodeInserted].m_elem ) ElemType_t();
+		Construct( &m_memNodes[iNodeInserted].m_elem );
 		return iNodeInserted;
 	}
 
 	if ( bReplace )
 	{
 		Destruct( &m_memNodes[iNodeExisting].m_elem );
-		::new( &m_memNodes[iNodeExisting].m_elem ) ElemType_t();
+		Construct( &m_memNodes[iNodeExisting].m_elem );
 	}
 	return iNodeExisting;
 }
@@ -429,7 +429,7 @@ inline int CUtlHashMapLarge<K, T, L, H>::FindOrInsert_Internal( pf_key &&key, pf
 	IndexType_t iNodeInserted = InsertUnconstructed( std::forward<pf_key>( key ), &iNodeExisting, false );
 	if ( iNodeInserted != kInvalidIndex )
 	{
-		::new( &m_memNodes[iNodeInserted].m_elem ) ElemType_t( std::forward<pf_elem>( insert ) );
+		Construct( &m_memNodes[iNodeInserted].m_elem, std::forward<pf_elem>( insert ) );
 		return iNodeInserted;
 	}
 
@@ -446,7 +446,7 @@ template <typename pf_key, typename pf_elem>
 inline int CUtlHashMapLarge<K, T, L, H>::InsertWithDupes_Internal( pf_key &&key, pf_elem &&insert )
 {
 	IndexType_t iNodeInserted = InsertUnconstructed( std::forward<pf_key>( key ), nullptr, true );
-	::new( &m_memNodes[iNodeInserted].m_elem ) ElemType_t( std::forward<pf_elem>( insert ) );
+	Construct( &m_memNodes[iNodeInserted].m_elem, std::forward<pf_elem>( insert ) );
 	return iNodeInserted;
 }
 
