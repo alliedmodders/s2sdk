@@ -267,11 +267,11 @@ public:
 
 	virtual bool			LogForHTTPListeners( const char *pszLogLine ) = 0;
 
-	// AMNOTE: These four do nothing in CS2
-	virtual void			unk_401( void ) = 0;
-	virtual void			unk_402( void ) = 0;
-	virtual void			unk_403( void ) = 0;
-	virtual void			unk_404( void ) = 0;
+	// AMNOTE: Response rule speaker classes, their criteria and dispatch filter names
+	virtual void			unk_401( CUtlVector<CUtlString> *pOut ) = 0;
+	virtual void			unk_402( const char *pszClassName, CUtlVector<CUtlString> *, CUtlVector<CUtlString> *, CUtlVector<CUtlString> * ) = 0;
+	virtual void			unk_403( const char *pszClassName, const char *, void *pOut ) = 0;
+	virtual void			unk_404( CUtlVector<CUtlString> *pOut ) = 0;
 
 	virtual void			RegisterClientNetMessageHandlers( INetChannel *pNetChannel, CPlayerSlot slot, int nAction ) = 0;
 	virtual bool			GetAddonForMap( const char *pszMapName, CUtlString &addonName ) = 0;
