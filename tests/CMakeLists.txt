@@ -64,3 +64,12 @@ add_executable(utlleanvector_test
 target_link_libraries(utlleanvector_test PRIVATE s2sdk::s2sdk)
 target_compile_definitions(utlleanvector_test PRIVATE ${S2SDK_OWN_DEFINITIONS})
 target_compile_options(utlleanvector_test PRIVATE ${S2SDK_OWN_OPTIONS})
+
+# Copies and moves CBufferStrings through tier0
+add_executable(bufferstring_test
+	"${CMAKE_CURRENT_SOURCE_DIR}/run/bufferstring.cpp"
+	"${S2SDK_DIR}/public/tier0/memoverride.cpp"
+)
+target_link_libraries(bufferstring_test PRIVATE s2sdk::s2sdk)
+target_compile_definitions(bufferstring_test PRIVATE ${S2SDK_OWN_DEFINITIONS})
+target_compile_options(bufferstring_test PRIVATE ${S2SDK_OWN_OPTIONS})

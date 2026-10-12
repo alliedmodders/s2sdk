@@ -82,20 +82,41 @@ protected:
 		m_nLength( 0 ),
 		m_nAllocatedSize( (bAllowHeapAllocation * ALLOW_HEAP_ALLOCATION) | STACK_ALLOCATED_MARKER | (int)( nAllocatedSize + sizeof( m_szString ) ) ),
 		m_pString( nullptr )
-	{
-		Assert( nAllocatedSize > 8 );
-	}
+	{ }
 
 public:
-	CBufferString( const CBufferString &other ) : CBufferString() { *this = other; }
-	CBufferString &operator=( const CBufferString &src )
+	CBufferString( const CBufferString &other ) : CBufferString() { CopyFrom( other ); }
+	CBufferString( CBufferString &&other ) : CBufferString() { MoveFrom( other ); }
+	~CBufferString() { Purge(); }
+
+	void CopyFrom( const CBufferString &other ) { CopyFrom( other.Get() ); }
+	void CopyFrom( const char *other )
 	{
 		Clear();
-		Insert( 0, src.Get() );
+		Insert( 0, other );
+	}
+
+	CBufferString &operator=( const CBufferString &src )
+	{
+		if(this != &src)
+			CopyFrom( src );
+
 		return *this;
 	}
 
-	~CBufferString() { Purge(); }
+	CBufferString &operator=( CBufferString &&src )
+	{
+		if ( this != &src )
+			MoveFrom( src );
+
+		return *this;
+	}
+
+	CBufferString &operator=( const char *pString )
+	{
+		CopyFrom( pString );
+		return *this;
+	}
 
 	void SetHeapAllocationState( bool state )
 	{
@@ -138,9 +159,6 @@ public:
 
 public:
 	DLL_CLASS_IMPORT const char *AppendConcat(int, const char * const *, const int *, bool bIgnoreAlignment = false);
-	DLL_CLASS_IMPORT const char *AppendConcat(const char *, const char *, ...) FMTFUNCTION(3, 4);
-	DLL_CLASS_IMPORT const char *AppendConcatV(const char *, const char *, va_list, bool bIgnoreAlignment = false);
-	DLL_CLASS_IMPORT const char *Concat(const char *, const char *, ...) FMTFUNCTION(3, 4);
 
 	DLL_CLASS_IMPORT int AppendFormat(const char *pFormat, ...) FMTFUNCTION(2, 3);
 	DLL_CLASS_IMPORT int AppendFormatV(const char *pFormat, va_list pData);
@@ -222,7 +240,7 @@ public:
 	// Returns NULL if they can't be made relative (on separate drives, for example)
 	DLL_CLASS_IMPORT const char *MakeRelativePath(const char *pFullPath, const char *pDirectory, bool bIgnoreAlignment = false);
 
-	// Copies data from pOther and then purges it
+	// Takes over pOther's heap buffer, or copies its data when it is stack allocated or fits the local buffer, then purges pOther
 	DLL_CLASS_IMPORT void MoveFrom(CBufferString &pOther);
 
 	DLL_CLASS_IMPORT void Purge(int nAllocatedBytesToPreserve = 0);
@@ -298,13 +316,26 @@ template<size_t SIZE>
 class CBufferStringN : public CBufferString
 {
 public:
-	static const size_t DATA_SIZE = ALIGN_VALUE( SIZE - sizeof( char[8] ), 8 );
+	static_assert( SIZE > sizeof( char[8] ), "CBufferStringN must be larger than CBufferString's own buffer" );
+
+	static const size_t DATA_SIZE = SIZE - sizeof( char[8] );
 
 	CBufferStringN( bool bAllowHeapAllocation = true ) : CBufferString( DATA_SIZE, bAllowHeapAllocation ), m_FixedData{} {}
 	CBufferStringN( const char *pString, bool bAllowHeapAllocation = true ) : CBufferStringN( bAllowHeapAllocation )
 	{
 		Insert( 0, pString );
 	}
+
+	CBufferStringN( const CBufferString &other ) : CBufferStringN() { CopyFrom( other ); }
+	CBufferStringN( const CBufferStringN &other ) : CBufferStringN() { CopyFrom( other ); }
+	CBufferStringN( CBufferString &&other ) : CBufferStringN() { MoveFrom( other ); }
+	CBufferStringN( CBufferStringN &&other ) : CBufferStringN() { MoveFrom( other ); }
+
+	CBufferStringN &operator=( const CBufferString &src ) { CBufferString::operator=( src ); return *this; }
+	CBufferStringN &operator=( const CBufferStringN &src ) { CBufferString::operator=( src ); return *this; }
+	CBufferStringN &operator=( CBufferString &&src ) { CBufferString::operator=( static_cast<CBufferString &&>( src ) ); return *this; }
+	CBufferStringN &operator=( CBufferStringN &&src ) { CBufferString::operator=( static_cast<CBufferString &&>( src ) ); return *this; }
+	CBufferStringN &operator=( const char *pString ) { CBufferString::operator=( pString ); return *this; }
 
 	~CBufferStringN() { PurgeN(); }
 

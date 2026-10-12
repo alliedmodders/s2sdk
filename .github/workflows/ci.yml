@@ -95,6 +95,7 @@ jobs:
           LD_LIBRARY_PATH=lib/linux64 build/check/utliterators_test/linux-x86_64/utliterators_test
           LD_LIBRARY_PATH=lib/linux64 build/check/utlsymbollarge_test/linux-x86_64/utlsymbollarge_test
           LD_LIBRARY_PATH=lib/linux64 build/check/utlleanvector_test/linux-x86_64/utlleanvector_test
+          LD_LIBRARY_PATH=lib/linux64 build/check/bufferstring_test/linux-x86_64/bufferstring_test
 
       - name: Upload artifact
         if: matrix.cc != 'gcc' && !matrix.debug
