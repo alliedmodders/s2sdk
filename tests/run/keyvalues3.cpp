@@ -793,6 +793,23 @@ static void TestStringTypes( KeyValues3 *root )
 	CHECK( root->GetString() == szShort );
 }
 
+static void TestEmptyMemberName( KeyValues3 *root )
+{
+	root->SetToEmptyTable();
+	root->SetMemberInt( "", 5 );
+	CHECK( root->GetMemberInt( "" ) == 5 );
+
+	const char *name = root->GetMemberName( 0 );
+	CHECK( name && !strcmp( name, "" ) );
+	if ( !name )
+		return;
+
+	KeyValues3 copy;
+	copy = *root;
+	CHECK( copy.GetMemberName( 0 ) && !strcmp( copy.GetMemberName( 0 ), "" ) );
+	CHECK( copy.GetMemberInt( "" ) == 5 );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -831,6 +848,7 @@ int main()
 	TestMetaData();
 	TestUndersizedNodes();
 	RunTest( TestStringTypes );
+	RunTest( TestEmptyMemberName );
 
 	if ( g_nFailures )
 	{
