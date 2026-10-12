@@ -49,7 +49,6 @@ struct SaveGameParams_t;
 class ISceneViewDebugOverlays;
 class CEntityClass;
 struct FlattenedSerializerSpewField_t;
-class CSVCMsg_UserCommands;
 template <typename T>
 class CNetMessagePB;
 class INetChannel;
@@ -208,6 +207,7 @@ public:
 
 	virtual bool			SaveGame_CalcFileName( const char *pszSaveName, CUtlString &fileName ) = 0;
 	virtual bool			GetRequiredAddonsFromSaveFile( const char *pszSaveName, CUtlString &requiredAddons ) = 0;
+	virtual bool			unk_101( void ) = 0;
 	virtual void			GetLevelsFromSaveFile( const char *pszSaveName, CUtlVector<CCreateGameServerLoadInfo> &levels, bool bWipeAndExtract, int, CUtlString *pComment ) = 0;
 	virtual void			ClearSaveDirectory( void ) = 0;
 	virtual void			PreSaveGameLoaded( const char *pszSaveName ) = 0;
@@ -234,13 +234,13 @@ public:
 
 	virtual const CUtlVector<CUtlString> &GetDesignerNamesForClass( const char *pszClassName ) = 0;
 	// AMNOTE: Does nothing in CS2
-	virtual void			unk_101( void *, void * ) = 0;
+	virtual void			unk_201( void *, void * ) = 0;
 
 	virtual bool			ReportGCQueuedMatchStart( int32 iReservationStage, uint32 *puiConfirmedAccounts, int numConfirmedAccounts ) = 0;
 
 	// AMNOTE: Called each main loop iteration with two doubles, the iteration's time and the time slept after the main loop.
 	// Forwards to the game rules, which do nothing with it in CS2
-	virtual void			unk_201( void * ) = 0;
+	virtual void			unk_301( void * ) = 0;
 	virtual ISceneViewDebugOverlays *GetDebugOverlays( void ) = 0;
 
 	virtual const char		*GetNativeClassForScriptClass( const char *pszScriptClassName ) = 0;
@@ -256,9 +256,6 @@ public:
 
 	virtual bool			FormatSerializerFieldValue( CEntityIndex nEntityIndex, FlattenedSerializerSpewField_t &field ) = 0;
 
-	virtual void			CaptureUserCommands( void ) = 0;
-	virtual CNetMessagePB<CSVCMsg_UserCommands> *CreateUserCommandsMessage( void ) = 0;
-
 	virtual bool			ProcessClientStringCommand( CPlayerSlot slot, const CCommand &args, uint32 nPredictionSync ) = 0;
 	virtual void			OnPreMatchInterfaceCommand( uint32 uiAccountID, int, const char *pszCommand ) = 0;
 	virtual void			SetPlayerTeammatePreferredColor( uint32 uiAccountID, int nColor ) = 0;
@@ -271,10 +268,10 @@ public:
 	virtual bool			LogForHTTPListeners( const char *pszLogLine ) = 0;
 
 	// AMNOTE: These four do nothing in CS2
-	virtual void			unk_301( void ) = 0;
-	virtual void			unk_302( void ) = 0;
-	virtual void			unk_303( void ) = 0;
-	virtual void			unk_304( void ) = 0;
+	virtual void			unk_401( void ) = 0;
+	virtual void			unk_402( void ) = 0;
+	virtual void			unk_403( void ) = 0;
+	virtual void			unk_404( void ) = 0;
 
 	virtual void			RegisterClientNetMessageHandlers( INetChannel *pNetChannel, CPlayerSlot slot, int nAction ) = 0;
 	virtual bool			GetAddonForMap( const char *pszMapName, CUtlString &addonName ) = 0;
@@ -282,11 +279,6 @@ public:
 	virtual void			OnSteamAuthWarning( const char *pszMessage ) = 0;
 	virtual void			OnNetworkGameServerActivated( INetworkGameServer *pNetworkGameServer ) = 0;
 	virtual uint32			GetSteamGroupAccountID( void ) = 0;
-
-#ifdef PLATFORM_LINUX
-	// AMNOTE: Does nothing in CS2
-	virtual void			unk_401( void ) = 0;
-#endif
 };
 
 typedef ISource2Server IServerGameDLL;
