@@ -677,7 +677,7 @@ private:
 
 	void Free( bool bClearingContext = false );
 	void ResolveUnspecified();
-	void PrepareForType( KV3TypeEx_t type, KV3SubType_t subtype );
+	void PrepareForType( KV3TypeEx_t type, KV3SubType_t subtype, int initial_size = 0 );
 	void CopyFrom( const KeyValues3* pSrc );
 
 	int GetClusterElement() const { return m_nClusterElement; }
@@ -1377,7 +1377,7 @@ void KeyValues3::AllocArray( int size, const T* data, KV3ArrayAllocType_t alloc_
 	}
 	else
 	{
-		PrepareForType( KV3_TYPEEX_ARRAY, subtype );
+		PrepareForType( KV3_TYPEEX_ARRAY, subtype, size );
 
 		m_Data.m_pArray->SetCount( this, size, type_elem, subtype_elem );
 

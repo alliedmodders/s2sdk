@@ -58,7 +58,7 @@ void KeyValues3::Alloc( int initial_size, Data_t data, int preallocated_size, bo
 		{
 			if(preallocated_size <= 0)
 			{
-				m_Data.m_pArray = AllocArray();
+				m_Data.m_pArray = AllocArray( initial_size );
 				m_bFreeArrayMemory = true;
 			}
 			else
@@ -72,7 +72,7 @@ void KeyValues3::Alloc( int initial_size, Data_t data, int preallocated_size, bo
 		{
 			if(preallocated_size <= 0)
 			{
-				m_Data.m_pTable = AllocTable();
+				m_Data.m_pTable = AllocTable( initial_size );
 				m_bFreeArrayMemory = true;
 			}
 			else
@@ -357,7 +357,7 @@ void KeyValues3::ResolveUnspecified()
 	}
 }
 
-void KeyValues3::PrepareForType( KV3TypeEx_t type, KV3SubType_t subtype )
+void KeyValues3::PrepareForType( KV3TypeEx_t type, KV3SubType_t subtype, int initial_size )
 {
 	if ( GetTypeEx() == type )
 	{
@@ -386,7 +386,8 @@ void KeyValues3::PrepareForType( KV3TypeEx_t type, KV3SubType_t subtype )
 	{
 		Free();
 		m_TypeEx = type;
-		Alloc();
+		m_Data.m_nMemory = 0;
+		Alloc( initial_size );
 	}
 
 	m_SubType = subtype;
@@ -636,7 +637,7 @@ void KeyValues3::SetArrayElementCount( int count, KV3TypeEx_t type, KV3SubType_t
 	NormalizeArray();
 
 	if ( GetTypeEx() != KV3_TYPEEX_ARRAY )
-		PrepareForType( KV3_TYPEEX_ARRAY, KV3_SUBTYPE_ARRAY );
+		PrepareForType( KV3_TYPEEX_ARRAY, KV3_SUBTYPE_ARRAY, count );
 
 	m_Data.m_pArray->SetCount( this, count, type, subtype );
 }
