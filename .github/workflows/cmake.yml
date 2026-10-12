@@ -1,16 +1,14 @@
 name: CMake
 
-# Only when the CMake support itself changes; the AMBuild CI covers the rest
+# Only when the CMake build of the libraries changes; the AMBuild CI covers the rest
 on:
   push:
     paths:
       - CMakeLists.txt
-      - tests/CMakeLists.txt
       - .github/workflows/cmake.yml
   pull_request:
     paths:
       - CMakeLists.txt
-      - tests/CMakeLists.txt
       - .github/workflows/cmake.yml
 
 jobs:
@@ -30,18 +28,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build tests/ against the SDK
+      - name: Build the libraries
         shell: bash
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DS2SDK_BUILD_TESTS=ON -DS2SDK_BUILD_LIBS=ON
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           cmake --build build --config ${{ matrix.build_type }}
+          ls -R build/lib
 
-      - name: Test
-        if: startsWith(runner.os, 'Linux')
-        shell: bash
-        run: |
-          LD_LIBRARY_PATH=lib/linux64 build/tests/keyvalues3_test
-          LD_LIBRARY_PATH=lib/linux64 build/tests/utliterators_test
-          LD_LIBRARY_PATH=lib/linux64 build/tests/utlsymbollarge_test
-          LD_LIBRARY_PATH=lib/linux64 build/tests/utlleanvector_test
-          LD_LIBRARY_PATH=lib/linux64 build/tests/bufferstring_test

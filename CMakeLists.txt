@@ -1,118 +1,59 @@
 cmake_minimum_required(VERSION 3.16)
 project(s2sdk LANGUAGES C CXX)
 
-# Consumers link s2sdk (or s2sdk::s2sdk): the SDK's include paths, the defines
-# its headers expect, C++20, and tier0, interfaces, mathlib and protobuf.
+# Builds the SDK's libraries from source, the way the AMBuilders do:
+# interfaces, mathlib and libprotobuf, into lib/ of the build folder laid out
+# like the repository's lib/.
 #
-#   add_subdirectory(path/to/s2sdk)
-#   target_link_libraries(my_plugin PRIVATE s2sdk::s2sdk)
+#   cmake -S . -B build
+#   cmake --build build
 #
-# To pick the libraries instead, link s2sdk::headers (no libraries) with any of
-# s2sdk::tier0, s2sdk::interfaces, s2sdk::mathlib, s2sdk::protobuf and
-# s2sdk::steam_api.
-#
-# interfaces, mathlib and libprotobuf are the prebuilt ones in lib/ unless
-# S2SDK_BUILD_LIBS is on, which builds them from interfaces/, mathlib/ and
-# thirdparty/protobuf-3.21.8 like the AMBuilders.
-# s2sdk_protobufs() generates and compiles the SDK's protos a target uses with
-# the protoc for the host. s2sdk::headers has the SDK's folder and that protoc
-# in its INTERFACE_S2SDK_DIR and INTERFACE_S2SDK_PROTOC properties.
+# It describes nothing for projects that build against the SDK; those get the
+# include paths, defines and libraries from hl2sdk-manifests.
 #
 # S2SDK_TARGET_PREFIX names the targets (s2sdk by default), so a project can
-# add the SDKs of several games, each under its own prefix:
+# build the libraries of several games, each under its own prefix:
 #
-#   set(S2SDK_TARGET_PREFIX s2sdk_cs2)
-#   add_subdirectory(path/to/s2sdk-cs2)
 #   set(S2SDK_TARGET_PREFIX s2sdk_dota)
 #   add_subdirectory(path/to/s2sdk-dota)
-#   target_link_libraries(my_dota_plugin PRIVATE s2sdk_dota::s2sdk)
-#   s2sdk_protobufs(my_dota_plugin SDK s2sdk_dota common/netmessages.proto)
 #
-# With MSVC the libraries use the static runtime (/MT), so the consumer has to
-# as well: set CMAKE_MSVC_RUNTIME_LIBRARY to MultiThreaded before adding s2sdk.
-#
-# S2SDK_BUILD_TESTS builds tests/ the way CheckScript does, for s2sdk's own CI.
-
-option(S2SDK_BUILD_LIBS "Build interfaces, mathlib and libprotobuf from source instead of linking the prebuilt ones in lib/" OFF)
-option(S2SDK_BUILD_TESTS "Build tests/ like CheckScript (for s2sdk itself)" OFF)
+# With MSVC the libraries use the static runtime (/MT), like the prebuilt ones.
 
 if(NOT DEFINED S2SDK_TARGET_PREFIX)
 	set(S2SDK_TARGET_PREFIX s2sdk)
-endif()
-
-if(S2SDK_BUILD_TESTS AND NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
-	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
 	message(FATAL_ERROR "s2sdk only supports 64-bit targets")
 endif()
 
-if(MSVC AND NOT CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "^MultiThreaded(\\$<\\$<CONFIG:Debug>:Debug>)?$")
-	message(WARNING "s2sdk's libraries use the static runtime (/MT); set CMAKE_MSVC_RUNTIME_LIBRARY to MultiThreaded")
-endif()
-
 set(S2SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
-if(CMAKE_HOST_WIN32)
-	set(S2SDK_PROTOC "${S2SDK_DIR}/devtools/bin/protoc.exe")
-else()
-	set(S2SDK_PROTOC "${S2SDK_DIR}/devtools/bin/linux/protoc")
-endif()
-
-if(WIN32)
-	set(S2SDK_LIB_DIR "${S2SDK_DIR}/lib/public/win64")
-	set(S2SDK_TIER0 "${S2SDK_LIB_DIR}/tier0.lib")
-	set(S2SDK_INTERFACES "${S2SDK_LIB_DIR}/interfaces.lib")
-	set(S2SDK_MATHLIB "${S2SDK_LIB_DIR}/mathlib.lib")
-	set(S2SDK_PROTOBUF "${S2SDK_LIB_DIR}/2015/libprotobuf.lib")
-	set(S2SDK_STEAM_API "${S2SDK_LIB_DIR}/steam_api64.lib")
-else()
-	set(S2SDK_LIB_DIR "${S2SDK_DIR}/lib/linux64")
-	set(S2SDK_TIER0 "${S2SDK_LIB_DIR}/libtier0.so")
-	set(S2SDK_INTERFACES "${S2SDK_LIB_DIR}/interfaces.a")
-	set(S2SDK_MATHLIB "${S2SDK_LIB_DIR}/mathlib.a")
-	set(S2SDK_PROTOBUF "${S2SDK_LIB_DIR}/release/libprotobuf.a")
-	set(S2SDK_STEAM_API "${S2SDK_LIB_DIR}/libsteam_api.so")
-endif()
-
-# Includes, defines and language level, without any library
-add_library(${S2SDK_TARGET_PREFIX}_headers INTERFACE)
-add_library(${S2SDK_TARGET_PREFIX}::headers ALIAS ${S2SDK_TARGET_PREFIX}_headers)
-
-set_target_properties(${S2SDK_TARGET_PREFIX}_headers PROPERTIES
-	INTERFACE_S2SDK_DIR "${S2SDK_DIR}"
-	INTERFACE_S2SDK_PROTOC "${S2SDK_PROTOC}"
-)
-
-target_compile_features(${S2SDK_TARGET_PREFIX}_headers INTERFACE cxx_std_20)
-
-target_include_directories(${S2SDK_TARGET_PREFIX}_headers INTERFACE
-	"${S2SDK_DIR}/thirdparty/protobuf-3.21.8/src"
+# AMBuildScript's settings for the SDK's own code
+add_library(${S2SDK_TARGET_PREFIX}_build_settings INTERFACE)
+target_compile_features(${S2SDK_TARGET_PREFIX}_build_settings INTERFACE cxx_std_20)
+target_include_directories(${S2SDK_TARGET_PREFIX}_build_settings INTERFACE
 	"${S2SDK_DIR}/public"
-	"${S2SDK_DIR}/public/engine"
-	"${S2SDK_DIR}/public/mathlib"
 	"${S2SDK_DIR}/public/tier0"
 	"${S2SDK_DIR}/public/tier1"
-	"${S2SDK_DIR}/public/entity2"
-	"${S2SDK_DIR}/game/shared"
-	"${S2SDK_DIR}/game/server"
-	"${S2SDK_DIR}/common"
+)
+target_compile_definitions(${S2SDK_TARGET_PREFIX}_build_settings INTERFACE
+	X64BITS PLATFORM_64BITS _LIB
+	$<$<CONFIG:Debug>:DEBUG> $<$<CONFIG:Debug>:_DEBUG>
+	$<$<NOT:$<CONFIG:Debug>>:NDEBUG>
 )
 
-target_compile_definitions(${S2SDK_TARGET_PREFIX}_headers INTERFACE X64BITS PLATFORM_64BITS)
-
 if(MSVC)
-	target_compile_definitions(${S2SDK_TARGET_PREFIX}_headers INTERFACE COMPILER_MSVC COMPILER_MSVC64 WIN32 WIN64
+	target_compile_definitions(${S2SDK_TARGET_PREFIX}_build_settings INTERFACE
+		COMPILER_MSVC COMPILER_MSVC64
+		_WINDOWS WINDOWS WIN32 WIN64 _CRT_SECURE_NO_DEPRECATE _CRT_NONSTDC_NO_DEPRECATE
 		# The game is built without iterator debugging, which changes the layout of STL
 		# types, like the strings in protobuf messages that plugins share with the game
 		_ITERATOR_DEBUG_LEVEL=0
 	)
 else()
-	target_compile_definitions(${S2SDK_TARGET_PREFIX}_headers INTERFACE
+	target_compile_definitions(${S2SDK_TARGET_PREFIX}_build_settings INTERFACE
 		COMPILER_GCC _LINUX LINUX POSIX GNUC
-		# libprotobuf.a and tier0 use the old std::string ABI
-		_GLIBCXX_USE_CXX11_ABI=0
 		_finite=finite
 		stricmp=strcasecmp _stricmp=strcasecmp
 		strnicmp=strncasecmp _strnicmp=strncasecmp
@@ -120,179 +61,79 @@ else()
 		_vsnprintf=vsnprintf
 		_alloca=alloca
 	)
-endif()
-
-# What AMBuildScript compiles the SDK's own code with (the libraries, tests/)
-if(MSVC)
-	set(S2SDK_OWN_DEFINITIONS _WINDOWS WINDOWS _CRT_SECURE_NO_DEPRECATE _CRT_NONSTDC_NO_DEPRECATE)
-	set(S2SDK_OWN_OPTIONS)
-else()
-	set(S2SDK_OWN_DEFINITIONS)
-	set(S2SDK_OWN_OPTIONS
+	target_compile_options(${S2SDK_TARGET_PREFIX}_build_settings INTERFACE
 		-Wall -Werror -Wno-overloaded-virtual -Wno-non-virtual-dtor -Wno-delete-non-virtual-dtor
 		-Wno-invalid-offsetof -Wno-unknown-pragmas -Wno-unused -Wno-narrowing -Wno-register
 		-march=nocona -mmmx -msse -msse2
 	)
 endif()
-# AMBuildScript's --enable-debug
-list(APPEND S2SDK_OWN_DEFINITIONS $<$<CONFIG:Debug>:DEBUG> $<$<CONFIG:Debug>:_DEBUG>)
 
-if(S2SDK_BUILD_LIBS)
-	add_library(${S2SDK_TARGET_PREFIX}_interfaces STATIC
-		interfaces/interfaces.cpp
-	)
-
-	add_library(${S2SDK_TARGET_PREFIX}_mathlib STATIC
-		mathlib/anorms.cpp
-		mathlib/bumpvects.cpp
-		mathlib/color_conversion.cpp
-		mathlib/halton.cpp
-		mathlib/icekey.cpp
-		mathlib/imagequant.cpp
-		mathlib/lightdesc.cpp
-		mathlib/mathlib_base.cpp
-		mathlib/polyhedron.cpp
-		mathlib/powsse.cpp
-		mathlib/quantize.cpp
-		mathlib/randsse.cpp
-		mathlib/simdvectormatrix.cpp
-		mathlib/sparse_convolution_noise.cpp
-		mathlib/sse.cpp
-		mathlib/sseconst.cpp
-		mathlib/ssenoise.cpp
-		mathlib/vmatrix.cpp
-	)
-
-	# libprotobuf: the sources its own CMake build compiles, like its AMBuilder
-	set(_protobuf_dir "${S2SDK_DIR}/thirdparty/protobuf-3.21.8")
-	set(_protobuf_sources)
-	foreach(_list libprotobuf-lite libprotobuf)
-		file(READ "${_protobuf_dir}/cmake/${_list}.cmake" _content)
-		string(REPLACE "-" "_" _var "${_list}_files")
-		string(REGEX MATCH "set\\(${_var}[^)]*\\)" _files "${_content}")
-		string(REGEX MATCHALL "\\$\\{protobuf_SOURCE_DIR\\}/[^ \t\r\n)]+\\.cc" _cc "${_files}")
-		string(REPLACE "\${protobuf_SOURCE_DIR}" "${_protobuf_dir}" _cc "${_cc}")
-		list(APPEND _protobuf_sources ${_cc})
-	endforeach()
-	add_library(${S2SDK_TARGET_PREFIX}_libprotobuf STATIC ${_protobuf_sources})
-	target_include_directories(${S2SDK_TARGET_PREFIX}_libprotobuf PRIVATE "${_protobuf_dir}/src")
-	# Third-party code, so its warnings are left to upstream
-	if(MSVC)
-		target_compile_options(${S2SDK_TARGET_PREFIX}_libprotobuf PRIVATE /w /EHsc /utf-8 /bigobj)
-	else()
-		target_compile_options(${S2SDK_TARGET_PREFIX}_libprotobuf PRIVATE -w)
-	endif()
-
-	# The same settings as AMBuildScript
-	foreach(lib ${S2SDK_TARGET_PREFIX}_interfaces ${S2SDK_TARGET_PREFIX}_mathlib ${S2SDK_TARGET_PREFIX}_libprotobuf)
-		target_link_libraries(${lib} PRIVATE ${S2SDK_TARGET_PREFIX}_headers)
-		target_compile_definitions(${lib} PRIVATE _LIB)
-		set_target_properties(${lib} PROPERTIES
-			POSITION_INDEPENDENT_CODE ON
-			PREFIX ""
-			MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
-		)
-		target_compile_definitions(${lib} PRIVATE ${S2SDK_OWN_DEFINITIONS})
-		target_compile_options(${lib} PRIVATE ${S2SDK_OWN_OPTIONS})
-	endforeach()
-
-	set_target_properties(${S2SDK_TARGET_PREFIX}_interfaces PROPERTIES OUTPUT_NAME interfaces)
-	set_target_properties(${S2SDK_TARGET_PREFIX}_mathlib PROPERTIES OUTPUT_NAME mathlib)
-	set_target_properties(${S2SDK_TARGET_PREFIX}_libprotobuf PROPERTIES OUTPUT_NAME libprotobuf)
-	target_include_directories(${S2SDK_TARGET_PREFIX}_mathlib PRIVATE "${S2SDK_DIR}/public/mathlib")
-else()
-	# The prebuilt libraries, under the names of the built ones
-	add_library(${S2SDK_TARGET_PREFIX}_interfaces INTERFACE)
-	add_library(${S2SDK_TARGET_PREFIX}_mathlib INTERFACE)
-	add_library(${S2SDK_TARGET_PREFIX}_libprotobuf INTERFACE)
-	target_link_libraries(${S2SDK_TARGET_PREFIX}_interfaces INTERFACE "${S2SDK_INTERFACES}")
-	target_link_libraries(${S2SDK_TARGET_PREFIX}_mathlib INTERFACE "${S2SDK_MATHLIB}")
-	target_link_libraries(${S2SDK_TARGET_PREFIX}_libprotobuf INTERFACE "${S2SDK_PROTOBUF}")
-endif()
-add_library(${S2SDK_TARGET_PREFIX}::interfaces ALIAS ${S2SDK_TARGET_PREFIX}_interfaces)
-add_library(${S2SDK_TARGET_PREFIX}::mathlib ALIAS ${S2SDK_TARGET_PREFIX}_mathlib)
-add_library(${S2SDK_TARGET_PREFIX}::protobuf ALIAS ${S2SDK_TARGET_PREFIX}_libprotobuf)
-
-add_library(${S2SDK_TARGET_PREFIX}_tier0 INTERFACE)
-add_library(${S2SDK_TARGET_PREFIX}::tier0 ALIAS ${S2SDK_TARGET_PREFIX}_tier0)
-target_link_libraries(${S2SDK_TARGET_PREFIX}_tier0 INTERFACE "${S2SDK_TIER0}")
-
-add_library(${S2SDK_TARGET_PREFIX} INTERFACE)
-add_library(${S2SDK_TARGET_PREFIX}::s2sdk ALIAS ${S2SDK_TARGET_PREFIX})
-
-target_link_libraries(${S2SDK_TARGET_PREFIX} INTERFACE
-	${S2SDK_TARGET_PREFIX}_headers
-	${S2SDK_TARGET_PREFIX}_mathlib
-	${S2SDK_TARGET_PREFIX}_interfaces
-	${S2SDK_TARGET_PREFIX}_tier0
-	${S2SDK_TARGET_PREFIX}_libprotobuf
+add_library(${S2SDK_TARGET_PREFIX}_interfaces STATIC
+	interfaces/interfaces.cpp
 )
 
-add_library(${S2SDK_TARGET_PREFIX}_steam_api INTERFACE)
-add_library(${S2SDK_TARGET_PREFIX}::steam_api ALIAS ${S2SDK_TARGET_PREFIX}_steam_api)
-target_link_libraries(${S2SDK_TARGET_PREFIX}_steam_api INTERFACE "${S2SDK_STEAM_API}")
+# The same sources, in the same order, as mathlib/AMBuilder
+add_library(${S2SDK_TARGET_PREFIX}_mathlib STATIC
+	mathlib/almostequal.cpp
+	mathlib/anorms.cpp
+	mathlib/bumpvects.cpp
+	mathlib/color_conversion.cpp
+	mathlib/halton.cpp
+	mathlib/icekey.cpp
+	mathlib/imagequant.cpp
+	mathlib/lightdesc.cpp
+	mathlib/mathlib_base.cpp
+	mathlib/polyhedron.cpp
+	mathlib/powsse.cpp
+	mathlib/quantize.cpp
+	mathlib/randsse.cpp
+	mathlib/simdvectormatrix.cpp
+	mathlib/sparse_convolution_noise.cpp
+	mathlib/spherical.cpp
+	mathlib/sse.cpp
+	mathlib/sseconst.cpp
+	mathlib/ssenoise.cpp
+	mathlib/vmatrix.cpp
+)
+target_include_directories(${S2SDK_TARGET_PREFIX}_mathlib PRIVATE "${S2SDK_DIR}/public/mathlib")
 
-# Generates the given protos into a target and compiles them with it, like
-# AMBuild's Protoc tool with the protoc hl2sdk-manifests sets up. The protos are
-# relative to the SDK or absolute, and a proto's imports have to be listed too.
-# Imports are looked up in each proto's folder, then the SDK's include paths.
-# The generated headers' folder is public, for a static library of protobufs.
-# SDK is the S2SDK_TARGET_PREFIX of the SDK to use, s2sdk by default; the target
-# has to link that SDK's ::headers and ::protobuf (or ::s2sdk).
-#
-#   s2sdk_protobufs(my_plugin common/netmessages.proto common/networkbasetypes.proto)
-#   s2sdk_protobufs(my_dota_plugin SDK s2sdk_dota common/netmessages.proto)
-function(s2sdk_protobufs target)
-	cmake_parse_arguments(arg "" "SDK" "" ${ARGN})
-	if(NOT arg_SDK)
-		set(arg_SDK s2sdk)
-	endif()
-	if(NOT TARGET ${arg_SDK}_headers)
-		message(FATAL_ERROR "s2sdk_protobufs: no SDK was added with S2SDK_TARGET_PREFIX ${arg_SDK}")
-	endif()
-	get_target_property(sdk_dir ${arg_SDK}_headers INTERFACE_S2SDK_DIR)
-	get_target_property(protoc ${arg_SDK}_headers INTERFACE_S2SDK_PROTOC)
-
-	set(out "${CMAKE_CURRENT_BINARY_DIR}/${target}_protobufs")
-	file(MAKE_DIRECTORY "${out}")
-
-	set(protos)
-	set(dirs)
-	foreach(proto ${arg_UNPARSED_ARGUMENTS})
-		if(NOT IS_ABSOLUTE "${proto}")
-			set(proto "${sdk_dir}/${proto}")
-		endif()
-		get_filename_component(dir "${proto}" DIRECTORY)
-		list(APPEND protos "${proto}")
-		list(APPEND dirs "${dir}")
-	endforeach()
-	get_target_property(includes ${arg_SDK}_headers INTERFACE_INCLUDE_DIRECTORIES)
-	list(APPEND dirs ${includes})
-
-	# One protoc run per proto with its own folder first, like the Protoc tool: a
-	# proto in a subfolder of another one's folder would otherwise be seen under
-	# two names when one imports it.
-	set(sources)
-	foreach(proto ${protos})
-		get_filename_component(dir "${proto}" DIRECTORY)
-		get_filename_component(name "${proto}" NAME_WE)
-		set(proto_paths "${dir}" ${dirs})
-		list(REMOVE_DUPLICATES proto_paths)
-		list(TRANSFORM proto_paths PREPEND "--proto_path=")
-		add_custom_command(
-			OUTPUT "${out}/${name}.pb.cc" "${out}/${name}.pb.h"
-			COMMAND "${protoc}" ${proto_paths} "--cpp_out=${out}" "${proto}"
-			DEPENDS ${protos}
-			COMMENT "Generating ${name}.pb.cc"
-			VERBATIM
-		)
-		list(APPEND sources "${out}/${name}.pb.cc")
-	endforeach()
-
-	target_sources(${target} PRIVATE ${sources})
-	target_include_directories(${target} PUBLIC "${out}")
-endfunction()
-
-if(S2SDK_BUILD_TESTS)
-	add_subdirectory(tests)
+# libprotobuf: the sources its own CMake build compiles, like its AMBuilder
+set(_protobuf_dir "${S2SDK_DIR}/thirdparty/protobuf-3.21.8")
+set(_protobuf_sources)
+foreach(_list libprotobuf-lite libprotobuf)
+	file(READ "${_protobuf_dir}/cmake/${_list}.cmake" _content)
+	string(REPLACE "-" "_" _var "${_list}_files")
+	string(REGEX MATCH "set\\(${_var}[^)]*\\)" _files "${_content}")
+	string(REGEX MATCHALL "\\$\\{protobuf_SOURCE_DIR\\}/[^ \t\r\n)]+\\.cc" _cc "${_files}")
+	string(REPLACE "\${protobuf_SOURCE_DIR}" "${_protobuf_dir}" _cc "${_cc}")
+	list(APPEND _protobuf_sources ${_cc})
+endforeach()
+add_library(${S2SDK_TARGET_PREFIX}_libprotobuf STATIC ${_protobuf_sources})
+target_include_directories(${S2SDK_TARGET_PREFIX}_libprotobuf PRIVATE "${_protobuf_dir}/src")
+# Third-party code, so its warnings are left to upstream
+if(MSVC)
+	target_compile_options(${S2SDK_TARGET_PREFIX}_libprotobuf PRIVATE /w /EHsc /utf-8 /bigobj)
+else()
+	target_compile_options(${S2SDK_TARGET_PREFIX}_libprotobuf PRIVATE -w)
+	# The engine's and the prebuilt library's std::string ABI
+	target_compile_definitions(${S2SDK_TARGET_PREFIX}_libprotobuf PRIVATE _GLIBCXX_USE_CXX11_ABI=0)
 endif()
+
+# Under the names and in the folders of the repository's lib/
+if(WIN32)
+	set(_lib_folder "${CMAKE_BINARY_DIR}/lib/public/win64")
+else()
+	set(_lib_folder "${CMAKE_BINARY_DIR}/lib/linux64")
+endif()
+foreach(lib interfaces mathlib libprotobuf)
+	set(target ${S2SDK_TARGET_PREFIX}_${lib})
+	target_link_libraries(${target} PRIVATE ${S2SDK_TARGET_PREFIX}_build_settings)
+	set_target_properties(${target} PROPERTIES
+		OUTPUT_NAME ${lib}
+		PREFIX ""
+		POSITION_INDEPENDENT_CODE ON
+		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+		# A generator expression, so multi-config generators add no per-config folder
+		ARCHIVE_OUTPUT_DIRECTORY "$<1:${_lib_folder}>"
+	)
+endforeach()
