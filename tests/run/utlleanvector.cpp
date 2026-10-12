@@ -76,10 +76,85 @@ static void TestExternalPurgeKeepsContents()
 		CHECK( c == 'A' );
 }
 
+static int g_nLive = 0;
+
+// Points into itself, so a bitwise copy leaves m_pSelf pointing at the old location
+struct SelfRef_t
+{
+	SelfRef_t() : m_nValue( 0 ), m_pSelf( &m_nValue ) { ++g_nLive; }
+	SelfRef_t( int nValue ) : m_nValue( nValue ), m_pSelf( &m_nValue ) { ++g_nLive; }
+	SelfRef_t( const SelfRef_t &other ) : m_nValue( other.m_nValue ), m_pSelf( &m_nValue ) { ++g_nLive; }
+	~SelfRef_t() { --g_nLive; }
+
+	int m_nValue;
+	int *m_pSelf;
+};
+
+template< class V >
+static bool IsIntact( const V &vec )
+{
+	for ( int i = 0; i < vec.Count(); i++ )
+	{
+		if ( vec[i].m_pSelf != &vec[i].m_nValue || vec[i].m_nValue != i )
+			return false;
+	}
+
+	return true;
+}
+
+// Growing moves non-trivially copyable elements with their constructors instead of bitwise
+template< class V >
+static void TestGrowRelocates()
+{
+	g_nLive = 0;
+
+	{
+		// Interleaved growth keeps realloc from extending either block in place
+		V vec1, vec2;
+		for ( int i = 0; i < 100; i++ )
+		{
+			vec1.AddToTail( SelfRef_t( i ) );
+			vec2.AddToTail( SelfRef_t( i ) );
+		}
+
+		CHECK( vec1.Count() == 100 );
+		CHECK( IsIntact( vec1 ) );
+		CHECK( IsIntact( vec2 ) );
+		CHECK( g_nLive == 200 );
+	}
+
+	CHECK( g_nLive == 0 );
+}
+
+static void TestExternalGrowRelocates()
+{
+	g_nLive = 0;
+
+	{
+		alignas( SelfRef_t ) unsigned char buffer[ 2 * sizeof( SelfRef_t ) ];
+		SelfRef_t *pBuffer = reinterpret_cast<SelfRef_t *>( buffer );
+		Construct( &pBuffer[0], 0 );
+		Construct( &pBuffer[1], 1 );
+
+		CUtlLeanVector<SelfRef_t> vec( pBuffer, 2, 2 );
+		vec.AddToTail( SelfRef_t( 2 ) );
+
+		CHECK( !vec.IsExternallyAllocated() );
+		CHECK( vec.Count() == 3 );
+		CHECK( IsIntact( vec ) );
+		CHECK( g_nLive == 3 );
+	}
+
+	CHECK( g_nLive == 0 );
+}
+
 int main()
 {
 	TestExternalPurge();
 	TestExternalPurgeKeepsContents();
+	TestGrowRelocates<CUtlLeanVector<SelfRef_t>>();
+	TestGrowRelocates<CUtlLeanVectorFixedGrowable<SelfRef_t, 2>>();
+	TestExternalGrowRelocates();
 
 	if ( g_nFailures )
 	{

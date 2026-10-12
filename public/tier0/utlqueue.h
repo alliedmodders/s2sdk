@@ -16,9 +16,12 @@
 
 enum QueueIter_t { QUEUE_ITERATOR_INVALID = 0xffffffff };
 
+// Element is constructed and destructed by the queue, not by the node vector
 template< class T >
 struct CUtlQueueNode_t
 {
+	typedef void TriviallyRelocatable_t;
+
 	T m_Element;
 };
 

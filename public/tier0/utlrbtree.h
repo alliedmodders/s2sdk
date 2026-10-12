@@ -199,9 +199,12 @@ struct UtlRBTreeLinks_t
 	I  m_Tag;
 };
 
+// Data is constructed and destructed by the tree, not by the node vector
 template < class T, class I >
 struct UtlRBTreeNode_t : public UtlRBTreeLinks_t< I >
 {
+	typedef void TriviallyRelocatable_t;
+
 	T  m_Data;
 };
 
