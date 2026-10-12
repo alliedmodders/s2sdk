@@ -138,8 +138,8 @@ public:
 	virtual CUtlQueue<CNetMessage *> *GetReceivedMessageQueue() = 0;
 	// AMNOTE: Writes the incoming flow's dropped and late frame percentages, which the peer reads in SetRemoteFramerate
 	virtual void	WriteFrameQualityToTick( CNetMessagePB<CNETMsg_Tick> *pMsg ) = 0;
-	// AMNOTE: Received messages beyond the convar's value are reported
-	virtual void	SetQueuedMessageLimitConVar( CConVar<int> *pQueuedMessageLimit ) = 0;
+	// AMNOTE: 1 applies the net_limit_sv_recv_* convars to the connection's receive limits, other values use the defaults
+	virtual void	SetRecvLimitMode( int nMode ) = 0;
 };
 
 
