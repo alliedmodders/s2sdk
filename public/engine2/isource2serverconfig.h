@@ -16,7 +16,7 @@
 #include "appframework/iappsystem.h"
 #include "tier0/utlstring.h"
 #include "tier0/keyvalues.h"
-#include "entity2/entityidentity.h"
+#include "playerslot.h"
 #include <steam/steamclientpublic.h>
 
 
@@ -51,7 +51,7 @@ public:
 
 	virtual bool		ShouldNotifyLocalClientConnectionStateChanges() = 0;
 
-	virtual void		OnClientFullyConnect( CEntityIndex nEntityIndex ) = 0;
+	virtual void		OnClientFullyConnect( CPlayerSlot slot ) = 0;
 
 	virtual void		GetHostStateLoopModeInfo( HostStateLoopModeType_t type, CUtlString &loopModeName, KeyValues **ppLoopModeOptions ) = 0;
 
