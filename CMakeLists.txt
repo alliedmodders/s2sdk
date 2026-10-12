@@ -121,9 +121,9 @@ endif()
 
 # Under the names and in the folders of the repository's lib/
 if(WIN32)
-	set(_lib_folder "${CMAKE_BINARY_DIR}/lib/public/win64")
+	set(_lib_folder "${CMAKE_CURRENT_BINARY_DIR}/lib/public/win64")
 else()
-	set(_lib_folder "${CMAKE_BINARY_DIR}/lib/linux64")
+	set(_lib_folder "${CMAKE_CURRENT_BINARY_DIR}/lib/linux64")
 endif()
 foreach(lib interfaces mathlib libprotobuf)
 	set(target ${S2SDK_TARGET_PREFIX}_${lib})
