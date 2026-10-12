@@ -30,7 +30,6 @@ struct EventServerPostSimulate_t;
 struct SpawnGroupDesc_t;
 class CServerChangelevelState;
 class ISceneViewDebugOverlays;
-class INetworkMessageInternal;
 class CNetMessage;
 class IRecipientFilter;
 class CSteamID;
@@ -71,6 +70,7 @@ public:
 
 	// returns current client limit
 	virtual int		GetMaxClients( void ) const = 0;
+	virtual float	GetTickInterval( void ) const = 0;
 
 	virtual void	ServerAdvanceTick( const EventServerAdvanceTick_t & ) = 0;
 	virtual void	ServerPollNetworking( const EventServerPollNetworking_t & ) = 0;
@@ -140,7 +140,7 @@ public:
 	// Adds the server to the overlays' listeners to broadcast what they draw, or removes it
 	virtual void	SetBroadcastDebugOverlays( ISceneViewDebugOverlays *pOverlays, bool bBroadcast ) = 0;
 
-	virtual void	BroadcastMessage( INetworkMessageInternal *pNetMessage, const CNetMessage *pData, IRecipientFilter *filter ) = 0;
+	virtual void	BroadcastMessage( const CNetMessage *pData, IRecipientFilter *filter ) = 0;
 	virtual bool	IsRecordingDemo() = 0;
 
 	virtual uint8	GetClientConnectionType( CPlayerSlot slot ) = 0;
