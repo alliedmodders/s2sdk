@@ -39,7 +39,10 @@ struct SOID_t
 	bool operator<( const SOID_t &rhs ) const { return m_type != rhs.m_type ? m_type < rhs.m_type : m_id < rhs.m_id; }
 
 	uint64 m_id;
-	uint32 m_type;
+	// AMNOTE: Always 0
+	uint16 m_unk001;
+	uint16 m_type;
+	uint32 m_padding;
 };
 
 } // namespace GCSDK
