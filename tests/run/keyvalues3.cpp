@@ -772,6 +772,13 @@ static void TestBoolFromDouble( KeyValues3 *root )
 	CHECK( root->GetBool() );
 }
 
+static void TestArrayInsertNonArray( KeyValues3 *root )
+{
+	root->SetInt( 5 );
+	CHECK( root->ArrayInsertElementBefore( 0 ) == nullptr );
+	CHECK( root->GetTypeEx() == KV3_TYPEEX_INT && root->GetInt() == 5 );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -811,6 +818,7 @@ int main()
 	RunTest( TestStringTypes );
 	RunTest( TestEmptyMemberName );
 	RunTest( TestBoolFromDouble );
+	RunTest( TestArrayInsertNonArray );
 
 	if ( g_nFailures )
 	{
