@@ -56,6 +56,8 @@ public:
 	// also implement Find/Insert/Remove functions that take const char* params.
 	typedef const char* AltArgumentType_t;
 
+	typedef void TriviallyRelocatable_t;
+
 	CUtlString();
 	CUtlString(const char *pString);
 	CUtlString(const char *pString, int length);
