@@ -1273,7 +1273,10 @@ T KeyValues3::GetValue( T defaultValue ) const
 		case KV3_TYPE_UINT:
 			return ( GetSubType() != KV3_SUBTYPE_POINTER ) ? ( T )m_Data.m_UInt : defaultValue;
 		case KV3_TYPE_DOUBLE:
-			return ( T )m_Data.m_Double;
+			if constexpr ( std::is_same_v<T, bool> )
+				return ( int64 )m_Data.m_Double != 0;
+			else
+				return ( T )m_Data.m_Double;
 		case KV3_TYPE_STRING:
 			return FromString<T>( defaultValue );
 		default:
