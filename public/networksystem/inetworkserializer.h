@@ -47,31 +47,6 @@ typedef uint NetworkCategoryId;
 
 typedef CNetMessage *( *NetMessageAllocateFn )();
 
-struct NetMessageInfo_t
-{
-	CUtlString m_szName;
-	NetMessageAllocateFn m_pfnAllocateMessage;
-	CUtlString m_szGroup;
-	NetworkMessageId m_MessageId;
-	int m_nCategories;
-	int m_unk002;
-	NetworkGroupId m_GroupId;
-	uint8 m_nDefaultBufferType : 5;
-	uint8 m_bCannotBeNetworked : 1;
-	uint8 m_bOkayToRedispatch : 1;
-	uint8 m_unk001 : 1; // Set for messages registered without a group (CSVCMsg_PacketEntities), excludes them from per-group message stats
-
-	const char *GetUnscopedName() const { return m_szName.Get(); }
-	const char *GetGroupName() const { return m_szGroup.Get(); }
-	NetworkMessageId GetMessageId() const { return m_MessageId; }
-	int GetCategoryMask() const { return m_nCategories; }
-	NetworkGroupId GetGroupId() const { return m_GroupId; }
-	NetChannelBufType_t GetDefaultBufferType() const { return (NetChannelBufType_t)m_nDefaultBufferType; }
-	bool CannotBeNetworked() const { return m_bCannotBeNetworked; }
-
-	CNetMessage *AllocateMessage() const { return m_pfnAllocateMessage(); }
-};
-
 struct NetworkRecipientsFilter_t
 {
 	class CFilterOwner {};
