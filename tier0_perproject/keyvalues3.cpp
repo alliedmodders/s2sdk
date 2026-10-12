@@ -593,7 +593,7 @@ KeyValues3* KeyValues3::ArrayInsertElementBefore( int elem )
 	NormalizeArray();
 
 	if ( GetTypeEx() != KV3_TYPEEX_ARRAY )
-		PrepareForType( KV3_TYPEEX_ARRAY, KV3_SUBTYPE_ARRAY );
+		return nullptr;
 
 	return *m_Data.m_pArray->InsertMultipleBefore( this, elem, 1 );
 }
