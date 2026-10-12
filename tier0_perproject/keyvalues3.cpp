@@ -2116,7 +2116,10 @@ void CKeyValues3Table::RenameMember( KeyValues3 *parent, KV3MemberId_t id, const
 	StoreKeyName( parent, NamesBase()[id], FlagsBase()[id], newName.GetString(), newName.GetSymId() );
 
 	if ( m_pFastSearch )
+	{
 		m_pFastSearch->m_ignore = true;
+		m_pFastSearch->m_ignores_counter = 1;
+	}
 }
 
 void CKeyValues3Table::RemoveAll( KeyValues3 *parent, int new_size )
