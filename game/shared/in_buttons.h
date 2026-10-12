@@ -55,7 +55,8 @@ enum InputBitMask_t : int64
 	IN_MOVE_DOWN		= (1ll << 58),
 	IN_DUCK_TOGGLE		= (1ll << 59),
 	IN_CANCEL_ABILITY	= (1ll << 60),
-	IN_COSMETIC_1		= (1ll << 61)
+	IN_COSMETIC_1		= (1ll << 61),
+	IN_DOWN_DASH		= (1ll << 62),
 };
 
 #endif // IN_BUTTONS_H
