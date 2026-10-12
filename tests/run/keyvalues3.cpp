@@ -763,6 +763,15 @@ static void TestEmptyMemberName( KeyValues3 *root )
 	CHECK( copy.GetMemberInt( "" ) == 5 );
 }
 
+static void TestBoolFromDouble( KeyValues3 *root )
+{
+	// Converted through int64, so fractions below one are false
+	root->SetDouble( 0.5 );
+	CHECK( !root->GetBool() );
+	root->SetDouble( -2.0 );
+	CHECK( root->GetBool() );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -801,6 +810,7 @@ int main()
 	TestUndersizedNodes();
 	RunTest( TestStringTypes );
 	RunTest( TestEmptyMemberName );
+	RunTest( TestBoolFromDouble );
 
 	if ( g_nFailures )
 	{
