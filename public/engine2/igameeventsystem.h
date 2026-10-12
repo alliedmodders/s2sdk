@@ -41,7 +41,7 @@ public:
 
 	// Posts the event to all clients when bAllClients is set, even tho the function name tells otherwise
 	// Providing nSize has no effect and is unused.
-	virtual void PostEntityEventAbstract( const CBaseHandle &hndl, INetworkMessageInternal *pEvent, const CNetMessage *pData, unsigned long nSize, NetChannelBufType_t bufType, bool bAllClients ) = 0;
+	virtual void PostEntityEventAbstract( const CBaseHandle &hndl, NetMessageInfo_t *pEvent, const CNetMessage *pData, unsigned long nSize, NetChannelBufType_t bufType, bool bAllClients ) = 0;
 
 	virtual void ProcessQueuedEvents() = 0;
 	virtual CEntityIndex GetEventSource() const = 0;

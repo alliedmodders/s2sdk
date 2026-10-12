@@ -37,28 +37,6 @@ typedef uint NetworkCategoryId;
 
 typedef CNetMessage *( *NetMessageAllocateFn )();
 
-abstract_class INetworkMessageInternal
-{
-public:
-	virtual ~INetworkMessageInternal() = 0;
-
-	virtual const char *GetUnscopedName() = 0;
-	virtual NetMessageInfo_t *GetNetMessageInfo() = 0;
-
-	virtual void SetMessageId( NetworkMessageId nMessageId ) = 0;
-
-	virtual void AddCategoryMask( int nMask, bool bRequireHandler ) = 0;
-
-	virtual void SwitchMode( NetworkValidationMode_t nMode ) = 0;
-
-	virtual CNetMessage *AllocateMessage() = 0;
-
-	// Calls to INetworkMessages::SerializeMessageInternal
-	virtual bool Serialize( bf_write &pBuf, const CNetMessage *pData ) = 0;
-	// Calls to INetworkMessages::UnserializeMessageInternal
-	virtual bool Unserialize( bf_read &pBuf, CNetMessage *pData ) = 0;
-};
-
 struct NetworkRecipientsFilter_t
 {
 	class CFilterOwner {};
