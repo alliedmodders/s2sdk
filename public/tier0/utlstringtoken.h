@@ -31,7 +31,7 @@ public:
 	FORCEINLINE CUtlStringToken( uint32 nHashCode = 0 ) : m_nHashCode( nHashCode ) {}
 
 	template <size_t N>
-	constexpr FORCEINLINE CUtlStringToken( const char (&str)[N] ) : m_nHashCode( MurmurHash2LowerCase( str, STRINGTOKEN_MURMURHASH_SEED ) ) { }
+	constexpr FORCEINLINE CUtlStringToken( const char (&str)[N] ) : m_nHashCode( str[0] ? MurmurHash2LowerCase( str, STRINGTOKEN_MURMURHASH_SEED ) : 0 ) { }
 
 	// AMNOTE: Template is required to enforce compiler to pick the correct overload when inlining
 	// as otherwise non templated overload would always win the pick thus no const folding would happen
