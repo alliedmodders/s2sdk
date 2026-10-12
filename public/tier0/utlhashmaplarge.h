@@ -312,6 +312,8 @@ private:
 	// Key and element are constructed and destructed by the map, not by the node vector
 	struct Node_t
 	{
+		typedef void TriviallyRelocatable_t;
+
 		Node_t() {}
 		~Node_t() {}
 

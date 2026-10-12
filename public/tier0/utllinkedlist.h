@@ -40,9 +40,12 @@
 //		64-bit only; otherwise performance plummets.
 //-----------------------------------------------------------------------------
 
+// Element is constructed and destructed by the list, not by the node vector
 template <class T, class I> 
 struct UtlLinkedListElem_t
 {
+	typedef void TriviallyRelocatable_t;
+
 	UtlLinkedListElem_t() {}
 
 	T  m_Element;

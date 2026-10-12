@@ -27,6 +27,55 @@
 #define FOR_EACH_LEANVEC( vecName, iteratorName ) \
 	for ( auto iteratorName = vecName.First(); vecName.IsValidIterator( iteratorName ); iteratorName = vecName.Next( iteratorName ) )
 
+//-----------------------------------------------------------------------------
+// Whether elements can be relocated by copying their bytes. Container nodes whose
+// contents are constructed and destructed by the container declare TriviallyRelocatable_t.
+//-----------------------------------------------------------------------------
+template< class T, class = void >
+struct IsTriviallyRelocatable : std::is_trivially_copyable<T> {};
+
+template< class T >
+struct IsTriviallyRelocatable< T, std::void_t<typename T::TriviallyRelocatable_t> > : std::true_type {};
+
+//-----------------------------------------------------------------------------
+// Moves elements into uninitialized memory, destructing the originals
+//-----------------------------------------------------------------------------
+template< class T >
+inline void RelocateLeanVectorElements( T *pDest, T *pSrc, int nCount )
+{
+	if constexpr ( IsTriviallyRelocatable<T>::value )
+	{
+		V_memmove( pDest, pSrc, nCount * sizeof( T ) );
+	}
+	else
+	{
+		for ( int i = 0; i < nCount; i++ )
+		{
+			MoveConstruct( &pDest[ i ], std::move( pSrc[ i ] ) );
+			Destruct( &pSrc[ i ] );
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Grows an owned allocation, only trivially relocatable elements are reallocated in place
+//-----------------------------------------------------------------------------
+template< class A, class T, class I >
+inline T *ReallocLeanVectorElements( T *pMemory, int nCount, I &nAllocated )
+{
+	if constexpr ( IsTriviallyRelocatable<T>::value )
+	{
+		return A::Realloc( pMemory, nAllocated, nAllocated );
+	}
+	else
+	{
+		T *pNew = A::template Alloc<T>( nAllocated, nAllocated );
+		RelocateLeanVectorElements( pNew, pMemory, nCount );
+		A::Free( pMemory );
+		return pNew;
+	}
+}
+
 template< class T, class I, class A >
 class CUtlLeanVectorBase
 {
@@ -213,11 +262,11 @@ void CUtlLeanVectorBase<T, I, A>::EnsureCapacity( int num, bool force )
 	if(IsExternallyAllocated())
 	{
 		pNew = CAllocator::template Alloc<T>( nNewAllocated, nNewAllocated );
-		V_memmove( pNew, Base(), m_nCount * sizeof( T ) );
+		RelocateLeanVectorElements( pNew, Base(), m_nCount );
 	}
 	else
 	{
-		pNew = CAllocator::Realloc( m_pElements, nNewAllocated, nNewAllocated );
+		pNew = ReallocLeanVectorElements<CAllocator>( m_pElements, m_nCount, nNewAllocated );
 	}
 
 	m_pElements = pNew;
@@ -392,19 +441,22 @@ void CUtlLeanVectorFixedGrowableBase<T, N, I, A>::EnsureCapacity( int num, bool 
 {
 	if ( num <= NumAllocated() )
 		return;
+
+	if((size_t)num <= FIXED_CAPACITY)
+	{
+		m_nAllocated = num;
+		return;
+	}
 	
 	I nMinAllocated = (31 + sizeof( T )) / sizeof( T );
 	I nMaxAllocated = (std::numeric_limits<std::make_signed_t<I>>::max)();
 	I nNewAllocated = num;
 
-	if ( ( size_t )num > FIXED_CAPACITY )
+	if((size_t)num > (size_t)nMaxAllocated)
 	{
-		if ( (uint64)num > (uint64)nMaxAllocated )
-		{
-			Msg( "%s allocation count overflow( %llu > %llu )\n", __FUNCTION__, ( uint64 )num, ( uint64 )nMaxAllocated );
-			Plat_FatalError( "%s allocation count overflow", __FUNCTION__ );
-			DebuggerBreak();
-		}
+		Msg( "%s allocation count overflow( %llu > %llu )\n", __FUNCTION__, (size_t)num, (size_t)nMaxAllocated );
+		Plat_FatalError( "%s allocation count overflow", __FUNCTION__ );
+		DebuggerBreak();
 	}
 
 	if(!force)
@@ -413,12 +465,12 @@ void CUtlLeanVectorFixedGrowableBase<T, N, I, A>::EnsureCapacity( int num, bool 
 	T *pNew = nullptr;
 	if(!IsExternallyAllocated() && (size_t)NumAllocated() > FIXED_CAPACITY)
 	{
-		pNew = CAllocator::Realloc( m_pElements, nNewAllocated, nNewAllocated );
+		pNew = ReallocLeanVectorElements<CAllocator>( m_pElements, m_nCount, nNewAllocated );
 	}
 	else
 	{
 		pNew = CAllocator::template Alloc<T>( nNewAllocated, nNewAllocated );
-		V_memmove( pNew, Base(), m_nCount * sizeof( T ) );
+		RelocateLeanVectorElements( pNew, Base(), m_nCount );
 	}
 	
 	m_pElements = pNew;
@@ -461,10 +513,7 @@ class CUtlLeanVectorImpl : public B
 {
 	typedef B BaseClass;
 public:
-
-	// constructor, destructor
-	CUtlLeanVectorImpl( I growSize = 0, I initSize = 0 ) : BaseClass( growSize, initSize ) {};
-	CUtlLeanVectorImpl( T *pMemory, I allocationCount, I numElements = 0 ) : BaseClass( pMemory, allocationCount, numElements ) {};
+	using BaseClass::BaseClass;
 	~CUtlLeanVectorImpl() {};
 
 	// Copy the array.
