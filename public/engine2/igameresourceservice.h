@@ -18,6 +18,8 @@ class CGameResourceManifestLock;
 abstract_class IGameResourceManifestLoadCompletionCallback
 {
 public:
+	// AMNOTE: Game callbacks delete themselves here, spawn groups do nothing
+	virtual void Release() = 0;
 	virtual void OnGameResourceManifestLoaded( HGameResourceManifest hManifest, int nResourceCount, ResourceHandle_t * pResourceHandles ) = 0;
 };
 
