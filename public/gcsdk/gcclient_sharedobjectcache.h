@@ -91,6 +91,10 @@ public:
 	/// necessary.
 	virtual void SOCacheSubscribed( SOID_t owner, CGCClientSharedObjectCache *pSOC, ESOCacheEvent eEvent ) = 0;
 
+	// AMNOTE: Called after the cache's objects changed: once a (re)subscribe has sent its object callbacks, with the
+	// same eEvent, and after each GC create, update or destroy, with eSOCacheEvent_Incremental
+	virtual void SOCacheChanged( SOID_t owner, CGCClientSharedObjectCache *pSOC, ESOCacheEvent eEvent ) = 0;
+
 	/// Called to notify a listener that he is no longer subscribed to the cache.
 	///
 	/// eEvent will be one of:
