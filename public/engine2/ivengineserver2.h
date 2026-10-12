@@ -33,7 +33,6 @@ class CGamestatsData;
 class CSharedEdictChangeInfo;
 class IPVS;
 class CGameInfo;
-class INetworkMessageInternal;
 class CNetMessage;
 enum SignonState_t : int;
 
@@ -84,7 +83,7 @@ public:
 	virtual void		SetFrameTimeAmnesty( const char *amnesty, int, float frametime ) = 0;
 	virtual const char *GetFrameTimeAmnesty( bool check_cvar ) = 0;
 
-	virtual void		SetFramePerformanceTag( const char *pszTag, int nValue, int, float flDuration ) = 0;
+	virtual void		SetFramePerformanceTag( const char *pszTag, uint16 nValue ) = 0;
 
 	virtual void		ShowFrameTimeReport( void *, bool, LoggingChannelID_t channel = -1 ) = 0;
 
@@ -256,7 +255,7 @@ public:
 	virtual void StartAutoRecording() = 0;
 	virtual void RecordDemo( const char *pszFilename ) = 0;
 	virtual void StopRecordingDemo( const CGameInfo *pGameInfo ) = 0;
-	virtual void BroadcastEvent( INetworkMessageInternal *pEvent, const CNetMessage *pData ) = 0;
+	virtual void BroadcastEvent( const CNetMessage *pData ) = 0;
 	// Returns an empty string when not recording
 	virtual const char *GetTvRecordingDemoFilename() = 0;
 	virtual const char *GetMapName() = 0;
