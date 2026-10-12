@@ -769,13 +769,29 @@ bool KeyValues3::ReadArrayInt32( int dest_size, int32* data ) const
 					data[ i ] = ( int32 )m_Data.m_Array.m_u64[ i ];
 				break;
 			}
-			default: 
+			case KV3_TYPEEX_ARRAY_FLOAT32:
+			{
+				src_size = m_nNumArrayElements;
+				int count = MIN( src_size, dest_size );
+				for ( int i = 0; i < count; ++i )
+					data[ i ] = ( int32 )m_Data.m_Array.m_f32[ i ];
+				break;
+			}
+			case KV3_TYPEEX_ARRAY_FLOAT64:
+			{
+				src_size = m_nNumArrayElements;
+				int count = MIN( src_size, dest_size );
+				for ( int i = 0; i < count; ++i )
+					data[ i ] = ( int32 )m_Data.m_Array.m_f64[ i ];
+				break;
+			}
+			default:
 				break;
 		}
 	}
 
 	if ( src_size < dest_size )
-		memset( &data[ src_size ], 0, ( dest_size - src_size ) * sizeof( int32 ) ); 
+		memset( &data[ src_size ], 0, ( dest_size - src_size ) * sizeof( int32 ) );
 
 	return ( src_size == dest_size );
 }
@@ -820,7 +836,55 @@ bool KeyValues3::ReadArrayFloat32( int dest_size, float32* data ) const
 					data[ i ] = ( float32 )m_Data.m_Array.m_f64[ i ];
 				break;
 			}
-			default: 
+			case KV3_TYPEEX_ARRAY_INT16:
+			{
+				src_size = m_nNumArrayElements;
+				int count = MIN( src_size, dest_size );
+				for ( int i = 0; i < count; ++i )
+					data[ i ] = ( float32 )m_Data.m_Array.m_i16[ i ];
+				break;
+			}
+			case KV3_TYPEEX_ARRAY_INT32:
+			{
+				src_size = m_nNumArrayElements;
+				int count = MIN( src_size, dest_size );
+				for ( int i = 0; i < count; ++i )
+					data[ i ] = ( float32 )m_Data.m_Array.m_i32[ i ];
+				break;
+			}
+			case KV3_TYPEEX_ARRAY_UINT8_SHORT:
+			{
+				src_size = m_nNumArrayElements;
+				int count = MIN( src_size, dest_size );
+				for ( int i = 0; i < count; ++i )
+					data[ i ] = ( float32 )m_Data.m_Array.m_u8Short[ i ];
+				break;
+			}
+			case KV3_TYPEEX_ARRAY_INT16_SHORT:
+			{
+				src_size = m_nNumArrayElements;
+				int count = MIN( src_size, dest_size );
+				for ( int i = 0; i < count; ++i )
+					data[ i ] = ( float32 )m_Data.m_Array.m_i16Short[ i ];
+				break;
+			}
+			case KV3_TYPEEX_ARRAY_UINT32:
+			{
+				src_size = m_nNumArrayElements;
+				int count = MIN( src_size, dest_size );
+				for ( int i = 0; i < count; ++i )
+					data[ i ] = ( float32 )( float64 )m_Data.m_Array.m_u32[ i ];
+				break;
+			}
+			case KV3_TYPEEX_ARRAY_UINT64:
+			{
+				src_size = m_nNumArrayElements;
+				int count = MIN( src_size, dest_size );
+				for ( int i = 0; i < count; ++i )
+					data[ i ] = ( float32 )( float64 )m_Data.m_Array.m_u64[ i ];
+				break;
+			}
+			default:
 				break;
 		}
 	}

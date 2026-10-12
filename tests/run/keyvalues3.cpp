@@ -779,6 +779,22 @@ static void TestArrayInsertNonArray( KeyValues3 *root )
 	CHECK( root->GetTypeEx() == KV3_TYPEEX_INT && root->GetInt() == 5 );
 }
 
+static void TestReadTypedArrays( KeyValues3 *root )
+{
+	root->SetVector( Vector( 1.0f, 2.0f, 3.0f ) );
+	CHECK( root->GetTypeEx() == KV3_TYPEEX_ARRAY_FLOAT32 );
+	CHECK( root->GetColor() == Color( 1, 2, 3, 255 ) );
+
+	CUtlBuffer buffer( g_Int16ArraysKV3, sizeof( g_Int16ArraysKV3 ), CUtlBuffer::READ_ONLY );
+	CUtlString error;
+	CKV3Arena arena;
+	CHECK( LoadKV3( arena.Root(), &error, &buffer, g_KV3Format_Generic, "test" ) );
+
+	KeyValues3 *b = arena.Root()->FindMember( "b" );
+	CHECK( b && b->GetTypeEx() == KV3_TYPEEX_ARRAY_INT16 );
+	CHECK( b && b->GetVector() == Vector( 10.0f, -20.0f, 300.0f ) );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -819,6 +835,7 @@ int main()
 	RunTest( TestEmptyMemberName );
 	RunTest( TestBoolFromDouble );
 	RunTest( TestArrayInsertNonArray );
+	RunTest( TestReadTypedArrays );
 
 	if ( g_nFailures )
 	{
