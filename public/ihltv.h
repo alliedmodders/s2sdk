@@ -19,7 +19,7 @@
 class CNetworkGameServerBase;
 class CPlayerSlot;
 class IHLTVDirector;
-class IGameEvent;
+class CNetMessage;
 class CUtlBuffer;
 class CSteamID;
 class CGameInfo;
@@ -51,7 +51,7 @@ public:
 	virtual bool	IsDemoPlayback( void ) = 0; // true if this is a HLTV demo
 	virtual bool	IsActive( void ) = 0;
 
-	virtual void	BroadcastEvent(IGameEvent *event) = 0; // send a director command to all specs
+	virtual void	BroadcastEvent( const CNetMessage *pData ) = 0; // send a director command to all specs
 	
 	virtual bool	IsRecording() = 0;
 	virtual const char	*GetRecordingDemoFilename ( void ) = 0;
