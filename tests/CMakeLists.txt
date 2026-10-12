@@ -23,9 +23,10 @@ s2sdk_protobufs(s2sdk_check
 	# Messages for the tests, from a proto without imports
 	common/source2_steam_stats.proto
 )
-# Fail on symbols the libraries don't have, which shared libraries allow by default
+# Deadlock ships no Linux build, so its Linux tier0 lacks symbols the SDK uses:
+# Linux builds link s2sdk_check without -z defs and skip the test programs
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-	target_link_options(s2sdk_check PRIVATE -Wl,-z,defs)
+	return()
 endif()
 
 # Runs KeyValues3 against tier0, so it needs the game's tier0 to start

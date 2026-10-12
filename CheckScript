@@ -67,10 +67,6 @@ for sdk_target in SdkHelpers.sdk_targets:
   SdkHelpers.configureCxx(builder, binary, sdk)
   compiler = binary.compiler
 
-  # Fail on symbols the libraries don't have, which shared libraries allow by default
-  if compiler.target.platform == 'linux':
-    compiler.linkflags += ['-Wl,-z,defs']
-
   binary.custom = [builder.tools.Protoc(protoc = sdk_target.protoc, sources = [
     os.path.join(builder.sourcePath, 'common', 'network_connection.proto'),
     os.path.join(builder.sourcePath, 'common', 'networkbasetypes.proto'),
@@ -82,6 +78,10 @@ for sdk_target in SdkHelpers.sdk_targets:
 
 builder.Add(project)
 
+# Deadlock ships no Linux build, so its Linux tier0 lacks symbols the SDK uses:
+# Linux builds link sdkcheck without -z defs and skip the test programs
+test_targets = [t for t in SdkHelpers.sdk_targets if t.cxx.target.platform != 'linux']
+
 # Runs KeyValues3 against tier0, so it needs the game's tier0 to start
 kv3test = builder.ProgramProject('keyvalues3_test')
 kv3test.sources = [
@@ -90,7 +90,7 @@ kv3test.sources = [
   os.path.join('public', 'tier0', 'memoverride.cpp'),
 ]
 
-for sdk_target in SdkHelpers.sdk_targets:
+for sdk_target in test_targets:
   binary = kv3test.Configure(sdk_target.cxx, 'keyvalues3_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
   SdkHelpers.configureCxx(builder, binary, sdk)
 
@@ -103,7 +103,7 @@ itertest.sources = [
   os.path.join('public', 'tier0', 'memoverride.cpp'),
 ]
 
-for sdk_target in SdkHelpers.sdk_targets:
+for sdk_target in test_targets:
   binary = itertest.Configure(sdk_target.cxx, 'utliterators_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
   SdkHelpers.configureCxx(builder, binary, sdk)
 
@@ -116,7 +116,7 @@ symtest.sources = [
   os.path.join('public', 'tier0', 'memoverride.cpp'),
 ]
 
-for sdk_target in SdkHelpers.sdk_targets:
+for sdk_target in test_targets:
   binary = symtest.Configure(sdk_target.cxx, 'utlsymbollarge_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
   SdkHelpers.configureCxx(builder, binary, sdk)
 
@@ -129,7 +129,7 @@ lvtest.sources = [
   os.path.join('public', 'tier0', 'memoverride.cpp'),
 ]
 
-for sdk_target in SdkHelpers.sdk_targets:
+for sdk_target in test_targets:
   binary = lvtest.Configure(sdk_target.cxx, 'utlleanvector_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
   SdkHelpers.configureCxx(builder, binary, sdk)
 
@@ -142,7 +142,7 @@ bstest.sources = [
   os.path.join('public', 'tier0', 'memoverride.cpp'),
 ]
 
-for sdk_target in SdkHelpers.sdk_targets:
+for sdk_target in test_targets:
   binary = bstest.Configure(sdk_target.cxx, 'bufferstring_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
   SdkHelpers.configureCxx(builder, binary, sdk)
 
