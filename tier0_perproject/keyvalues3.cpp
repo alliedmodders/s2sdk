@@ -1936,8 +1936,8 @@ void CKeyValues3Table::StoreKeyName( KeyValues3 *parent, Name_t &out_buffer, Fla
 			else
 			{
 				const char *alloced_string = context->AllocString( input_string, &sym_id );
-				
-				if(sym_id >= 0)
+
+				if(sym_id != UTL_INVAL_SYMBOL_LARGE)
 				{
 					out_buffer.m_SymId = sym_id;
 					flags |= MEMBER_FLAG_LARGE_SYMBOL;
