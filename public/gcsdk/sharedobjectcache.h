@@ -39,8 +39,6 @@ public:
 
 private:
 	CSharedObjectVec m_vecObjects;
-	// AMNOTE: Hash map of the key lookup tables CSharedObject::FindKeyIndex searches
-	uint8 m_KeyIndices[80];
 	int m_nTypeID;
 };
 

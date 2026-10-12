@@ -38,8 +38,7 @@ public:
 	virtual bool BIsKeyLess( const CSharedObject &soRHS ) const override;
 	virtual void Copy( const CSharedObject &soRHS ) override;
 	virtual void Dump() const override;
-	virtual int FindKeyIndex( const CUtlVector<CSharedObject *> &vecObjects, const CUtlVector<int> &vecIndices ) const override;
-	virtual bool BAddToMessage( std::string *pBuffer, bool bUnk ) const override;
+	virtual bool BAddToMessage( std::string *pBuffer ) const override;
 	virtual bool BAddDestroyToMessage( std::string *pBuffer ) const override;
 
 protected:
