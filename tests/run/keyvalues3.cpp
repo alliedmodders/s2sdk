@@ -732,6 +732,20 @@ static void TestUndersizedNodes()
 		free( malloc( 16 + i * 8 ) );
 }
 
+static void TestStringTypes( KeyValues3 *root )
+{
+	// A value constructed as a string holds an empty short string
+	KeyValues3 str( KV3_TYPEEX_STRING );
+	CHECK( str.GetTypeEx() == KV3_TYPEEX_STRING_SHORT );
+	CHECK( str.GetString() && !strcmp( str.GetString(), "" ) );
+
+	// External strings are referenced whatever their length
+	static const char szShort[] = "abc";
+	root->SetStringExternal( szShort );
+	CHECK( root->GetTypeEx() == KV3_TYPEEX_STRING_EXTERN );
+	CHECK( root->GetString() == szShort );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -768,6 +782,7 @@ int main()
 	RunTest( TestFindMemberHint );
 	TestMetaData();
 	TestUndersizedNodes();
+	RunTest( TestStringTypes );
 
 	if ( g_nFailures )
 	{

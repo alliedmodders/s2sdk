@@ -26,8 +26,9 @@ static int CalcNewKV3Capacity( int old_count, int requested_count, int min_count
 	return max_count;
 }
 
-KeyValues3::KeyValues3( KV3TypeEx_t type, KV3SubType_t subtype ) : 
-	KeyValues3( -1, type, subtype )
+// A string made without an arena starts out as an empty short string
+KeyValues3::KeyValues3( KV3TypeEx_t type, KV3SubType_t subtype ) :
+	KeyValues3( -1, type == KV3_TYPEEX_STRING ? KV3_TYPEEX_STRING_SHORT : type, subtype )
 {
 }
 
@@ -443,7 +444,8 @@ const char* KeyValues3::GetString( const char* defaultValue ) const
 		case KV3_TYPEEX_STRING_SYMBOL:
 		{
 			CKV3Arena* context = GetContext();
-			return context ? context->LookupString( m_Data.m_StringSymbol ) : defaultValue;
+			const char *str = context ? context->LookupString( m_Data.m_StringSymbol ) : nullptr;
+			return str ? str : "";
 		}
 		default:
 			return defaultValue;
@@ -469,16 +471,8 @@ void KeyValues3::SetString( const char* pString, KV3SubType_t subtype )
 
 void KeyValues3::SetStringExternal( const char* pString, KV3SubType_t subtype )
 {
-	if ( strlen( pString ) < sizeof( m_Data.m_szStringShort ) )
-	{
-		PrepareForType( KV3_TYPEEX_STRING_SHORT, subtype );
-		V_strncpy( m_Data.m_szStringShort, pString, sizeof( m_Data.m_szStringShort ) );
-	}
-	else
-	{
-		PrepareForType( KV3_TYPEEX_STRING_EXTERN, subtype );
-		m_Data.m_pString = pString;
-	}
+	PrepareForType( KV3_TYPEEX_STRING_EXTERN, subtype );
+	m_Data.m_pString = pString;
 }
 
 const byte* KeyValues3::GetBinaryBlob() const
