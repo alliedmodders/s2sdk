@@ -10,6 +10,22 @@
 #define offsetof(s,m)	(size_t)&(((s *)0)->m)
 #endif
 
+// Doubles at least once from no less than min_count until requested_count fits, or gives max_count
+static int CalcNewKV3Capacity( int old_count, int requested_count, int min_count, int max_count )
+{
+	int new_count = MAX( old_count, min_count );
+
+	while(new_count <= max_count / 2)
+	{
+		new_count *= 2;
+
+		if(new_count >= requested_count)
+			return new_count;
+	}
+
+	return max_count;
+}
+
 KeyValues3::KeyValues3( KV3TypeEx_t type, KV3SubType_t subtype ) : 
 	KeyValues3( -1, type, subtype )
 {
@@ -1520,7 +1536,7 @@ void CKeyValues3Array::EnsureElementCapacity( int count, bool force, bool dont_m
 		DebuggerBreak();
 	}
 
-	const int new_count = force ? count : CalcNewDoublingCount( m_nAllocatedChunks, count, ALLOC_KV3ARRAY_MIN, ALLOC_KV3ARRAY_MAX );
+	const int new_count = force ? count : CalcNewKV3Capacity( m_nAllocatedChunks, count, ALLOC_KV3ARRAY_MIN, ALLOC_KV3ARRAY_MAX );
 	const int new_byte_size = (int)TotalSizeOfData( new_count );
 
 	Element_t *new_base = nullptr;
@@ -1773,16 +1789,19 @@ void CKeyValues3Table::EnsureMemberCapacity( int count, bool force, bool dont_mo
 		DebuggerBreak();
 	}
 
-	const int new_count = force ? count : CalcNewDoublingCount( m_nAllocatedChunks, count, ALLOC_KV3TABLE_MIN, ALLOC_KV3TABLE_MAX );
+	const int new_count = force ? count : CalcNewKV3Capacity( m_nAllocatedChunks, count, ALLOC_KV3TABLE_MIN, ALLOC_KV3TABLE_MAX );
 	const int new_byte_size = (int)TotalSizeOfData( new_count );
 
 	if(m_bIsDynamicallySized)
 	{
 		m_pDynamicBuffer = realloc( m_pDynamicBuffer, new_byte_size );
 
-		memmove( (uint8 *)m_pDynamicBuffer + OffsetToFlagsBase( new_count ), FlagsBase(), m_nCount * sizeof( Flags_t ) );
-		memmove( (uint8 *)m_pDynamicBuffer + OffsetToNamesBase( new_count ), NamesBase(), m_nCount * sizeof( Name_t ) );
-		memmove( (uint8 *)m_pDynamicBuffer + OffsetToMembersBase( new_count ), MembersBase(), m_nCount * sizeof( Member_t ) );
+		if(m_nCount > 0 && !dont_move)
+		{
+			memmove( (uint8 *)m_pDynamicBuffer + OffsetToFlagsBase( new_count ), FlagsBase(), m_nCount * sizeof( Flags_t ) );
+			memmove( (uint8 *)m_pDynamicBuffer + OffsetToNamesBase( new_count ), NamesBase(), m_nCount * sizeof( Name_t ) );
+			memmove( (uint8 *)m_pDynamicBuffer + OffsetToMembersBase( new_count ), MembersBase(), m_nCount * sizeof( Member_t ) );
+		}
 	}
 	else
 	{
