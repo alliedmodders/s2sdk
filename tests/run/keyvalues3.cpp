@@ -18,6 +18,53 @@ static int g_nFailures = 0;
 		} \
 	} while ( 0 )
 
+template <size_t N>
+static void CheckStringHash( const char (&key)[N] )
+{
+	const char *pointer = key;
+	const int len = (int)strlen( pointer );
+	const uint32 seed = STRINGTOKEN_MURMURHASH_SEED;
+	CHECK( MurmurHash2( key, seed ) == MurmurHash2( pointer, len, seed ) );
+	CHECK( MurmurHash2LowerCase( key, seed ) == MurmurHash2LowerCase( pointer, seed ) );
+	CHECK( CUtlStringToken( key ) == CUtlStringToken( pointer ) );
+	CHECK( CKV3MemberName( key ).GetHashCode() == CKV3MemberName( pointer ).GetHashCode() );
+}
+
+static void TestStringHashes( KeyValues3 *root )
+{
+	constexpr char padded[32] = "WeApOn0";
+	static_assert( MurmurHash2( padded, 123 ) == MurmurHash2( "WeApOn0", 123 ) );
+	static_assert( MurmurHash2LowerCase( padded, 123 ) == MurmurHash2LowerCase( "weapon0", 123 ) );
+	constexpr CUtlStringToken token( padded );
+	CHECK( token == CUtlStringToken( "weapon0" ) );
+	CheckStringHash( "weapon0" );
+	CheckStringHash( padded );
+	CheckStringHash( "" );
+	CheckStringHash( "abc\0ignored" );
+	CheckStringHash( "\x80\xFF" "AbC" );
+
+	// Cover every tail length, ignoring nonzero bytes after the terminator.
+	char buffer[32];
+	for ( int len = 0; len < (int)sizeof( buffer ); ++len )
+	{
+		memset( buffer, 'X', sizeof( buffer ) );
+		for ( int i = 0; i < len; ++i )
+			buffer[i] = (char)( 'A' + i % 26 );
+		buffer[len] = '\0';
+		CheckStringHash( buffer );
+		const char *pointer = buffer;
+		CHECK( CUtlStringToken( buffer ) == CUtlStringToken( pointer ) );
+		CHECK( CKV3MemberName( buffer ).GetHashCode() == CKV3MemberName( pointer ).GetHashCode() );
+	}
+
+	root->SetToEmptyTable();
+	root->SetMemberInt( "weapon0", 42 );
+	snprintf( buffer, sizeof( buffer ), "weapon%d", 0 );
+	CHECK( root->GetMemberInt( buffer, -1 ) == 42 );
+	CHECK( root->GetMemberInt( padded, -1 ) == 42 );
+	CHECK( root->GetMemberCount() == 1 );
+}
+
 static KeyValues3 *MakeIntArray( KeyValues3 *kv, int count )
 {
 	kv->SetToEmptyArray();
@@ -754,6 +801,7 @@ static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 
 int main()
 {
+	RunTest( TestStringHashes );
 	RunTest( TestArrayInsert );
 	RunTest( TestArrayRemove );
 	TestFreeKV();

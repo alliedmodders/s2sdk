@@ -305,7 +305,9 @@ constexpr uint32 MurmurHash2( const char (&key)[N], uint32 seed )
 
 	// Initialize the hash to a 'random' value
 
-	uint32 len = N - 1;
+	uint32 len = 0;
+	while(len < N && key[len])
+		++len;
 	uint32 h = seed ^ len;
 
 	// Mix 4 bytes at a time into the hash
@@ -346,9 +348,9 @@ constexpr uint32 MurmurHash2( const char (&key)[N], uint32 seed )
 	// AMNOTE: switch case breaks const folding during inlining, so can't use it here
 	if constexpr(CASELESS)
 	{
-		if constexpr(((N - 1) % 4) >= 3) h ^= static_cast<uint32>(static_cast<uint8>(GenericHash::detail::to_lower( key[offset + 2] ))) << 16;
-		if constexpr(((N - 1) % 4) >= 2) h ^= static_cast<uint32>(static_cast<uint8>(GenericHash::detail::to_lower( key[offset + 1] ))) << 8;
-		if constexpr(((N - 1) % 4) >= 1)
+		if(len >= 3) h ^= static_cast<uint32>(static_cast<uint8>(GenericHash::detail::to_lower( key[offset + 2] ))) << 16;
+		if(len >= 2) h ^= static_cast<uint32>(static_cast<uint8>(GenericHash::detail::to_lower( key[offset + 1] ))) << 8;
+		if(len >= 1)
 		{
 			h ^= static_cast<uint32>(static_cast<uint8>(GenericHash::detail::to_lower( key[offset + 0] )));
 			h *= m;
@@ -356,9 +358,9 @@ constexpr uint32 MurmurHash2( const char (&key)[N], uint32 seed )
 	}
 	else
 	{
-		if constexpr(((N - 1) % 4) >= 3) h ^= static_cast<uint32>(static_cast<uint8>(key[offset + 2])) << 16;
-		if constexpr(((N - 1) % 4) >= 2) h ^= static_cast<uint32>(static_cast<uint8>(key[offset + 1])) << 8;
-		if constexpr(((N - 1) % 4) >= 1)
+		if(len >= 3) h ^= static_cast<uint32>(static_cast<uint8>(key[offset + 2])) << 16;
+		if(len >= 2) h ^= static_cast<uint32>(static_cast<uint8>(key[offset + 1])) << 8;
+		if(len >= 1)
 		{
 			h ^= static_cast<uint32>(static_cast<uint8>(key[offset]));
 			h *= m;
