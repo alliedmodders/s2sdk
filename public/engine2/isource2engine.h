@@ -213,8 +213,12 @@ public:
 	virtual const char *GetLevelTransitionPreviousMap() const = 0;
 	virtual const char *GetLevelTransitionLandmarkName() const = 0;
 	virtual CKV3Arena *GetEntityKeyValuesAllocator() = 0;
-	virtual CEntityInstance *CreateEntityToSpawn(SpawnGroupHandle_t hSpawnGroup, const matrix3x4a_t &vecSpawnOffset, CreateSpawnGroupType_t createType, const CEntityKeyValues *pEntityKeyValues) = 0;
+	virtual CEntityInstance *CreateEntityToSpawn(SpawnGroupHandle_t hSpawnGroup, const matrix3x4a_t &vecSpawnOffset, CreateSpawnGroupType_t createType, const CEntityKeyValues *pEntityKeyValues, uint32) = 0;
 	virtual void SpawnEntities() = 0;
+	// AMNOTE: Destroys and clears the entities after passing them to the entity save/restore system
+	virtual void RestoreEntities(uint32, const char *, int, void *, int *) = 0;
+	// AMNOTE: Asks the entity save/restore system about the save file named pszSaveName
+	virtual bool unk101(void *, const char *pszSaveName) = 0;
 	virtual void Release() = 0;
 };
 
