@@ -71,6 +71,7 @@ public:
 
 	// returns current client limit
 	virtual int		GetMaxClients( void ) const = 0;
+	// AMNOTE: CS2 has no GetTickInterval, its tick interval is a fixed 1/64
 
 	virtual void	ServerAdvanceTick( const EventServerAdvanceTick_t & ) = 0;
 	virtual void	ServerPollNetworking( const EventServerPollNetworking_t & ) = 0;

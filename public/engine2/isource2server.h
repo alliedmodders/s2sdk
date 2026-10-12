@@ -256,6 +256,7 @@ public:
 
 	virtual bool			FormatSerializerFieldValue( CEntityIndex nEntityIndex, FlattenedSerializerSpewField_t &field ) = 0;
 
+	// AMNOTE: Only CS2 has these two
 	virtual void			CaptureUserCommands( void ) = 0;
 	virtual CNetMessagePB<CSVCMsg_UserCommands> *CreateUserCommandsMessage( void ) = 0;
 

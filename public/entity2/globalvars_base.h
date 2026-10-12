@@ -96,6 +96,8 @@ public:
 	// Non-zero when during movement processing, it's the part after the decimal point of the "when" field in player's subtick moves.
 	float m_flSubtickFraction;
 
+	// AMNOTE: CS2 has no m_flIntervalPerTick, its tick interval is a fixed 1/64
+
 	bool m_bIsOncePerFrameAsyncWorkPhase;
 
 	ThreadId_t m_nThreadId;

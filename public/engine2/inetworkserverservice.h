@@ -37,7 +37,7 @@ public:
 	virtual bool	IsServerRunning( void ) const = 0;
 	virtual void	DisconnectGameNow( ENetworkDisconnectionReason reason ) = 0;
 	virtual void	PrintSpawnGroupStatus( void ) const = 0;
-	//virtual int		GetTickInterval( void ) const = 0;
+	// AMNOTE: CS2 has no GetTickInterval, its tick interval is a fixed 1/64
 	//virtual void	ProcessSocket( void ) = 0;
 	virtual netadr_t GetServerNetworkAddress( void ) = 0;
 	virtual bool	GameLoadFailed( void ) const = 0;

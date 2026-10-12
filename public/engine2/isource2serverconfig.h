@@ -39,6 +39,7 @@ public:
 	virtual const char *GetGameDescription( void ) = 0;
 
 	virtual int			GetNetworkVersion( void ) = 0;
+	// AMNOTE: CS2 has no GetTickInterval, its tick interval is a fixed 1/64
 
 	// Get server maxplayers and lower bound for same
 	virtual void		GetPlayerLimits( int& minplayers, int& maxplayers, int &defaultMaxPlayers, bool &bIsMultiplayer ) const = 0;

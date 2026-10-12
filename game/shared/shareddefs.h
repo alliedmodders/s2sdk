@@ -18,7 +18,7 @@
 #include "const.h"
 #include "in_buttons.h"
 
-#define TICK_INTERVAL			(1.0f / 64.0f)
+#define TICK_INTERVAL			(1.0f / 64.0f) // AMNOTE: CS2 runs at a fixed 64 ticks
 
 #define TIME_TO_TICKS( dt )		( (int)( 0.5f + (float)(dt) / TICK_INTERVAL ) )
 #define TICKS_TO_TIME( t )		( TICK_INTERVAL *( t ) )
