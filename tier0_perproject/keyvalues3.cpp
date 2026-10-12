@@ -1611,6 +1611,18 @@ void CKeyValues3Array::CopyFrom( KeyValues3 *parent, const CKeyValues3Array* pSr
 
 void CKeyValues3Array::RemoveMultiple( KeyValues3 *parent, int from, int num )
 {
+	if(num > m_nCount)
+	{
+		Plat_FatalError( "%s: invalid array remove count %u (current count %u)\n", __FUNCTION__, num, m_nCount );
+		DebuggerBreak();
+	}
+
+	if(from < 0 || from > m_nCount - num)
+	{
+		Plat_FatalError( "%s: invalid array remove point %u (current count %u)\n", __FUNCTION__, from, m_nCount );
+		DebuggerBreak();
+	}
+
 	Element_t *base = Base();
 
 	for ( int i = 0; i < num; ++i )
