@@ -282,11 +282,6 @@ public:
 	virtual void			OnSteamAuthWarning( const char *pszMessage ) = 0;
 	virtual void			OnNetworkGameServerActivated( INetworkGameServer *pNetworkGameServer ) = 0;
 	virtual uint32			GetSteamGroupAccountID( void ) = 0;
-
-#ifdef PLATFORM_LINUX
-	// AMNOTE: Does nothing in CS2
-	virtual void			unk_401( void ) = 0;
-#endif
 };
 
 typedef ISource2Server IServerGameDLL;
