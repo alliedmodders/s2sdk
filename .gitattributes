@@ -1,0 +1,4 @@
+* text=auto
+*.h linguist-language=C++
+*.proto linguist-generated
+public/steam/** linguist-vendored
