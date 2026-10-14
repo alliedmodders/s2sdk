@@ -22,9 +22,9 @@
 #include "tier0/utlsignalslot.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlvector.h"
+#include "netmessages.h"
 #include "netmessages.pb.h"
 
-class KeyValues;
 class CClientFrame;
 class CFrameSnapshot;
 class CNetworkGameServerBase;
@@ -131,7 +131,7 @@ public:
 	virtual bool ProcessLoadingProgress( const CNetMessagePB<CCLCMsg_LoadingProgress> &msg ) = 0;
 	virtual bool ProcessSplitPlayerConnect( const CNetMessagePB<CCLCMsg_SplitPlayerConnect> &msg ) = 0;
 	virtual bool ProcessSplitPlayerDisconnect( const CNetMessagePB<CCLCMsg_SplitPlayerDisconnect> &msg ) = 0;
-	virtual bool ProcessCmdKeyValues( const CNetMessagePB<CCLCMsg_CmdKeyValues> &msg ) = 0;
+	virtual bool ProcessCmdKeyValues( const CNetMessagePB<CBaseCmdKeyValues<CCLCMsg_CmdKeyValues>> &msg ) = 0;
 	virtual bool ProcessRconServerDetails( const CNetMessagePB<CCLCMsg_RconServerDetails> &msg ) = 0;
 	virtual bool ProcessDiagnostic( const CNetMessagePB<CCLCMsg_Diagnostic> &msg ) = 0;
 	virtual bool ProcessMove( const CNetMessagePB<CCLCMsg_Move> &msg ) = 0;
