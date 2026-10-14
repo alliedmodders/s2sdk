@@ -21,7 +21,9 @@
 #include "schemasystem/schemasystem.h"
 #include "networksystem/inetworkmessages.h"
 #include "engine2/iengineservicemgr.h"
+#include "netmessages.h"
 #include "source2_steam_stats.pb.h"
+#include "netmessages.pb.h"
 
 template class CBufferStringN<MAX_PATH>;
 template class CFmtStrN<256>;
@@ -85,7 +87,7 @@ template struct CEventDispatcher_Identified<CEventIDManager_Default>;
 template struct CEventDispatcher<CEventIDManager_Default>;
 template class CSchemaPtrMap<int, CUtlString *>;
 template class CNetMessagePB<CMsgSource2SystemSpecs>;
-template struct CBaseCmdKeyValues<CMsgSource2SystemSpecs>;
+template class CBaseCmdKeyValues<CCLCMsg_CmdKeyValues>;
 template class CBaseAppSystem<IAppSystem>;
 template class CTier0AppSystem<IAppSystem>;
 template class CTier1AppSystem<IAppSystem>;
