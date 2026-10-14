@@ -223,8 +223,13 @@ public:
 		inline KeyValues *Get() const { return m_pKeyValues; }
 	};
 
+	// AMNOTE: Value names unknown, the constructor taking it doesn't read it
+	enum KV_DISPOSABLE_STRING_TABLE_STATE {};
+
 	// Quick setup constructors
 	KeyValues( const char *setName, IKeyValuesSystem *kvsystem = NULL, bool unkState = false );
+	// AMNOTE: Gives the KeyValues a string table of its own instead of the global one
+	KeyValues( const char *setName, KV_DISPOSABLE_STRING_TABLE_STATE );
 	KeyValues( const char *setName, const char *firstKey, const char *firstValue );
 	KeyValues( const char *setName, const char *firstKey, const wchar_t *firstValue );
 	KeyValues( const char *setName, const char *firstKey, int firstValue );
