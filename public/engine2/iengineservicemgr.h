@@ -69,12 +69,6 @@ public:
 	virtual void AddEngineService(const char* pszName) = 0;
 };
 
-template <typename T>
-struct CBaseCmdKeyValues : T
-{
-	KeyValues* m_pKeyValues;
-};
-
 class GameSessionConfiguration_t;
 
 /*class GameSessionConfiguration_t : CBaseCmdKeyValues<CSVCMsg_GameSessionConfiguration>
