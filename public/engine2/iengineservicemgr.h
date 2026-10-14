@@ -69,12 +69,6 @@ public:
 	virtual void AddEngineService(const char* pszName) = 0;
 };
 
-class GameSessionConfiguration_t;
-
-/*class GameSessionConfiguration_t : CBaseCmdKeyValues<CSVCMsg_GameSessionConfiguration>
-{
-};*/
-
 abstract_class ILoopModePrerequisiteRegistry : public IPrerequisiteRegistry
 {
 public:
