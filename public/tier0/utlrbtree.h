@@ -317,6 +317,8 @@ public:
 
 	// Insert method (inserts in order)
 	I  Insert( T const &insert, ERBTreeInsertBehavior eInsertBehavior = k_eInsertAssertAboutDupes );
+	// Moves the element in, so it doesn't need to be copyable
+	I  Insert( T &&insert, ERBTreeInsertBehavior eInsertBehavior = k_eInsertAssertAboutDupes );
 	void Insert( const T *pArray, int nItems, ERBTreeInsertBehavior eInsertBehavior = k_eInsertAssertAboutDupes );
 	I  InsertIfNotFound( T const &insert );
 
@@ -427,6 +429,9 @@ protected:
 
 	// Inserts a node into the tree, doesn't copy the data in.
 	void FindInsertionPosition( T const &insert, I &parent, bool &leftchild );
+
+	template < typename U >
+	I  InsertInternal( U &&insert, ERBTreeInsertBehavior eInsertBehavior );
 
 	// Remove and add back an element in the tree.
 	void	Unlink( I elem );
@@ -1585,6 +1590,19 @@ void CUtlRBTree<T, I, L, M>::FindInsertionPosition( T const &insert, I &parent, 
 template < class T, class I, typename L, class M > 
 I CUtlRBTree<T, I, L, M>::Insert( T const &insert, ERBTreeInsertBehavior eInsertBehavior )
 {
+	return InsertInternal( insert, eInsertBehavior );
+}
+
+template < class T, class I, typename L, class M >
+I CUtlRBTree<T, I, L, M>::Insert( T &&insert, ERBTreeInsertBehavior eInsertBehavior )
+{
+	return InsertInternal( std::move( insert ), eInsertBehavior );
+}
+
+template < class T, class I, typename L, class M >
+template < typename U >
+I CUtlRBTree<T, I, L, M>::InsertInternal( U &&insert, ERBTreeInsertBehavior eInsertBehavior )
+{
 	Assert( LessFunc() );
 
 	I parent = InvalidIndex();
@@ -1616,7 +1634,7 @@ I CUtlRBTree<T, I, L, M>::Insert( T const &insert, ERBTreeInsertBehavior eInsert
 					case k_eInsertUpdateDupes:
 					{
 						// Key already present, overwrite the existing element
-						Element( current ) = insert;
+						Element( current ) = std::forward< U >( insert );
 						return current;
 					}
 				}
@@ -1628,7 +1646,7 @@ I CUtlRBTree<T, I, L, M>::Insert( T const &insert, ERBTreeInsertBehavior eInsert
 	}
 
 	I newNode = InsertAt( parent, leftchild, false );
-	CopyConstruct( &Element( newNode ), insert );
+	Construct( &Element( newNode ), std::forward< U >( insert ) );
 	return newNode;
 }
 

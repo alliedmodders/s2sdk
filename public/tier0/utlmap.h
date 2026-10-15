@@ -108,11 +108,15 @@ public:
 		return m_Tree.Insert( node );
 	}
 	
+	IndexType_t Insert( const KeyType_t &key, ElemType_t &&insert )
+	{
+		return m_Tree.Insert( Node_t( key, std::move( insert ) ) );
+	}
+
+	// Default constructs the element, it doesn't need to be copyable
 	IndexType_t Insert( const KeyType_t &key )
 	{
-		Node_t node;
-		node.key = key;
-		return m_Tree.Insert( node );
+		return m_Tree.Insert( Node_t( key ) );
 	}
 
 	// Inserts allowing duplicate keys
@@ -124,19 +128,20 @@ public:
 		return m_Tree.Insert( node, k_eInsertAllowDupes );
 	}
 
+	IndexType_t InsertWithDupes( const KeyType_t &key, ElemType_t &&insert )
+	{
+		return m_Tree.Insert( Node_t( key, std::move( insert ) ), k_eInsertAllowDupes );
+	}
+
 	IndexType_t InsertWithDupes( const KeyType_t &key )
 	{
-		Node_t node;
-		node.key = key;
-		return m_Tree.Insert( node, k_eInsertAllowDupes );
+		return m_Tree.Insert( Node_t( key ), k_eInsertAllowDupes );
 	}
 
 	// Insert with the given behavior, returns a pointer to the element
 	ElemType_t *InsertGetPtr( const KeyType_t &key, ERBTreeInsertBehavior eInsertBehavior )
 	{
-		Node_t node;
-		node.key = key;
-		return &Element( m_Tree.Insert( node, eInsertBehavior ) );
+		return &Element( m_Tree.Insert( Node_t( key ), eInsertBehavior ) );
 	}
 
 	// pInserted reports whether an insert happened
@@ -304,6 +309,11 @@ public:
 		return m_Tree.Insert( node, k_eInsertUpdateDupes );
 	}
 
+	IndexType_t InsertOrReplace( const KeyType_t &key, ElemType_t &&insert )
+	{
+		return m_Tree.Insert( Node_t( key, std::move( insert ) ), k_eInsertUpdateDupes );
+	}
+
 	void Swap( CUtlOrderedMapBase< K, T, LF, I > &that )
 	{
 		m_Tree.Swap( that.m_Tree );
@@ -327,10 +337,46 @@ public:
 		{
 		}
 
+		explicit Node_t( const KeyType_t &k )
+			: key( k )
+		{}
+
+		Node_t( const KeyType_t &k, ElemType_t &&e )
+			: key( k ),
+			elem( std::move( e ) )
+		{}
+
 		Node_t( const Node_t &from )
 			: key( from.key ),
 			elem( from.elem )
 		{}
+
+		Node_t( Node_t &&from )
+			: key( std::move( from.key ) ),
+			elem( std::move( from.elem ) )
+		{}
+
+		Node_t &operator=( const Node_t &from )
+		{
+			if(this == &from)
+				return *this;
+			
+			key = from.key;
+			elem = from.elem;
+			
+			return *this;
+		}
+
+		Node_t &operator=( Node_t &&from )
+		{
+			if(this == &from)
+				return *this;
+
+			key = std::move( from.key );
+			elem = std::move( from.elem );
+			
+			return *this;
+		}
 
 		KeyType_t	key;
 		ElemType_t	elem;
