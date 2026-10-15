@@ -97,6 +97,9 @@ PLATFORM_OVERLOAD void ThreadAtomicWait( volatile uint32 *addr, uint32 value );
 
 PLATFORM_INTERFACE void ThreadSleep(unsigned duration = 0);
 PLATFORM_INTERFACE void ThreadNanoSleep( uint32 nNanoseconds );
+PLATFORM_INTERFACE void ThreadYield();
+// Busy waits for nCycles ticks of the CPU's timestamp counter
+PLATFORM_INTERFACE void ThreadSpin( uint32 nCycles );
 PLATFORM_INTERFACE ThreadId_t ThreadGetCurrentId();
 PLATFORM_INTERFACE ThreadHandle_t ThreadGetCurrentHandle();
 PLATFORM_INTERFACE int ThreadGetPriority( ThreadHandle_t hThread = NULL );
@@ -104,6 +107,14 @@ PLATFORM_INTERFACE bool ThreadSetPriority( ThreadHandle_t hThread, int priority 
 inline		 bool ThreadSetPriority( int priority ) { return ThreadSetPriority( NULL, priority ); }
 PLATFORM_INTERFACE bool ThreadInMainThread();
 PLATFORM_INTERFACE void DeclareCurrentThreadIsMainThread();
+PLATFORM_INTERFACE ThreadId_t ThreadGetMainThreadId();
+
+// AMNOTE: The engine declares a secondary main thread while main thread work runs on another thread,
+// like preparing the client updates after a server tick
+PLATFORM_INTERFACE void DeclareCurrentThreadIsSecondaryMainThread();
+PLATFORM_INTERFACE void ClearSecondaryMainThread();
+PLATFORM_INTERFACE bool ThreadInSecondaryMainThread();
+PLATFORM_INTERFACE bool ThreadInPrimaryOrSecondaryMainThread();
 
 // NOTE: ThreadedLoadLibraryFunc_t needs to return the sleep time in milliseconds or TT_INFINITE
 typedef int (*ThreadedLoadLibraryFunc_t)(); 
@@ -132,9 +143,82 @@ PLATFORM_INTERFACE bool ThreadJoin( ThreadHandle_t, unsigned timeout = TT_INFINI
 
 PLATFORM_INTERFACE void ThreadSetDebugNameS2( ThreadHandle_t hThread, const char *pszName );
 inline		 void ThreadSetDebugName( const char *pszName ) { ThreadSetDebugNameS2( NULL, pszName ); }
+PLATFORM_INTERFACE bool ThreadGetDebugNameForThreadHandle( ThreadHandle_t hThread, char *pszNameOut, size_t nNameOutSize );
+PLATFORM_INTERFACE bool ThreadGetDebugNameForThreadId( ThreadId_t nThreadId, char *pszNameOut, size_t nNameOutSize );
 
 PLATFORM_INTERFACE void ThreadSetAffinity( ThreadHandle_t hThread, int nAffinityMask );
 
+
+//-----------------------------------------------------------------------------
+// Runs code once across threads, with a marker initialized to 0:
+//	if ( ThreadInitOnceCall_ShouldRun( &marker ) ) { ...; ThreadInitOnceCall_Finish( &marker ); }
+// ShouldRun returns true to the first caller only, and makes the others wait until it finishes.
+//-----------------------------------------------------------------------------
+typedef volatile int32 ThreadInitOnce_t;
+
+PLATFORM_INTERFACE bool ThreadInitOnceCall_ShouldRun( ThreadInitOnce_t *pMarker );
+PLATFORM_INTERFACE void ThreadInitOnceCall_Finish( ThreadInitOnce_t *pMarker );
+
+//-----------------------------------------------------------------------------
+// Processes
+//-----------------------------------------------------------------------------
+// AMNOTE: A HANDLE on Windows; on Linux a pointer to tier0's process record
+FORWARD_DECLARE_HANDLE( ProcessHandle_t );
+
+enum ThreadProcessPriority_t
+{
+	THREAD_PROCESS_PRIORITY_IDLE,
+	THREAD_PROCESS_PRIORITY_LOW,
+	THREAD_PROCESS_PRIORITY_NORMAL,
+	THREAD_PROCESS_PRIORITY_HIGH,
+	THREAD_PROCESS_PRIORITY_REALTIME,
+};
+
+// A pseudo handle that doesn't need to be closed
+PLATFORM_INTERFACE ProcessHandle_t ThreadGetCurrentProcessHandle();
+PLATFORM_INTERFACE uint32 ThreadGetCurrentProcessId();
+PLATFORM_INTERFACE uint32 ThreadGetProcessIdFromHandle( ProcessHandle_t hProcess );
+
+// Translated to the matching PROCESS_* access rights on Windows.
+// On Linux only READ_MEMORY and WRITE_MEMORY have an effect, they ptrace attach to the process.
+enum ThreadProcessAccessFlags_t
+{
+	THREAD_PROCESS_ACCESS_NONE = 0,
+	THREAD_PROCESS_ACCESS_SYNCHRONIZE = (1 << 0),
+	THREAD_PROCESS_ACCESS_READ_MEMORY = (1 << 1),
+	THREAD_PROCESS_ACCESS_WRITE_MEMORY = (1 << 2),
+	THREAD_PROCESS_ACCESS_MEMORY_OPERATION = (1 << 3),
+	THREAD_PROCESS_ACCESS_QUERY_INFORMATION = (1 << 4),
+	THREAD_PROCESS_ACCESS_SET_INFORMATION = (1 << 5),
+	THREAD_PROCESS_ACCESS_SUSPEND_RESUME = (1 << 6),
+	THREAD_PROCESS_ACCESS_CREATE_THREAD = (1 << 7),
+	THREAD_PROCESS_ACCESS_TERMINATE = (1 << 8),
+	THREAD_PROCESS_ACCESS_DUPLICATE_HANDLE = (1 << 9),
+};
+DEFINE_ENUM_BITWISE_OPERATORS( ThreadProcessAccessFlags_t )
+
+// Returns 0 on success, otherwise the OS error code.
+PLATFORM_INTERFACE int ThreadOpenProcess( uint32 nProcessId, ThreadProcessAccessFlags_t nAccessFlags, ProcessHandle_t *pProcessOut );
+PLATFORM_INTERFACE bool ThreadCloseProcess( ProcessHandle_t hProcess );
+
+PLATFORM_INTERFACE bool ThreadIsProcessIdActive( uint32 nProcessId );
+// Return false and the exit code once the process has exited
+PLATFORM_INTERFACE bool ThreadIsProcessActive( ProcessHandle_t hProcess, int32 *pExitCode );
+PLATFORM_INTERFACE bool ThreadWaitForProcessExit( ProcessHandle_t hProcess, uint32 nMillis, int32 *pExitCode );
+// Returns false while the process is running
+PLATFORM_INTERFACE bool ThreadGetProcessExitCode( ProcessHandle_t hProcess, int32 *pExitCode );
+// On Linux the process is killed, without nExitCode
+PLATFORM_INTERFACE bool ThreadTerminateProcessCode( ProcessHandle_t hProcess, int32 nExitCode );
+
+PLATFORM_INTERFACE ThreadProcessPriority_t ThreadGetProcessPriority( ProcessHandle_t hProcess );
+PLATFORM_INTERFACE bool ThreadSetProcessPriority( ProcessHandle_t hProcess, ThreadProcessPriority_t ePriority );
+
+// Returns the number of bytes read
+PLATFORM_INTERFACE int ThreadReadProcessMemory( ProcessHandle_t hProcess, const void *pAddress, void *pBuffer, int nSize );
+
+// Return the id of the started process, or 0 on failure
+PLATFORM_INTERFACE uint32 ThreadShellExecute( const char *lpApplicationName, const char *pchCommandLine, const char *pchCurrentDirectory );
+PLATFORM_INTERFACE uint32 ThreadShellExecuteEx( const char *pchVerb, const char *pchFile, const char *pchParameters, const char *pchCurrentDirectory );
 
 //-----------------------------------------------------------------------------
 // Access to VTune thread profiling
