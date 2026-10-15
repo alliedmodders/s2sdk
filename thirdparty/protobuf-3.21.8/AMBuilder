@@ -24,8 +24,4 @@ for cxx in HL2SDK.targets:
   else:
     binary.compiler.cflags += ['-w']
 
-  # The engine's and the prebuilt library's std::string ABI
-  if binary.compiler.target.platform == 'linux':
-    binary.compiler.defines += ['_GLIBCXX_USE_CXX11_ABI=0']
-
 HL2SDK.libs += builder.Add(project)
