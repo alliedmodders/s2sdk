@@ -86,7 +86,7 @@ class CUtlString;
 template< class T, class I, size_t UNK > class CUtlVectorMemory_Growable;
 template< class T, class I, class A > class CUtlVector;
 
-enum ModificationFlags_t : int
+enum ModificationFlags_t : uint8
 {
 	MODIFIED_FLAGS = 1,
 	MODIFIED_VERBOSITY = 2,
@@ -284,6 +284,8 @@ public:
 		char m_Name[MAX_LOGGING_IDENTIFIER_LENGTH];
 		LoggingTag_t *m_pFirstTag;
 		ModificationFlags_t m_nModifiedFields;
+		// Whether the last message logged to the channel ended with a newline
+		bool m_bLastLineComplete;
 	};
 
 private:
