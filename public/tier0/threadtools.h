@@ -148,6 +148,12 @@ PLATFORM_INTERFACE bool ThreadGetDebugNameForThreadId( ThreadId_t nThreadId, cha
 
 PLATFORM_INTERFACE void ThreadSetAffinity( ThreadHandle_t hThread, int nAffinityMask );
 
+// Fills pSortIndices with indices into CPUInformation::m_pProcessorInfo, highest m_EfficiencyClass first,
+// returning how many it wrote (0 without processor info)
+PLATFORM_INTERFACE uint16 GetPerfSortedLogicalProcessors( uint16 *pSortIndices, uint16 nSortIndices );
+// On hybrid CPUs, limits the current thread to the logical processors of the given efficiency type
+PLATFORM_INTERFACE void ThreadSetPerfSetAffinity( CPUInformation::ProcessorInfo::EfficiencyType eType );
+
 
 //-----------------------------------------------------------------------------
 // Runs code once across threads, with a marker initialized to 0:
