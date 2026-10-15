@@ -18,7 +18,7 @@
 
 // This is a useful macro to iterate from start to end in order in a map
 #define FOR_EACH_UTLRBTREE( treeName, iteratorName ) \
-	for ( int iteratorName = treeName.FirstInorder(); iteratorName != treeName.InvalidIndex(); iteratorName = treeName.NextInorder( iteratorName ) )
+	for ( auto iteratorName = treeName.FirstInorder(); iteratorName != treeName.InvalidIndex(); iteratorName = treeName.NextInorder( iteratorName ) )
 
 
 //-----------------------------------------------------------------------------

@@ -27,9 +27,9 @@
 #include "tier0/utlvectormemory.h"
 
 #define FOR_EACH_VEC( vecName, iteratorName ) \
-	for ( int iteratorName = 0; iteratorName < (vecName).Count(); iteratorName++ )
+	for ( decltype( (vecName).Count() ) iteratorName = 0; iteratorName < (vecName).Count(); iteratorName++ )
 #define FOR_EACH_VEC_BACK( vecName, iteratorName ) \
-	for ( int iteratorName = (vecName).Count()-1; iteratorName >= 0; iteratorName-- )
+	for ( decltype( (vecName).Count() ) iteratorName = (vecName).Count()-1; iteratorName >= 0; iteratorName-- )
 
 //-----------------------------------------------------------------------------
 // The CUtlVector class:
@@ -48,6 +48,9 @@ struct base_vector_t
 template< class T, class I = int, class A = CUtlVectorMemory_Growable<T, I> >
 class CUtlVectorBase : public base_vector_t
 {
+	// AMNOTE: Safeguard as current container isn't suitable at holding unsigned indicies
+	static_assert( std::is_signed_v<I>, "CUtlVector needs a signed index type" );
+
 	typedef A CAllocator;
 public:
 	typedef T ElemType_t;

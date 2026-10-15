@@ -4,6 +4,7 @@
 #include "tier0/utlrbtree.h"
 #include "tier0/utlmap.h"
 #include "tier0/utldict.h"
+#include "tier0/utlhashmap.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlblockvector.h"
 
@@ -171,6 +172,14 @@ static void TestList( List &list )
 	CHECK( YieldsInOrder( list, expected, 4 ) );
 	CHECK( YieldsReversed( list, expected, 4 ) );
 
+	int nVisited = 0;
+	FOR_EACH_LL( list, it )
+	{
+		CHECK( nVisited < 4 && list[it] == expected[nVisited] );
+		++nVisited;
+	}
+	CHECK( nVisited == 4 );
+
 	DoubleAll( list );
 	const int doubled[] = { 4, 2, 6, 8 };
 	CHECK( YieldsInOrder( list, doubled, 4 ) );
@@ -303,6 +312,101 @@ static void TestDict()
 	CHECK( i == 4 );
 }
 
+// The FOR_EACH loops take the container's index type, so they also work with unsigned ones
+static void TestUnsignedIndexLoops()
+{
+	CUtlDict<int, unsigned int> dict;
+	dict.Insert( "bravo", 2 );
+	dict.Insert( "alpha", 1 );
+	dict.Insert( "charlie", 3 );
+
+	int nSum = 0, nPrev = 0;
+	FOR_EACH_DICT( dict, i )
+	{
+		CHECK( dict[i] > nPrev );
+		nPrev = dict[i];
+		nSum += dict[i];
+	}
+	CHECK( nSum == 6 );
+
+	nSum = 0;
+	FOR_EACH_DICT_FAST( dict, i )
+		nSum += dict[i];
+	CHECK( nSum == 6 );
+
+	CUtlOrderedMap<int, int, CDefLess<int>, unsigned int> map;
+	map.Insert( 2, 20 );
+	map.Insert( 1, 10 );
+	map.Insert( 3, 30 );
+
+	nSum = 0, nPrev = 0;
+	FOR_EACH_MAP( map, i )
+	{
+		CHECK( map.Key( i ) > nPrev );
+		nPrev = map.Key( i );
+		nSum += map[i];
+	}
+	CHECK( nSum == 60 );
+
+	nSum = 0;
+	FOR_EACH_MAP_FAST( map, i )
+		nSum += map[i];
+	CHECK( nSum == 60 );
+
+	CUtlRBTree<int, unsigned int> tree;
+	tree.Insert( 2 );
+	tree.Insert( 1 );
+	tree.Insert( 3 );
+
+	nSum = 0, nPrev = 0;
+	FOR_EACH_UTLRBTREE( tree, i )
+	{
+		CHECK( tree[i] > nPrev );
+		nPrev = tree[i];
+		nSum += tree[i];
+	}
+	CHECK( nSum == 6 );
+}
+
+// The vector and hash map loops take the container's index type too, wider or narrower than int
+static void TestWideIndexLoops()
+{
+	CUtlVector<int, intp> vec;
+	for ( int i = 1; i <= 4; i++ )
+		vec.AddToTail( i );
+
+	int nSum = 0, nPrev = 0;
+	FOR_EACH_VEC( vec, i )
+	{
+		CHECK( sizeof( i ) == sizeof( intp ) && vec[i] > nPrev );
+		nPrev = vec[i];
+		nSum += vec[i];
+	}
+	CHECK( nSum == 10 );
+
+	nSum = 0, nPrev = 5;
+	FOR_EACH_VEC_BACK( vec, i )
+	{
+		CHECK( sizeof( i ) == sizeof( intp ) && vec[i] < nPrev );
+		nPrev = vec[i];
+		nSum += vec[i];
+	}
+	CHECK( nSum == 10 );
+
+	CUtlHashMap<int, int, CDefEquals<int>, DefaultHashFunctor<int>, short> map;
+	map.Insert( 1, 10 );
+	map.Insert( 2, 20 );
+	map.Insert( 3, 30 );
+
+	nSum = 0;
+	FOR_EACH_HASHMAP( map, i )
+	{
+		CHECK( sizeof( i ) == sizeof( short ) );
+		nSum += map[i];
+	}
+	CHECK( nSum == 60 );
+}
+
 int main()
 {
 	TestVectors();
@@ -310,6 +414,8 @@ int main()
 	TestRBTree();
 	TestOrderedMap();
 	TestDict();
+	TestUnsignedIndexLoops();
+	TestWideIndexLoops();
 
 	if ( g_nFailures )
 	{

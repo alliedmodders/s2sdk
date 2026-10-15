@@ -148,6 +148,42 @@ static void TestExternalGrowRelocates()
 	CHECK( g_nLive == 0 );
 }
 
+// Counts and indices use the vector's index type, whatever its width and signedness
+template< class V, class I >
+static void TestIndexType()
+{
+	V vec;
+	for ( int i = 0; i < 40; i++ )
+		CHECK( vec.AddToTail( i ) == ( I )i );
+
+	I nCount = vec.Count();
+	CHECK( nCount == 40 );
+	CHECK( vec.NumAllocated() >= nCount );
+	CHECK( vec.IsValidIndex( nCount - 1 ) && !vec.IsValidIndex( nCount ) );
+
+	CHECK( vec.AddMultipleToTail( 2 ) == nCount );
+	CHECK( vec.Count() == 42 );
+	vec.RemoveMultipleFromTail( 2 );
+
+	*vec.InsertBeforeGetPtr( 0 ) = -1;
+	CHECK( vec.Count() == 41 && vec[ 0 ] == -1 && vec[ 1 ] == 0 && vec.Tail() == 39 );
+
+	CHECK( vec.Find( 20 ) == 21 );
+	CHECK( vec.Find( 100 ) == V::InvalidIndex() );
+	CHECK( vec.FindAndRemove( -1 ) && !vec.FindAndRemove( 100 ) );
+	CHECK( vec.Count() == 40 && vec[ 0 ] == 0 );
+
+	vec.RemoveMultiple( 10, 10 );
+	CHECK( vec.Count() == 30 && vec[ 10 ] == 20 );
+
+	vec.FastRemove( 0 );
+	CHECK( vec.Count() == 29 && vec[ 0 ] == 39 );
+
+	vec.SetCount( 5 );
+	vec.EnsureCount( 8 );
+	CHECK( vec.Count() == 8 );
+}
+
 int main()
 {
 	TestExternalPurge();
@@ -155,6 +191,13 @@ int main()
 	TestGrowRelocates<CUtlLeanVector<SelfRef_t>>();
 	TestGrowRelocates<CUtlLeanVectorFixedGrowable<SelfRef_t, 2>>();
 	TestExternalGrowRelocates();
+	TestIndexType<CUtlLeanVector<int>, int>();
+	TestIndexType<CUtlLeanVector<int, short>, short>();
+	TestIndexType<CUtlLeanVector<int, unsigned short>, unsigned short>();
+	TestIndexType<CUtlLeanVector<int, unsigned int>, unsigned int>();
+	TestIndexType<CUtlLeanVector<int, int64>, int64>();
+	TestIndexType<CUtlLeanVectorFixedGrowable<int, 4, unsigned int>, unsigned int>();
+	TestIndexType<CUtlLeanVectorFixedGrowable<int, 4, int64>, int64>();
 
 	if ( g_nFailures )
 	{
