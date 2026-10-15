@@ -8,9 +8,12 @@
 #include "tier0/platform.h"
 #include "tier0_strtools.h"
 #include "utlstring.h"
+#include "utlstringtoken.h"
 
 class CFormatStringElement;
 class IFormatOutputStream;
+class CKV3TransferLoadContext;
+class CKV3TransferSaveContext;
 
 /*
 	Main idea of CBufferString is to provide stack allocated string
@@ -348,7 +351,33 @@ private:
 	char m_FixedData[DATA_SIZE];
 };
 
-// AMNOTE: CBufferStringN name is preferred to be used, altho CBufferStringGrowable is left as a small bcompat
+class CUtlStringAndTokenWithStorage : public CUtlStringAndToken
+{
+public:
+	CUtlStringAndTokenWithStorage() {}
+	CUtlStringAndTokenWithStorage( const char *pString ) { Set( pString ); }
+	CUtlStringAndTokenWithStorage( const CUtlStringAndTokenWithStorage &other ) { Set( other.GetString() ); }
+	CUtlStringAndTokenWithStorage &operator=( const CUtlStringAndTokenWithStorage &other )
+	{
+		if(this == &other)
+			return *this;
+
+		Set( other.GetString() );
+		
+		return *this;
+	}
+
+	void Set( const char *pString ) { Format( "%s", pString ? pString : "" ); }
+	DLL_CLASS_IMPORT void Format( const char *pFormat, ... ) FMTFUNCTION( 2, 3 );
+
+	DLL_CLASS_IMPORT void KV3TransferLoad( CKV3TransferLoadContext *pContext );
+	DLL_CLASS_IMPORT void KV3TransferSave( CKV3TransferSaveContext *pContext ) const;
+
+private:
+	CBufferString m_Storage;
+};
+
+// AMNOTE: This name is deprecated, use CBufferStringN instead
 template <size_t SIZE>
 using CBufferStringGrowable = CBufferStringN<SIZE>;
 

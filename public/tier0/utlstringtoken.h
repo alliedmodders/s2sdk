@@ -57,4 +57,30 @@ private:
 	uint32 m_nHashCode;
 };
 
+class CUtlStringAndToken : public CUtlStringToken
+{
+public:
+	FORCEINLINE CUtlStringAndToken() : m_pString( "" ) {}
+
+	template <size_t N>
+	constexpr FORCEINLINE CUtlStringAndToken( const char (&str)[N] ) : CUtlStringToken( str ), m_pString( str ) {}
+
+	template <typename T, std::enable_if_t<std::is_same_v<T, const char *>, int> = 0>
+	FORCEINLINE CUtlStringAndToken( T str ) : CUtlStringToken( str ), m_pString( str ? str : "" ) {}
+
+	FORCEINLINE const CUtlStringToken &GetToken() const { return *this; }
+	FORCEINLINE const char *GetString() const { return m_pString; }
+
+	// An empty or nullptr string equals the empty one
+	DLL_CLASS_IMPORT bool IsEqual_CaseSensitive( const char *pString ) const;
+	DLL_CLASS_IMPORT bool IsEqual_FastCaseInsensitive( const char *pString ) const;
+
+private:
+	// The token always matches the string
+	using CUtlStringToken::SetHashCode;
+
+protected:
+	const char *m_pString;
+};
+
 #endif // UTLSTRINGTOKEN_H
