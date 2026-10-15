@@ -181,10 +181,14 @@ enum FindCondition_t
 // For use with Insert.
 enum ERBTreeInsertBehavior
 {
+	// Asserts through UtlRBTree_FailedInsertDuplicate, then replaces the existing element
 	k_eInsertAssertAboutDupes = 0,
 	k_eInsertAllowDupes = 1,
+	// Replaces the existing element
 	k_eInsertUpdateDupes = 2,
 };
+
+PLATFORM_INTERFACE void UtlRBTree_FailedInsertDuplicate();
 
 //-----------------------------------------------------------------------------
 // A red-black binary search tree
@@ -1605,16 +1609,15 @@ I CUtlRBTree<T, I, L, M>::Insert( T const &insert, ERBTreeInsertBehavior eInsert
 					// Don't do anything on dupes if we allow them
 					case k_eInsertAllowDupes: break;
 
+					case k_eInsertAssertAboutDupes:
+						UtlRBTree_FailedInsertDuplicate();
+						[[fallthrough]];
+
 					case k_eInsertUpdateDupes:
 					{
 						// Key already present, overwrite the existing element
 						Element( current ) = insert;
 						return current;
-					}
-
-					case k_eInsertAssertAboutDupes:
-					{
-						AssertMsg( false, "Allowing insert of dupe without explicit dupe insertion. Fix code callpoint to allow dupes." );
 					}
 				}
 			}
@@ -1624,7 +1627,6 @@ I CUtlRBTree<T, I, L, M>::Insert( T const &insert, ERBTreeInsertBehavior eInsert
 		}
 	}
 
-	// Both non-update behaviors insert the element, allowing duplicates.
 	I newNode = InsertAt( parent, leftchild, false );
 	CopyConstruct( &Element( newNode ), insert );
 	return newNode;

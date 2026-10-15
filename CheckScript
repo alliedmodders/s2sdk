@@ -141,6 +141,19 @@ for sdk_target in test_targets:
 
 builder.Add(lvtest)
 
+# Inserts dupes into a CUtlRBTree and a CUtlOrderedMap
+maptest = builder.ProgramProject('utlrbtree_test')
+maptest.sources = [
+  os.path.join('tests', 'run', 'utlrbtree.cpp'),
+  os.path.join('public', 'tier0', 'memoverride.cpp'),
+]
+
+for sdk_target in SdkHelpers.sdk_targets:
+  binary = maptest.Configure(sdk_target.cxx, 'utlrbtree_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
+  SdkHelpers.configureCxx(builder, binary, sdk)
+
+builder.Add(maptest)
+
 # Copies and moves CBufferStrings through tier0
 bstest = builder.ProgramProject('bufferstring_test')
 bstest.sources = [
