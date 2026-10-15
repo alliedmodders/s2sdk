@@ -16,6 +16,7 @@ static int g_nFailures = 0;
 		} \
 	} while ( 0 )
 
+static const char k_szStackPointer[] = "longer than eight";
 static const char k_szLong[] = "a string longer than the eight chars of CBufferString";
 
 // The stack capacity of CBufferStringN is its size
@@ -117,6 +118,28 @@ static void TestAssignString()
 	CHECK( strcmp( b.Get(), "new contents" ) == 0 );
 }
 
+struct StoredString_t
+{
+	void Set( const char *pString )
+	{
+		m_String.Clear();
+		m_String.Insert( 0, pString );
+		m_pString = m_String.Get();
+	}
+
+	CBufferStringN<32> m_String;
+	const char *m_pString;
+};
+
+// A kept pointer into a stack buffer reads the whole string, not just its first 8 chars
+static NOINLINE void TestStackPointer( const char *pString )
+{
+	StoredString_t stored;
+	stored.Set( pString );
+	CHECK( strcmp( stored.m_pString, "longer than eight" ) == 0 );
+	CHECK( strcmp( stored.m_String.Get(), "longer than eight" ) == 0 );
+}
+
 int main()
 {
 	TestFixedCapacity();
@@ -125,6 +148,7 @@ int main()
 	TestMove();
 	TestFixedMove();
 	TestAssignString();
+	TestStackPointer( k_szStackPointer );
 
 	if ( g_nFailures )
 	{

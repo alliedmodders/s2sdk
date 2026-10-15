@@ -143,7 +143,9 @@ public:
 	bool IsAllocationEmpty() const { return AllocatedNum() == 0; }
 
 protected:
-	char *Base() { return IsStackAllocated() ? m_szString : (!IsAllocationEmpty() ? m_pString : nullptr); }
+	// AMNOTE: GCC with -O2/3 can optimize out string functions on this (strcmp, etc)
+	// by deducing the size 8 which is wrong for CBufferStringN<N> structure, so a recast to raw char * is needed
+	char *Base() { return IsStackAllocated() ? reinterpret_cast<char *>( this ) + offsetof( CBufferString, m_szString ) : (!IsAllocationEmpty() ? m_pString : nullptr); }
 	const char *Base() const { return const_cast<CBufferString *>( this )->Base(); }
 
 public:

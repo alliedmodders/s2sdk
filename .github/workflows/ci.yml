@@ -13,6 +13,7 @@ jobs:
             cc: clang-22
             cxx: clang++-22
             container_image: ghcr.io/alliedmodders/build-containers/debian11-clang22:latest
+            configure_args: --enable-optimize
           - os: ubuntu-22.04
             cc: gcc
             cxx: g++
@@ -91,12 +92,10 @@ jobs:
         shell: bash
         working-directory: repository
         run: |
-          LD_LIBRARY_PATH=lib/linux64 build/check/keyvalues3_test/linux-x86_64/keyvalues3_test
-          LD_LIBRARY_PATH=lib/linux64 build/check/utliterators_test/linux-x86_64/utliterators_test
-          LD_LIBRARY_PATH=lib/linux64 build/check/utlsymbollarge_test/linux-x86_64/utlsymbollarge_test
-          LD_LIBRARY_PATH=lib/linux64 build/check/utlleanvector_test/linux-x86_64/utlleanvector_test
-          LD_LIBRARY_PATH=lib/linux64 build/check/bufferstring_test/linux-x86_64/bufferstring_test
-          LD_LIBRARY_PATH=lib/linux64 build/check/cmdkeyvalues_test/linux-x86_64/cmdkeyvalues_test
+          for test in build/check/*_test/linux-x86_64/*_test; do
+            echo "Running $test"
+            LD_LIBRARY_PATH=lib/linux64 $test
+          done
 
       - name: Upload artifact
         if: matrix.cc != 'gcc' && !matrix.debug
