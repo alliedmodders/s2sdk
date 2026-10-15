@@ -444,6 +444,10 @@ PLATFORM_INTERFACE LoggingVerbosity_t LoggingSystem_GetChannelVerbosity( Logging
 PLATFORM_INTERFACE void LoggingSystem_SetChannelVerbosity( LoggingChannelID_t channelID, LoggingVerbosity_t verbosity );
 PLATFORM_INTERFACE void LoggingSystem_SetChannelVerbosityByName( const char *pName, LoggingVerbosity_t verbosity );
 PLATFORM_INTERFACE void LoggingSystem_SetChannelVerbosityByTag( const char *pTag, LoggingVerbosity_t verbosity );
+// Raises the channel's verbosity to the given one if it's lower
+PLATFORM_INTERFACE void LoggingSystem_EnsureChannelVerbosity( LoggingChannelID_t channelID, LoggingVerbosity_t verbosity );
+// The lowest verbosity a channel needs to log messages of the given severity
+PLATFORM_INTERFACE LoggingVerbosity_t LoggingSystem_GetVerbosityForSeverity( LoggingSeverity_t severity );
 
 // Color is represented as an int32 due to C-linkage restrictions
 PLATFORM_INTERFACE int32 LoggingSystem_GetChannelColor( LoggingChannelID_t channelID );
@@ -451,6 +455,17 @@ PLATFORM_INTERFACE void LoggingSystem_SetChannelColor( LoggingChannelID_t channe
 
 PLATFORM_INTERFACE LoggingChannelFlags_t LoggingSystem_GetChannelFlags( LoggingChannelID_t channelID );
 PLATFORM_INTERFACE void LoggingSystem_SetChannelFlags( LoggingChannelID_t channelID, LoggingChannelFlags_t flags );
+
+// Return the channel's previous indent
+PLATFORM_INTERFACE int LoggingSystem_SetChannelIndent( LoggingChannelID_t channelID, int nIndent );
+PLATFORM_INTERFACE int LoggingSystem_ChangeChannelIndent( LoggingChannelID_t channelID, int nDelta );
+
+// Whether the last message logged to the channel ended with a newline
+PLATFORM_INTERFACE bool LoggingSystem_GetLastChannelLineComplete( LoggingChannelID_t channelID );
+PLATFORM_INTERFACE void LoggingSystem_SetLastChannelLineComplete( LoggingChannelID_t channelID, bool bComplete );
+
+// Calls ILoggingListener::OnFlush on the current and backdoor listeners
+PLATFORM_INTERFACE void LoggingSystem_Flush();
 
 //-----------------------------------------------------------------------------
 // Logs a variable-argument to a given channel with the specified severity.
@@ -476,6 +491,15 @@ PLATFORM_OVERLOAD LoggingResponse_t LoggingSystem_LogDirect( LoggingChannelID_t 
 PLATFORM_OVERLOAD LoggingResponse_t LoggingSystem_LogDirect( LoggingChannelID_t channelID, LoggingSeverity_t severity, const LoggingRareOptions_t &rareOptions, Color spewColor, const char *pMessage );
 PLATFORM_OVERLOAD LoggingResponse_t LoggingSystem_LogDirect( LoggingChannelID_t channelID, LoggingSeverity_t severity, const LoggingRareOptions_t &rareOptions, const LoggingMetaData_t *metaData, const char *pMessage );
 PLATFORM_OVERLOAD LoggingResponse_t LoggingSystem_LogDirect( LoggingChannelID_t channelID, LoggingSeverity_t severity, const LoggingRareOptions_t &rareOptions, Color spewColor, const LoggingMetaData_t *metaData, const char *pMessage );
+
+//-----------------------------------------------------------------------------
+// Logs pText one line at a time, each with LoggingSystem_LogDirect.
+// nTextLength is the length of pText, or -1 when it's null terminated.
+// nMaxLines limits how many lines are logged, 0 for no limit: a positive value keeps the first lines
+// and a negative one the last ones, logging how many were omitted instead of the rest.
+// Returns the number of messages logged.
+//-----------------------------------------------------------------------------
+PLATFORM_INTERFACE int LoggingSystem_LogLines( LoggingChannelID_t channelID, LoggingSeverity_t severity, const char *pText, int nTextLength = -1, int nMaxLines = 0 );
 
 PLATFORM_INTERFACE LoggingResponse_t LoggingSystem_LogAssert( const char *pMessageFormat, ... ) FMTFUNCTION( 1, 2 );
 
