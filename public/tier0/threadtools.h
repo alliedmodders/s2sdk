@@ -933,6 +933,25 @@ private:
 //
 //-----------------------------------------------------------------------------
 
+enum ThreadPriorityEnum_t
+{
+	TP_PRIORITY_DEFAULT = 0,
+	TP_PRIORITY_NORMAL = 0,
+	TP_PRIORITY_HIGH = 1,
+	TP_PRIORITY_LOW = -1,
+	TP_PRIORITY_HIGHEST = 2,
+	TP_PRIORITY_LOWEST = -2,
+};
+
+enum CThreadClassKind_t
+{
+	// The current thread isn't a CThread
+	CTHREAD_CLASS_KIND_NONE = 0,
+	CTHREAD_CLASS_KIND_THREAD = 1,
+	// A CThreadPool job thread
+	CTHREAD_CLASS_KIND_JOB_THREAD = 2,
+};
+
 class PLATFORM_CLASS CThread
 {
 public:
@@ -944,27 +963,25 @@ public:
 	const char *GetName();
 	void SetName( const char * );
 
-	size_t CalcStackDepth( void *pStackVariable )		{ return ((byte *)m_pStackBase - (byte *)pStackVariable); }
-
 	//-----------------------------------------------------
 	// Functions for the other threads
 	//-----------------------------------------------------
 
 	// Start thread running  - error if already running
-	virtual bool Start( unsigned nBytesStack = 0 );
+	virtual bool Start( uint32 nBytesStack = 0, ThreadPriorityEnum_t nPriority = TP_PRIORITY_DEFAULT );
 
 	// Returns true if thread has been created and hasn't yet exited
 	bool IsAlive();
 
 	// This method causes the current thread to wait until this thread
-	// is no longer alive.
-	bool Join( unsigned timeout = TT_INFINITE );
+	// is no longer alive. The timeout is ignored, it always waits for the thread to exit.
+	bool Join( uint32 timeout = TT_INFINITE );
 
 	// Access the thread handle directly
 	ThreadHandle_t GetThreadHandle();
 
-#ifdef _WIN32
-	uint GetThreadId();
+#ifdef PLATFORM_WINDOWS
+	uint32 GetThreadID() const;
 #endif
 
 	//-----------------------------------------------------
@@ -978,20 +995,26 @@ public:
 	// Forcibly, abnormally, but relatively cleanly stop the thread
 	void Stop( int exitCode = 0 );
 
+#ifdef PLATFORM_WINDOWS
 	// Get the priority
-	int GetPriority() const;
+	ThreadPriorityEnum_t GetPriority() const;
 
 	// Set the priority
-	bool SetPriority( int );
+	bool SetPriority( ThreadPriorityEnum_t nPriority );
+#endif
 
-	// Suspend a thread
-	unsigned Suspend();
+	// Suspend the thread, called from the thread itself. Returns 0.
+	uint32 Suspend();
 
-	// Resume a suspended thread
-	unsigned Resume();
+	// Resume a suspended thread. Returns 0.
+	uint32 Resume();
+
+	bool IsSuspended() { return !m_NotSuspendedEvent.Check(); }
 
 	// Force hard-termination of thread.  Used for critical failures.
 	bool Terminate( int exitCode = 0 );
+
+	CThreadClassKind_t GetClassKind() const { return m_ClassKind; }
 
 	//-----------------------------------------------------
 	// Global methods
@@ -1001,24 +1024,20 @@ public:
 	// Can return NULL if the current thread was not created using
 	// CThread
 	static CThread *GetCurrentCThread();
+	static CThreadClassKind_t GetCurrentCThreadClassKind();
 
 	// Offer a context switch. Under Win32, equivalent to Sleep(0)
 #ifdef Yield
 #undef Yield
 #endif
-	static void Yield();
+	static void Yield() { ThreadYield(); }
 
 	// This method causes the current thread to yield and not to be
 	// scheduled for further execution until a certain amount of real
 	// time has elapsed, more or less. Duration is in milliseconds
-	static void Sleep( unsigned duration );
+	static void Sleep( uint32 duration );
 
 protected:
-
-	// Optional pre-run call, with ability to fail-create. Note Init()
-	// is forced synchronous with Start()
-	virtual bool Init();
-
 	// Thread will run this function on startup, must be supplied by
 	// derived class, performs the intended action of the thread.
 	virtual int Run() = 0;
@@ -1026,13 +1045,20 @@ protected:
 	// Called when the thread exits
 	virtual void OnExit();
 
-#ifdef _WIN32
 	// Allow for custom start waiting
 	virtual bool WaitForCreateComplete( CThreadEvent *pEvent );
-#endif
+
+	virtual bool IsThreadRunning();
+
+	ThreadHandle_t GetThreadHandle() const { return m_hThread; }
+
+	// Runs Run() and OnExit() on the new thread, which pv gives with the priority to set
+	static uintp ThreadProc( void *pv );
 
 	CAtomicMutex m_Lock;
+#ifdef PLATFORM_POSIX
 	CThreadEvent m_ExitEvent;	// Set right before the thread's function exits.
+#endif
 
 private:
 	enum Flags
@@ -1040,37 +1066,20 @@ private:
 		SUPPORT_STOP_PROTOCOL = 1 << 0
 	};
 
-	// Thread initially runs this. param is actually 'this'. function
-	// just gets this and calls ThreadProc
-	struct ThreadInit_t
-	{
-		CThread *     pThread;
-#ifdef _WIN32
-		CThreadEvent *pInitCompleteEvent;
-#endif
-		bool *        pfInitSuccess;
-	};
-
-#ifdef PLATFORM_WINDOWS
-	static unsigned long __stdcall ThreadProc( void * pv );
-#else
-	static void* ThreadProc( void * pv );
-#endif
-
 	// make copy constructor and assignment operator inaccessible
 	CThread( const CThread & );
 	CThread &operator=( const CThread & );
 
-#ifdef _WIN32
-	HANDLE 	m_hThread;
-#elif defined(_POSIX)
-	pthread_t m_threadId;
-	CInterlockedInt m_nSuspendCount;
+	ThreadHandle_t m_hThread;
+#ifdef PLATFORM_WINDOWS
+	ThreadId_t m_threadId;
 #endif
 	int		m_result;
+	bool	m_bAlive;
 	char	m_szName[32];
-	void *	m_pStackBase;
-	unsigned m_flags;
+	uint32	m_flags;
+	CThreadClassKind_t m_ClassKind;
+	CThreadManualEvent m_NotSuspendedEvent;
 };
 
 //-----------------------------------------------------------------------------
