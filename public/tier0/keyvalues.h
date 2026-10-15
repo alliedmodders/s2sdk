@@ -554,5 +554,14 @@ inline bool KeyValuesDumpAsDevMsg( KeyValues *pKeyValues, int nIndentLevel = 0, 
 	return pKeyValues->Dump( &ctx, nIndentLevel );
 }
 
+// Read the application's gameinfo.gi, keyName being a '/' separated path of subkeys (the root when empty).
+// They return defaultValue when there's no application yet or the key doesn't exist.
+PLATFORM_OVERLOAD KeyValues *GetGameInfoKey( const char *keyName );
+PLATFORM_OVERLOAD bool GetGameInfoBool( const char *keyName, bool defaultValue = false );
+PLATFORM_OVERLOAD int GetGameInfoInt( const char *keyName, int defaultValue = 0 );
+PLATFORM_OVERLOAD uint64 GetGameInfoUint64( const char *keyName, uint64 defaultValue = 0 );
+PLATFORM_OVERLOAD float GetGameInfoFloat( const char *keyName, float defaultValue = 0.0f );
+PLATFORM_OVERLOAD const char *GetGameInfoString( const char *keyName, const char *defaultValue, char *pScratchSpace, size_t nScratchSpaceCount );
+
 
 #endif // KEYVALUES_H
