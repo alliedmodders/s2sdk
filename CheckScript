@@ -176,3 +176,16 @@ for sdk_target in SdkHelpers.sdk_targets:
   binary.custom = [builder.tools.Protoc(protoc = sdk_target.protoc, sources = CheckProtos)]
 
 builder.Add(cmdkvtest)
+
+# Sets CNetworkVarChainers' entities and rebinds their propagation targets to new owners
+nvtest = builder.ProgramProject('networkvar_test')
+nvtest.sources = [
+  os.path.join('tests', 'run', 'networkvar.cpp'),
+  os.path.join('public', 'tier0', 'memoverride.cpp'),
+]
+
+for sdk_target in SdkHelpers.sdk_targets:
+  binary = nvtest.Configure(sdk_target.cxx, 'networkvar_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
+  SdkHelpers.configureCxx(builder, binary, sdk)
+
+builder.Add(nvtest)
