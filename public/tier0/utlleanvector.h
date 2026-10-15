@@ -40,8 +40,8 @@ struct IsTriviallyRelocatable< T, std::void_t<typename T::TriviallyRelocatable_t
 //-----------------------------------------------------------------------------
 // Moves elements into uninitialized memory, destructing the originals
 //-----------------------------------------------------------------------------
-template< class T >
-inline void RelocateLeanVectorElements( T *pDest, T *pSrc, int nCount )
+template< class T, class I >
+inline void RelocateLeanVectorElements( T *pDest, T *pSrc, I nCount )
 {
 	if constexpr ( IsTriviallyRelocatable<T>::value )
 	{
@@ -49,7 +49,7 @@ inline void RelocateLeanVectorElements( T *pDest, T *pSrc, int nCount )
 	}
 	else
 	{
-		for ( int i = 0; i < nCount; i++ )
+		for ( I i = 0; i < nCount; i++ )
 		{
 			MoveConstruct( &pDest[ i ], std::move( pSrc[ i ] ) );
 			Destruct( &pSrc[ i ] );
@@ -61,7 +61,7 @@ inline void RelocateLeanVectorElements( T *pDest, T *pSrc, int nCount )
 // Grows an owned allocation, only trivially relocatable elements are reallocated in place
 //-----------------------------------------------------------------------------
 template< class A, class T, class I >
-inline T *ReallocLeanVectorElements( T *pMemory, int nCount, I &nAllocated )
+inline T *ReallocLeanVectorElements( T *pMemory, I nCount, I &nAllocated )
 {
 	if constexpr ( IsTriviallyRelocatable<T>::value )
 	{
@@ -99,18 +99,18 @@ public:
 	void Swap( CUtlLeanVectorBase<T, I, A> &mem );
 
 	// Makes sure we have enough memory allocated to store a requested # of elements
-	void EnsureCapacity( int num, bool force = false );
+	void EnsureCapacity( I num, bool force = false );
 	
 	bool IsExternallyAllocated() const { return (m_nAllocated & EXTERNAL_BUFFER_MARKER) != 0; }
 
 	// Attaches the buffer to external memory....
-	void SetExternalBuffer( T *pMemory, int allocationCount, int numElements = 0 );
-	void SetExternalBuffer( const T *pMemory, int allocationCount, int numElements = 0 );
-	void AssumeMemory( T *pMemory, int allocationCount, int numElements = 0 );
+	void SetExternalBuffer( T *pMemory, I allocationCount, I numElements = 0 );
+	void SetExternalBuffer( const T *pMemory, I allocationCount, I numElements = 0 );
+	void AssumeMemory( T *pMemory, I allocationCount, I numElements = 0 );
 	T *Detach();
 	void *DetachMemory();
 
-	int NumAllocated() const { return (m_nAllocated & (~EXTERNAL_BUFFER_MARKER)); }
+	I NumAllocated() const { return (m_nAllocated & (~EXTERNAL_BUFFER_MARKER)); }
 
 	// Element removal
 	void RemoveAll(); // doesn't deallocate memory
@@ -181,7 +181,7 @@ void CUtlLeanVectorBase<T, I, A>::Swap( CUtlLeanVectorBase<T, I, A> &vec )
 // Attaches the buffer to external memory....
 //-----------------------------------------------------------------------------
 template< class T, class I, class A >
-inline void CUtlLeanVectorBase<T, I, A>::SetExternalBuffer( T *pMemory, int allocationCount, int numElements )
+inline void CUtlLeanVectorBase<T, I, A>::SetExternalBuffer( T *pMemory, I allocationCount, I numElements )
 {
 	// Blow away any existing allocated memory
 	Purge();
@@ -192,7 +192,7 @@ inline void CUtlLeanVectorBase<T, I, A>::SetExternalBuffer( T *pMemory, int allo
 }
 
 template< class T, class I, class A >
-inline void CUtlLeanVectorBase<T, I, A>::SetExternalBuffer( const T *pMemory, int allocationCount, int numElements )
+inline void CUtlLeanVectorBase<T, I, A>::SetExternalBuffer( const T *pMemory, I allocationCount, I numElements )
 {
 	// Blow away any existing allocated memory
 	Purge();
@@ -203,7 +203,7 @@ inline void CUtlLeanVectorBase<T, I, A>::SetExternalBuffer( const T *pMemory, in
 }
 
 template< class T, class I, class A >
-inline void CUtlLeanVectorBase<T, I, A>::AssumeMemory( T *pMemory, int allocationCount, int numElements )
+inline void CUtlLeanVectorBase<T, I, A>::AssumeMemory( T *pMemory, I allocationCount, I numElements )
 {
 	// Blow away any existing allocated memory
 	Purge();
@@ -239,7 +239,7 @@ inline void *CUtlLeanVectorBase<T, I, A>::DetachMemory()
 // Makes sure we have enough memory allocated to store a requested # of elements
 //-----------------------------------------------------------------------------
 template< class T, class I, class A >
-void CUtlLeanVectorBase<T, I, A>::EnsureCapacity( int num, bool force )
+void CUtlLeanVectorBase<T, I, A>::EnsureCapacity( I num, bool force )
 {
 	if(num <= NumAllocated())
 		return;
@@ -329,10 +329,10 @@ public:
 	const T* Base() const;
 
 	// Makes sure we have enough memory allocated to store a requested # of elements
-	void EnsureCapacity( int num, bool force = false );
+	void EnsureCapacity( I num, bool force = false );
 
 	// AMNOTE: The top bit is masked off like in CUtlLeanVectorBase, but never set or checked, so external buffers aren't supported
-	int NumAllocated() const { return (m_nAllocated & (~EXTERNAL_BUFFER_MARKER)); }
+	I NumAllocated() const { return (m_nAllocated & (~EXTERNAL_BUFFER_MARKER)); }
 
 	// Element removal
 	void RemoveAll(); // doesn't deallocate memory
@@ -429,7 +429,7 @@ inline const T* CUtlLeanVectorFixedGrowableBase<T, N, I, A>::Base() const
 // Makes sure we have enough memory allocated to store a requested # of elements
 //-----------------------------------------------------------------------------
 template< class T, size_t N, class I, class A >
-void CUtlLeanVectorFixedGrowableBase<T, N, I, A>::EnsureCapacity( int num, bool force )
+void CUtlLeanVectorFixedGrowableBase<T, N, I, A>::EnsureCapacity( I num, bool force )
 {
 	if ( num <= NumAllocated() )
 		return;
@@ -528,10 +528,10 @@ public:
 	const T &operator[]( const Iterator_t &it ) const { return Element( it.index ); }
 
 	// element access
-	T& operator[]( int i );
-	const T& operator[]( int i ) const;
-	T& Element( int i );
-	const T& Element( int i ) const;
+	T& operator[]( I i );
+	const T& operator[]( I i ) const;
+	T& Element( I i );
+	const T& Element( I i ) const;
 	T& Head();
 	const T& Head() const;
 	T& Tail();
@@ -546,10 +546,10 @@ public:
 	const_iterator end() const				{ return this->Base() + Count(); }
 
 	// Returns the number of elements in the vector
-	int Count() const;
+	I Count() const;
 
 	// Is element index valid?
-	bool IsValidIndex( int i ) const;
+	bool IsValidIndex( I i ) const;
 
 	// Specify the invalid ('null') index that we'll only return on failure
 	static const I INVALID_INDEX = (I)-1; // For use with COMPILE_TIME_ASSERT
@@ -559,31 +559,31 @@ public:
 	T* AddToTailGetPtr();
 
 	// Adds an element, uses copy constructor
-	int AddToTail();
-	int AddToTail( const T& src );
+	I AddToTail();
+	I AddToTail( const T& src );
 
 	// Adds multiple elements, uses default constructor
-	int AddMultipleToTail( int nSize );	
+	I AddMultipleToTail( I nSize );
 
 	// Adds multiple elements, uses default constructor
-	T* InsertBeforeGetPtr( int nBeforeIndex, int nSize = 1 );
+	T* InsertBeforeGetPtr( I nBeforeIndex, I nSize = 1 );
 
-	void SetSize( int size );
-	void SetCount( int count );
+	void SetSize( I size );
+	void SetCount( I count );
 
-	void EnsureCount( int num );
+	void EnsureCount( I num );
 
 	// Finds an element (element needs operator== defined)
-	int Find( const T& src ) const;
+	I Find( const T& src ) const;
 
 	// Element removal
-	void FastRemove( int elem ); // doesn't preserve order
-	void Remove( int elem ); // preserves order, shifts elements
+	void FastRemove( I elem ); // doesn't preserve order
+	void Remove( I elem ); // preserves order, shifts elements
 	bool FindAndRemove( const T& src );	// removes first occurrence of src, preserves order, shifts elements
 	bool FindAndFastRemove( const T& src );	// removes first occurrence of src, doesn't preserve order
-	void RemoveMultiple( int elem, int num ); // preserves order, shifts elements
-	void RemoveMultipleFromHead( int num ); // preserves order, shifts elements
-	void RemoveMultipleFromTail( int num ); // preserves order, shifts elements
+	void RemoveMultiple( I elem, I num ); // preserves order, shifts elements
+	void RemoveMultipleFromHead( I num ); // preserves order, shifts elements
+	void RemoveMultipleFromTail( I num ); // preserves order, shifts elements
 
 protected:
 	// Can't copy this unless we explicitly do it!
@@ -600,7 +600,7 @@ protected:
 template< class B, class T, class I >
 inline CUtlLeanVectorImpl<B, T, I>& CUtlLeanVectorImpl<B, T, I>::operator=( const CUtlLeanVectorImpl<B, T, I> &other )
 {
-	int nCount = other.Count();
+	I nCount = other.Count();
 	SetSize( nCount );
 
 	T* pDest = this->Base();
@@ -617,28 +617,28 @@ inline CUtlLeanVectorImpl<B, T, I>& CUtlLeanVectorImpl<B, T, I>::operator=( cons
 // element access
 //-----------------------------------------------------------------------------
 template< class B, class T, class I >
-inline T& CUtlLeanVectorImpl<B, T, I>::operator[]( int i )
+inline T& CUtlLeanVectorImpl<B, T, I>::operator[]( I i )
 {
 	Assert( i < Count() );
 	return this->Base()[ i ];
 }
 
 template< class B, class T, class I >
-inline const T& CUtlLeanVectorImpl<B, T, I>::operator[]( int i ) const
+inline const T& CUtlLeanVectorImpl<B, T, I>::operator[]( I i ) const
 {
 	Assert( i < Count() );
 	return this->Base()[ i ];
 }
 
 template< class B, class T, class I >
-inline T& CUtlLeanVectorImpl<B, T, I>::Element( int i )
+inline T& CUtlLeanVectorImpl<B, T, I>::Element( I i )
 {
 	Assert( i < Count() );
 	return this->Base()[ i ];
 }
 
 template< class B, class T, class I >
-inline const T& CUtlLeanVectorImpl<B, T, I>::Element( int i ) const
+inline const T& CUtlLeanVectorImpl<B, T, I>::Element( I i ) const
 {
 	Assert( i < Count() );
 	return this->Base()[ i ];
@@ -676,7 +676,7 @@ inline const T& CUtlLeanVectorImpl<B, T, I>::Tail() const
 // Count
 //-----------------------------------------------------------------------------
 template< class B, class T, class I >
-inline int CUtlLeanVectorImpl<B, T, I>::Count() const
+inline I CUtlLeanVectorImpl<B, T, I>::Count() const
 {
 	return this->m_nCount;
 }
@@ -685,7 +685,7 @@ inline int CUtlLeanVectorImpl<B, T, I>::Count() const
 // Is element index valid?
 //-----------------------------------------------------------------------------
 template< class B, class T, class I >
-inline bool CUtlLeanVectorImpl<B, T, I>::IsValidIndex( int i ) const
+inline bool CUtlLeanVectorImpl<B, T, I>::IsValidIndex( I i ) const
 {
 	return (i >= 0) && (i < Count());
 }
@@ -706,7 +706,7 @@ T* CUtlLeanVectorImpl<B, T, I>::AddToTailGetPtr()
 // Adds an element, uses copy constructor
 //-----------------------------------------------------------------------------
 template< class B, class T, class I >
-int CUtlLeanVectorImpl<B, T, I>::AddToTail()
+I CUtlLeanVectorImpl<B, T, I>::AddToTail()
 {
 	this->EnsureCapacity( this->m_nCount + 1 );
 	T* pBase = this->Base();
@@ -715,7 +715,7 @@ int CUtlLeanVectorImpl<B, T, I>::AddToTail()
 }
 
 template< class B, class T, class I >
-int CUtlLeanVectorImpl<B, T, I>::AddToTail( const T& src )
+I CUtlLeanVectorImpl<B, T, I>::AddToTail( const T& src )
 {
 	this->EnsureCapacity( this->m_nCount + 1 );
 	T* pBase = this->Base();
@@ -727,13 +727,13 @@ int CUtlLeanVectorImpl<B, T, I>::AddToTail( const T& src )
 // Adds multiple elements, uses default constructor
 //-----------------------------------------------------------------------------
 template< class B, class T, class I >
-int CUtlLeanVectorImpl<B, T, I>::AddMultipleToTail( int nSize )
+I CUtlLeanVectorImpl<B, T, I>::AddMultipleToTail( I nSize )
 {
-	int nOldSize = this->m_nCount;
+	I nOldSize = this->m_nCount;
 
 	if ( nSize > 0 )
 	{
-		int nMaxSize = (std::numeric_limits<std::make_signed_t<I>>::max)();
+		I nMaxSize = (std::numeric_limits<std::make_signed_t<I>>::max)();
 
 		if ( ( nMaxSize - nOldSize ) < nSize )
 		{
@@ -742,7 +742,7 @@ int CUtlLeanVectorImpl<B, T, I>::AddMultipleToTail( int nSize )
 			DebuggerBreak();
 		}
 
-		int nNewSize = nOldSize + nSize;
+		I nNewSize = nOldSize + nSize;
 
 		this->EnsureCapacity( nNewSize );
 
@@ -760,23 +760,24 @@ int CUtlLeanVectorImpl<B, T, I>::AddMultipleToTail( int nSize )
 // Adds multiple elements, uses default constructor
 //-----------------------------------------------------------------------------
 template< class B, class T, class I >
-T* CUtlLeanVectorImpl<B, T, I>::InsertBeforeGetPtr( int nBeforeIndex, int nSize )
+T* CUtlLeanVectorImpl<B, T, I>::InsertBeforeGetPtr( I nBeforeIndex, I nSize )
 {
-	int nOldSize = this->m_nCount;
+	I nOldSize = this->m_nCount;
 
-	if ( nBeforeIndex < 0 || nBeforeIndex > nOldSize )
+	// Unsigned, so a negative index fails too
+	if ( ( std::make_unsigned_t<I> )nBeforeIndex > ( std::make_unsigned_t<I> )nOldSize )
 	{
-		Plat_FatalError( "%s: invalid nBeforeIndex %d\n", __FUNCTION__, nBeforeIndex );
+		Plat_FatalError( "%s: invalid nBeforeIndex %lld\n", __FUNCTION__, ( int64 )nBeforeIndex );
 		DebuggerBreak();
 	}
 
 	if ( nSize <= 0 )
 	{
-		Plat_FatalError( "%s: invalid nSize %d\n", __FUNCTION__, nSize );
+		Plat_FatalError( "%s: invalid nSize %lld\n", __FUNCTION__, ( int64 )nSize );
 		DebuggerBreak();
 	}
 
-	int nMaxSize = (std::numeric_limits<std::make_signed_t<I>>::max)();
+	I nMaxSize = (std::numeric_limits<std::make_signed_t<I>>::max)();
 
 	if ( ( nMaxSize - nOldSize ) < nSize )
 	{
@@ -785,7 +786,7 @@ T* CUtlLeanVectorImpl<B, T, I>::InsertBeforeGetPtr( int nBeforeIndex, int nSize 
 		DebuggerBreak();
 	}
 
-	int nNewSize = nOldSize + nSize;
+	I nNewSize = nOldSize + nSize;
 
 	this->EnsureCapacity( nNewSize );
 
@@ -800,7 +801,7 @@ T* CUtlLeanVectorImpl<B, T, I>::InsertBeforeGetPtr( int nBeforeIndex, int nSize 
 }
 
 template< class B, class T, class I >
-void CUtlLeanVectorImpl<B, T, I>::SetCount( int count )
+void CUtlLeanVectorImpl<B, T, I>::SetCount( I count )
 {
 	this->EnsureCapacity( count );
 
@@ -815,13 +816,13 @@ void CUtlLeanVectorImpl<B, T, I>::SetCount( int count )
 }
 
 template< class B, class T, class I >
-inline void CUtlLeanVectorImpl<B, T, I>::SetSize( int size )
+inline void CUtlLeanVectorImpl<B, T, I>::SetSize( I size )
 {
 	SetCount( size );
 }
 
 template< class B, class T, class I >
-void CUtlLeanVectorImpl<B, T, I>::EnsureCount( int num )
+void CUtlLeanVectorImpl<B, T, I>::EnsureCount( I num )
 {
 	if(Count() < num)
 	{
@@ -833,22 +834,22 @@ void CUtlLeanVectorImpl<B, T, I>::EnsureCount( int num )
 // Finds an element (element needs operator== defined)
 //-----------------------------------------------------------------------------
 template< class B, class T, class I >
-int CUtlLeanVectorImpl<B, T, I>::Find( const T& src ) const
+I CUtlLeanVectorImpl<B, T, I>::Find( const T& src ) const
 {
 	const T* pBase = this->Base();
-	for ( int i = 0; i < Count(); ++i )
+	for ( I i = 0; i < Count(); ++i )
 	{
 		if ( pBase[i] == src )
 			return i;
 	}
-	return -1;
+	return InvalidIndex();
 }
 
 //-----------------------------------------------------------------------------
 // Element removal
 //-----------------------------------------------------------------------------
 template< class B, class T, class I >
-void CUtlLeanVectorImpl<B, T, I>::FastRemove( int elem )
+void CUtlLeanVectorImpl<B, T, I>::FastRemove( I elem )
 {
 	Assert( IsValidIndex(elem) );
 
@@ -863,7 +864,7 @@ void CUtlLeanVectorImpl<B, T, I>::FastRemove( int elem )
 }
 
 template< class B, class T, class I >
-void CUtlLeanVectorImpl<B, T, I>::Remove( int elem )
+void CUtlLeanVectorImpl<B, T, I>::Remove( I elem )
 {
 	T* pBase = this->Base();
 	Destruct( &pBase[ elem ] );
@@ -874,8 +875,8 @@ void CUtlLeanVectorImpl<B, T, I>::Remove( int elem )
 template< class B, class T, class I >
 bool CUtlLeanVectorImpl<B, T, I>::FindAndRemove( const T& src )
 {
-	int elem = Find( src );
-	if ( elem != -1 )
+	I elem = Find( src );
+	if ( elem != InvalidIndex() )
 	{
 		Remove( elem );
 		return true;
@@ -886,8 +887,8 @@ bool CUtlLeanVectorImpl<B, T, I>::FindAndRemove( const T& src )
 template< class B, class T, class I >
 bool CUtlLeanVectorImpl<B, T, I>::FindAndFastRemove( const T& src )
 {
-	int elem = Find( src );
-	if ( elem != -1 )
+	I elem = Find( src );
+	if ( elem != InvalidIndex() )
 	{
 		FastRemove( elem );
 		return true;
@@ -896,7 +897,7 @@ bool CUtlLeanVectorImpl<B, T, I>::FindAndFastRemove( const T& src )
 }
 
 template< class B, class T, class I >
-void CUtlLeanVectorImpl<B, T, I>::RemoveMultiple( int elem, int num )
+void CUtlLeanVectorImpl<B, T, I>::RemoveMultiple( I elem, I num )
 {
 	Assert( elem >= 0 );
 	Assert( elem + num <= Count() );
@@ -908,14 +909,14 @@ void CUtlLeanVectorImpl<B, T, I>::RemoveMultiple( int elem, int num )
 }
 
 template< class B, class T, class I >
-void CUtlLeanVectorImpl<B, T, I>::RemoveMultipleFromHead( int num )
+void CUtlLeanVectorImpl<B, T, I>::RemoveMultipleFromHead( I num )
 {
 	Assert( num <= Count() );
 	RemoveMultiple( 0, num );
 }
 
 template< class B, class T, class I >
-void CUtlLeanVectorImpl<B, T, I>::RemoveMultipleFromTail( int num )
+void CUtlLeanVectorImpl<B, T, I>::RemoveMultipleFromTail( I num )
 {
 	Assert( num <= Count() );
 	RemoveMultiple( Count() - num, num );
