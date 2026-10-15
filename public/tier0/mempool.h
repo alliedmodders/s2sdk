@@ -62,6 +62,10 @@ public:
 
 	DLL_CLASS_IMPORT bool		IsAllocationWithinPool( void *pMem ) const;
 
+	// Calls pfnCallback with each allocated element and pContext
+	typedef void (*IterateAllocationsFunc_t)( void *pElement, void *pContext );
+	DLL_CLASS_IMPORT void		IterateAllocationsUnsafe( IterateAllocationsFunc_t pfnCallback, void *pContext );
+
 protected:
 	DLL_CLASS_IMPORT void		ClearDestruct( void (*)( void* ) );
 
