@@ -141,7 +141,7 @@ for sdk_target in test_targets:
 
 builder.Add(lvtest)
 
-# Inserts dupes into a CUtlRBTree and a CUtlOrderedMap
+# Inserts dupes and non copyable elements into a CUtlRBTree and a CUtlOrderedMap
 maptest = builder.ProgramProject('utlrbtree_test')
 maptest.sources = [
   os.path.join('tests', 'run', 'utlrbtree.cpp'),
