@@ -131,6 +131,8 @@ public:
 	DLL_CLASS_IMPORT bool	IsBigEndian( void );
 
 	DLL_CLASS_IMPORT void	AlignBuffer( int alignment );
+	// Skips zero bytes until the get position is aligned, returning false on a non-zero byte or the buffer's end
+	DLL_CLASS_IMPORT bool	AlignBufferGet( int alignment );
 
 	// Resets the buffer; but doesn't free memory
 	void			Clear();
