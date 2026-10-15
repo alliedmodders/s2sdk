@@ -13,6 +13,7 @@ jobs:
             cc: clang-22
             cxx: clang++-22
             container_image: ghcr.io/alliedmodders/build-containers/debian11-clang22:latest
+            configure_args: --enable-optimize
           - os: ubuntu-22.04
             cc: gcc
             cxx: g++
