@@ -157,6 +157,7 @@ public:
 	DLL_CLASS_IMPORT CUtlString Remove(const char *string, bool bCaseSensitive = true) const;
 	DLL_CLASS_IMPORT void		RemoveDotSlashes(char replacement);
 	DLL_CLASS_IMPORT CUtlString RemoveFromStart(const char *search, bool bCaseSensitive = true) const;
+	DLL_CLASS_IMPORT CUtlString RemoveFromEnd(const char *search, bool bCaseSensitive = true) const;
 
 	// Replaces all instances of specified char with a char
 	DLL_CLASS_IMPORT CUtlString Replace(char cSearch, char cReplace) const;
