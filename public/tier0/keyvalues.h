@@ -101,6 +101,7 @@ protected:
 	const char *ResolveStringValue() const;
 	const wchar_t *ResolveWStringValue() const;
 	KeyValues *ResolveSubKeyValue() const;
+	void *ResolvePtrValue() const;
 
 	void Internal_ClearAll();
 	void Internal_ClearData();
@@ -245,6 +246,9 @@ public:
 	// gets the name as a unique int
 	HKeySymbol GetNameSymbol() const;
 	HKeySymbol GetNameSymbolCaseSensitive() const;
+
+	// The system that owns the key's name symbols
+	IKeyValuesSystem *GetKeyValuesSystem() const;
 
 	// File access. Set UsesEscapeSequences true, if resource file/buffer uses Escape Sequences (eg \n, \t)
 	void UsesEscapeSequences( bool state ); // default false
