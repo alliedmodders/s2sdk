@@ -1239,6 +1239,7 @@ struct CPUInformation
 };
 
 PLATFORM_INTERFACE const CPUInformation *GetCPUInformation();
+PLATFORM_INTERFACE int Plat_GetNumberCpusOnline();
 PLATFORM_INTERFACE uint64 Plat_CPUTickFrequency();
 
 PLATFORM_INTERFACE double Plat_GetCPUUsage();
