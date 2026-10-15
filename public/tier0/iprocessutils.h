@@ -15,6 +15,7 @@
 #include "appframework/iappsystem.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlbuffer.h"
+#include "tier0/utlvector.h"
 
 
 //-----------------------------------------------------------------------------
@@ -22,7 +23,6 @@
 //-----------------------------------------------------------------------------
 class IProcess;
 class CBufferString;
-class CEnvironmentBlock;
 
 
 //-----------------------------------------------------------------------------
@@ -138,6 +138,50 @@ typedef void *OSFILEHANDLE;
 #else
 typedef int OSFILEHANDLE;
 #endif
+
+//-----------------------------------------------------------------------------
+// The environment variables to start a process with
+//-----------------------------------------------------------------------------
+class CEnvironmentBlock
+{
+public:
+	DLL_CLASS_IMPORT CEnvironmentBlock();
+
+	// Replaces the variables with the current process' environment
+	DLL_CLASS_IMPORT void CaptureProcessEnvironment();
+	DLL_CLASS_IMPORT void Copy( const CEnvironmentBlock &other );
+
+	// Adds or replaces a variable, or removes it when pValue is nullptr or empty
+	DLL_CLASS_IMPORT void Set( const char *pKey, const char *pValue );
+	// Returns false when the variable doesn't exist; keys are case sensitive
+	DLL_CLASS_IMPORT bool Remove( const char *pKey );
+
+	// Returns the index of the variable, or -1, and points ppValue at its value
+	DLL_CLASS_IMPORT int FindEntry( const char *pKey, const char **ppValue = nullptr, bool bCaseInsensitive = false ) const;
+
+	int GetVarCount() const { return m_Vars.Count() - 1; }
+
+	// Returns the "KEY=VALUE" string of the variable
+	DLL_CLASS_IMPORT const char *GetVarKeyAndValue( int nIndex ) const;
+	// Returns the variable's value and copies its key to pKey
+	DLL_CLASS_IMPORT const char *GetVarKeyAndValue( int nIndex, CBufferString *pKey ) const;
+	// Copies the variable's key to pKey and returns it
+	DLL_CLASS_IMPORT const char *GetVarKey( int nIndex, CBufferString *pKey ) const;
+	DLL_CLASS_IMPORT const char *GetVarValue( int nIndex ) const;
+
+	// The "KEY=VALUE" strings followed by nullptr, like the envp of execve
+	char *const *GetVars() const { return m_Vars.Base(); }
+	// The null terminated "KEY=VALUE" strings followed by an empty string, like the block of CreateProcess
+	const char *GetBlock() const { return m_Block.Base(); }
+
+protected:
+	DLL_CLASS_IMPORT void ValidateStorage();
+
+private:
+	// Point into m_Block
+	CUtlVector< char * > m_Vars;
+	CUtlVector< char > m_Block;
+};
 
 struct StartProcessInfo_t
 {
