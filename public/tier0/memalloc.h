@@ -235,15 +235,12 @@ public:
 	// Returns true if stackstats is enabled for this allocator
 	virtual bool IsStackStatsEnabled() = 0;
 
-	// AMNOTE: Stub, returns 0
-	virtual int unk101() = 0;
-
-	// AMNOTE: Stub
-	virtual void unk102( void *pMem, MemAllocAttribute_t alloc_attribute, int unk ) = 0;
+	virtual int GetAllocAttributes( void *pMem ) = 0;
+	virtual void SetAllocAttributes( void *pMem, MemAllocAttribute_t alloc_attribute, int unk ) = 0;
 
 	// AMNOTE: Copies data to an unknown struct of byte size 56
 	// Returns true if data was written, false otherwise
-	virtual bool unk103( void *out_val ) = 0;
+	virtual bool unk101( void *out_val ) = 0;
 
 	// Calls the lower-level allocator functions directly
 	virtual void *AllocRaw( size_t nSize ) = 0;
@@ -256,6 +253,21 @@ public:
 // Singleton interface
 //-----------------------------------------------------------------------------
 MEM_INTERFACE IMemAlloc *g_pMemAlloc;
+
+// g_pMemAlloc's methods as plain functions, for code that takes allocation function pointers
+MEM_INTERFACE void *MemAlloc_AllocFunc( size_t nSize );
+MEM_INTERFACE void *MemAlloc_CallocFunc( size_t nCount, size_t nSize );
+MEM_INTERFACE void *MemAlloc_ReallocFunc( void *pMem, size_t nSize );
+MEM_INTERFACE void MemAlloc_FreeFunc( void *pMem );
+MEM_INTERFACE void *MemAlloc_AllocAlignedFunc( size_t nSize, size_t align );
+MEM_INTERFACE void MemAlloc_FreeAlignedFunc( void *pMem );
+MEM_INTERFACE size_t MemAlloc_GetSizeFunc( void *pMem );
+MEM_INTERFACE int MemAlloc_GetAllocAttributesFunc( void *pMem );
+MEM_INTERFACE void MemAlloc_SetAllocAttributesFunc( void *pMem, MemAllocAttribute_t alloc_attribute, int unk );
+// Return nullptr for a nullptr string
+MEM_INTERFACE char *MemAlloc_StrDupFunc( const char *pString );
+MEM_INTERFACE char *MemAlloc_StrDupWrapperFunc( const char *pString );
+MEM_INTERFACE wchar_t *MemAlloc_WcStrDupFunc( const wchar_t *pString );
 
 //-----------------------------------------------------------------------------
 
