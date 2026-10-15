@@ -170,9 +170,10 @@ T ClampedArrayElement( const T (&buffer)[N], unsigned int uIndex )
 }
 
 // Would double old_count until it's greater or equal the requested_count and is clamped to min/max bounds.
-inline int CalcNewDoublingCount( int old_count, int requested_count, int min_count, int max_count )
+template <typename T>
+inline T CalcNewDoublingCount( T old_count, T requested_count, T min_count, T max_count )
 {
-	int new_count = old_count;
+	T new_count = old_count;
 
 	while(new_count < requested_count)
 	{

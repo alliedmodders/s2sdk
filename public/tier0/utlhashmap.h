@@ -18,10 +18,11 @@
 #include "tier0/utlleanvector.h"
 
 #include <new>
+#include <type_traits>
 #include <utility>
 
 #define FOR_EACH_HASHMAP( mapName, iteratorName ) \
-	for ( int iteratorName = 0; iteratorName < (mapName).MaxElement(); ++iteratorName ) if ( !(mapName).IsValidIndex( iteratorName ) ) continue; else
+	for ( decltype( (mapName).MaxElement() ) iteratorName = 0; iteratorName < (mapName).MaxElement(); ++iteratorName ) if ( !(mapName).IsValidIndex( iteratorName ) ) continue; else
 
 template <typename T>
 class CDefEquals
@@ -42,6 +43,9 @@ public:
 template <typename K, typename T, typename L = CDefEquals<K>, typename H = DefaultHashFunctor<K>, typename I = int>
 struct CUtlHashMap
 {
+	// AMNOTE: Safeguard as current container isn't suitable at holding unsigned indicies
+	static_assert( std::is_signed_v<I>, "CUtlHashMap needs a signed index type" );
+
 public:
 	using KeyType_t = K;
 	using ElemType_t = T;

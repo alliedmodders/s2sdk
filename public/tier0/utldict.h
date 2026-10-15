@@ -36,11 +36,11 @@ template <> struct CDictCompareTypeDeducer<k_eDictCompareTypeCaseInsensitiveFast
 template <> struct CDictCompareTypeDeducer<k_eDictCompareTypeFilenames> { typedef CDefCaselessStringLessIgnoreSlashes Type_t; };
 
 #define FOR_EACH_DICT( dictName, iteratorName ) \
-	for( int iteratorName=dictName.First(); iteratorName != dictName.InvalidIndex(); iteratorName = dictName.Next( iteratorName ) )
+	for( auto iteratorName=dictName.First(); iteratorName != dictName.InvalidIndex(); iteratorName = dictName.Next( iteratorName ) )
 
 // faster iteration, but in an unspecified order
 #define FOR_EACH_DICT_FAST( dictName, iteratorName ) \
-	for ( int iteratorName = 0; iteratorName < dictName.MaxElement(); ++iteratorName ) if ( !dictName.IsValidIndex( iteratorName ) ) continue; else
+	for ( decltype( dictName.MaxElement() ) iteratorName = 0; iteratorName < dictName.MaxElement(); ++iteratorName ) if ( !dictName.IsValidIndex( iteratorName ) ) continue; else
 	
 //-----------------------------------------------------------------------------
 // A dictionary mapping from symbol to structure

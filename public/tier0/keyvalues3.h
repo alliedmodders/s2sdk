@@ -1622,7 +1622,7 @@ inline void CKV3ArenaBase::NodeList<NODE>::EnsureByteSize( int bytes_needed )
 	if(bytes_needed < m_nAllocatedBytes)
 		return;
 
-	int new_alloc_size = CalcNewDoublingCount( m_nAllocatedBytes, bytes_needed, ALLOC_CONTEXT_NODELIST_MIN, ALLOC_CONTEXT_NODELIST_MAX );
+	int new_alloc_size = CalcNewDoublingCount<int>( m_nAllocatedBytes, bytes_needed, ALLOC_CONTEXT_NODELIST_MIN, ALLOC_CONTEXT_NODELIST_MAX );
 
 	m_pData = (ListEntry *)realloc( m_pData, new_alloc_size );
 	m_nAllocatedBytes = new_alloc_size;
