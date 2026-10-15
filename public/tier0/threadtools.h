@@ -627,6 +627,7 @@ public:
 	// Wait for a signal from the object
 	//-----------------------------------------------------
 	bool Wait( uint32 dwTimeout = TT_INFINITE );
+	bool Wait_NoDiagnostics( uint32 dwTimeout = TT_INFINITE );
 
 	//-----------------------------------------------------
 	// Wait for a signal from any of the specified objects.
