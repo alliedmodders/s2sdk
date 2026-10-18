@@ -25,6 +25,10 @@ public:
 
 	void RegisterChainUpdatePropagationTarget( ChainUpdatePropagation_t& target ) { m_PropagationList.AddToTail( target ); }
 
+	// Points each target at its member of pOwner, then calls it.
+	// AMNOTE: bAssignChangeAccessorPathIds has the entity fill in m_PathIndex
+	void Set( CEntityInstance* pInstance, bool bAssignChangeAccessorPathIds, void* pOwner );
+
 	// These pass the call on to the entity, unless there is none or it is being constructed.
 	// NetworkStateChanged fills in data's path index when it has none
 	void NetworkStateChanged( NetworkStateChangedData& data );
@@ -38,6 +42,22 @@ public:
 	// only while this is set, which a networked vector does for its elements
 	bool m_bForwardStateChanges;
 };
+
+inline void CNetworkVarChainer::Set( CEntityInstance* pInstance, bool bAssignChangeAccessorPathIds, void* pOwner )
+{
+	CEntityOwnerPtr::Set( pInstance );
+
+	for ( ChainUpdatePropagation_t& target : m_PropagationList )
+	{
+		CUtlAbstractDelegate delegate = target.updateDelegate.GetAbstractDelegate();
+		delegate.UnsafeThisPointerSlam( (uint8*)pOwner + target.m_nFieldOffset );
+		target.updateDelegate.SetAbstractDelegate( delegate );
+		target.updateDelegate( *this );
+	}
+
+	if ( pInstance && bAssignChangeAccessorPathIds )
+		pInstance->AssignChangeAccessorPathIds();
+}
 
 inline void CNetworkVarChainer::NetworkStateChanged( NetworkStateChangedData& data )
 {
