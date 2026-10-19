@@ -863,6 +863,22 @@ PLATFORM_OVERLOAD void V_SplitString( const char *pString, const char *pSeparato
 // Just like V_SplitString, but it can use multiple possible separators.
 PLATFORM_OVERLOAD void V_SplitStringInPlace( char *pString, const char *pSeparator, CUtlLeanVector<const char *> &outStrings );
 
+// Parses the numbers pString lists separated by separator into outNumbers, returns the number of values parsed
+PLATFORM_OVERLOAD int V_SplitNumbers( const char *pString, char separator, CUtlVector<int32> &outNumbers );
+PLATFORM_OVERLOAD int V_SplitNumbers( const char *pString, char separator, CUtlVector<uint32> &outNumbers );
+PLATFORM_OVERLOAD int V_SplitNumbers( const char *pString, char separator, CUtlVector<int64> &outNumbers );
+PLATFORM_OVERLOAD int V_SplitNumbers( const char *pString, char separator, CUtlVector<uint64> &outNumbers );
+PLATFORM_OVERLOAD int V_SplitNumbers( const char *pString, char separator, CUtlVector<float> &outNumbers );
+PLATFORM_OVERLOAD int V_SplitNumbers( const char *pString, char separator, CUtlVector<double> &outNumbers );
+
+// Writes the numbers separated by separator to pOut and returns its string
+PLATFORM_OVERLOAD const char *V_JoinNumbers( char separator, const CUtlVector<int32> &numbers, CUtlString *pOut );
+PLATFORM_OVERLOAD const char *V_JoinNumbers( char separator, const CUtlVector<uint32> &numbers, CUtlString *pOut );
+PLATFORM_OVERLOAD const char *V_JoinNumbers( char separator, const CUtlVector<int64> &numbers, CUtlString *pOut );
+PLATFORM_OVERLOAD const char *V_JoinNumbers( char separator, const CUtlVector<uint64> &numbers, CUtlString *pOut );
+PLATFORM_OVERLOAD const char *V_JoinNumbers( char separator, const CUtlVector<float> &numbers, CUtlString *pOut );
+PLATFORM_OVERLOAD const char *V_JoinNumbers( char separator, const CUtlVector<double> &numbers, CUtlString *pOut );
+
 struct characterset_t
 {
 	char set[256];
