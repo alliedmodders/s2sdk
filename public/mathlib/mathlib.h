@@ -387,9 +387,7 @@ size_t Q_log2( unsigned int val );
 // Math routines done in optimized assembly math package routines
 void inline SinCos( float radians, float *sine, float *cosine )
 {
-#if defined( _X360 )
-	XMScalarSinCos( sine, cosine, radians );
-#elif defined( PLATFORM_WINDOWS_PC32 )
+#if defined( PLATFORM_WINDOWS_PC32 )
 	_asm
 	{
 		fld		DWORD PTR [radians]
@@ -1155,17 +1153,6 @@ FORCEINLINE int RoundFloatToInt(float f)
 {
 #if defined(__i386__) || defined(_M_IX86) || defined( PLATFORM_WINDOWS_PC64 ) || defined(__x86_64__)
 	return _mm_cvtss_si32(_mm_load_ss(&f));
-#elif defined( _X360 )
-#ifdef Assert
-	Assert( IsFPUControlWordSet() );
-#endif
-	union
-	{
-		double flResult;
-		int pResult[2];
-	};
-	flResult = __fctiw( f );
-	return pResult[1];
 #else
 #error Unknown architecture
 #endif
@@ -1182,20 +1169,6 @@ FORCEINLINE unsigned char RoundFloatToByte(float f)
 
 FORCEINLINE unsigned long RoundFloatToUnsignedLong(float f)
 {
-#if defined( _X360 )
-#ifdef Assert
-	Assert( IsFPUControlWordSet() );
-#endif
-	union
-	{
-		double flResult;
-		int pIntResult[2];
-		unsigned long pResult[2];
-	};
-	flResult = __fctiw( f );
-	Assert( pIntResult[1] >= 0 );
-	return pResult[1];
-#else  // !X360
 	
 #if defined( PLATFORM_WINDOWS_PC64 )
 	uint nRet = ( uint ) f;
@@ -1231,7 +1204,6 @@ FORCEINLINE unsigned long RoundFloatToUnsignedLong(float f)
 
 		return *((unsigned long*)nResult);
 #endif // PLATFORM_WINDOWS_PC64
-#endif // !X360
 }
 
 FORCEINLINE bool IsIntegralValue( float flValue, float flTolerance = 0.001f )
@@ -1242,18 +1214,8 @@ FORCEINLINE bool IsIntegralValue( float flValue, float flTolerance = 0.001f )
 // Fast, accurate ftol:
 FORCEINLINE int Float2Int( float a )
 {
-#if defined( _X360 )
-	union
-	{
-		double flResult;
-		int pResult[2];
-	};
-	flResult = __fctiwz( a );
-	return pResult[1];
-#else  // !X360
 	// Rely on compiler to generate CVTTSS2SI on x86
 	return (int) a;
-#endif
 }
 
 // Over 15x faster than: (int)floor(value)
@@ -1282,7 +1244,6 @@ FORCEINLINE unsigned int FastFToC( float c )
 	union { float f; int i; } convert = { c*255.0f + (float)(1<<23) };
 	return convert.i & 255;
 #else
-	// consoles CPUs suffer from load-hit-store penalty
 	return Float2Int( c * 255.0f );
 #endif
 }
@@ -1297,7 +1258,6 @@ FORCEINLINE int FastFloatToSmallInt( float c )
 	union { float f; int i; } convert = { c + (float)(3<<22) };
 	return (convert.i & ((1<<23)-1)) - (1<<22);
 #else
-	// consoles CPUs suffer from load-hit-store penalty
 	return Float2Int( c );
 #endif
 }
@@ -1394,9 +1354,6 @@ extern float LinearToGamma( float linear );
 
 extern float SrgbGammaToLinear( float flSrgbGammaValue );
 extern float SrgbLinearToGamma( float flLinearValue );
-extern float X360GammaToLinear( float fl360GammaValue );
-extern float X360LinearToGamma( float flLinearValue );
-extern float SrgbGammaTo360Gamma( float flSrgbGammaValue );
 
 // linear (0..4) to screen corrected vertex space (0..1?)
 FORCEINLINE float LinearToVertexLight( float f )
@@ -1894,7 +1851,6 @@ FORCEINLINE float * UnpackNormal_SHORT2( const unsigned int *pPackedNormal, floa
 {
 	// Unpacks from Jason's 2-short format (fills in a 4th binormal-sign (+1/-1) value, if this is a tangent vector)
 
-	// FIXME: short math is slow on 360 - use ints here instead (bit-twiddle to deal w/ the sign bits)
 	short iX = (*pPackedNormal & 0x0000FFFF);
 	short iY = (*pPackedNormal & 0xFFFF0000) >> 16;
 
@@ -1947,7 +1903,6 @@ FORCEINLINE unsigned int * PackNormal_SHORT2( float nx, float ny, float nz, unsi
 
 	ny *= binormalSign;			// Set the sign bit for the binormal (use when encoding a tangent vector)
 
-	// FIXME: short math is slow on 360 - use ints here instead (bit-twiddle to deal w/ the sign bits), also use Float2Int()
 	short sX = (short)nx;		// signed short [1,32767]
 	short sY = (short)ny;
 
@@ -2106,25 +2061,6 @@ FORCEINLINE void RGB2YUV( int &nR, int &nG, int &nB, float &fY, float &fU, float
 		fV    = 0.5f + scale*( fV - 0.5f );
 	}
 }
-
-#ifdef _X360
-// Used for direct CPU access to VB data on 360 (used by shaderapi, studiorender and engine)
-struct VBCPU_AccessInfo_t
-{
-	// Points to the GPU data pointer in the CVertexBuffer struct (VB data can be relocated during level transitions)
-	const byte **ppBaseAddress;
-	// pBaseAddress should be computed from ppBaseAddress immediately before use
-	const byte  *pBaseAddress;
-	int          nStride;
-	int          nPositionOffset;
-	int          nTexCoord0_Offset;
-	int          nNormalOffset;
-	int          nBoneIndexOffset;
-	int          nBoneWeightOffset;
-	int          nCompressionType;
-	// TODO: if needed, add colour and tangents
-};
-#endif
 
 //-----------------------------------------------------------------------------
 // Convert RGB to HSV

@@ -129,7 +129,7 @@ using CUtlMemoryPoolMT = CUtlMemoryPool<T>;
 
 
 //-----------------------------------------------------------------------------
-// Specialized pool for aligned data management (e.g., Xbox textures)
+// Specialized pool for aligned data management
 //-----------------------------------------------------------------------------
 template <int ITEM_SIZE, int ALIGNMENT, int CHUNK_SIZE, class CAllocator, bool GROWMODE = false, int COMPACT_THRESHOLD = 4 >
 class CAlignedMemPool

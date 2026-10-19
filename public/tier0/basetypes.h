@@ -97,7 +97,6 @@ T abs( const T &a )
 
 
 
-#if !defined(_X360)
 FORCEINLINE float fpmin( float a, float b )
 {
 	return ( a < b ) ? a : b;
@@ -107,7 +106,6 @@ FORCEINLINE float fpmax( float a, float b )
 {
 	return ( a > b ) ? a : b;
 }
-#endif
 
 #ifdef __cplusplus
 
@@ -167,7 +165,6 @@ inline T clamp( T const &val, Y const &minVal, Y const &maxVal )
 //-----------------------------------------------------------------------------
 // fsel
 //-----------------------------------------------------------------------------
-#ifndef _X360
 
 #define fsel(c,x,y) ( (c) >= 0 ? (x) : (y) )
 
@@ -182,52 +179,6 @@ inline T clamp( T const &val, Y const &minVal, Y const &maxVal )
 // return x, else y
 // this is fast if nbit is a compile-time immediate 
 #define ibitsel(a, nbit, x, y) ( ( ((a) & (1 << (nbit))) != 0 ) ? (x) : (y) )
-
-#else
-
-// __fsel(double fComparand, double fValGE, double fLT) == fComparand >= 0 ? fValGE : fLT
-// this is much faster than if ( aFloat > 0 ) { x = .. }
-// the XDK defines two intrinsics, one for floats and one for doubles -- it's the same
-// opcode, but the __fself version tells the compiler not to do a wasteful unnecessary
-// rounding op after each sel.
-// #define fsel __fsel
-FORCEINLINE double fsel(double fComparand, double fValGE, double fLT) { return __fsel( fComparand, fValGE, fLT ); }
-FORCEINLINE float fsel(float fComparand, float fValGE, float fLT) { return __fself( fComparand, fValGE, fLT ); }
-
-// if a >= 0, return x, else y
-FORCEINLINE int isel( int a, int x, int y )
-{
-	int mask = a >> 31; // arithmetic shift right, splat out the sign bit
-	return x + ((y - x) & mask);
-};
-
-// if a >= 0, return x, else y
-FORCEINLINE unsigned isel( int a, unsigned x, unsigned y )
-{
-	int mask = a >> 31; // arithmetic shift right, splat out the sign bit
-	return x + ((y - x) & mask);
-};
-
-// ( x == y ) ? a : b
-FORCEINLINE unsigned ieqsel( unsigned x, unsigned y, unsigned a, unsigned b )
-{
-	unsigned mask = (x == y) ? 0 : -1;
-	return a + ((b - a) & mask);
-};
-
-// ( x == y ) ? a : b
-FORCEINLINE int ieqsel( int x, int y, int a, int b )
-{
-	int mask = (x == y) ? 0 : -1;
-	return a + ((b - a) & mask);
-};
-
-// if the nth bit of a is set (counting with 0 = LSB),
-// return x, else y
-// this is fast if nbit is a compile-time immediate 
-#define ibitsel(a, nbit, x, y) ( (x) + (((y) - (x)) & (((a) & (1 << (nbit))) ? 0 : -1)) )
-
-#endif
 
 #if CROSS_PLATFORM_VERSION < 1
 
@@ -296,11 +247,7 @@ inline vec_t BitsToFloat( uint32 i )
 
 inline bool IsFinite( const vec_t &f )
 {
-#if _X360
-	return f == f && fabs(f) <= FLT_MAX;
-#else
 	return ((FloatBits(f) & 0x7F800000) != 0x7F800000);
-#endif
 }
 
 inline uint32 FloatAbsBits( vec_t f )

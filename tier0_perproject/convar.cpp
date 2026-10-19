@@ -19,9 +19,6 @@
 #include "icvar.h"
 #include "tier0/dbg.h"
 #include "color.h"
-#if defined( _X360 )
-#include "xbox/xbox_console.h"
-#endif
 #include "tier0/memdbgon.h"
 
 // AMNOTE: Define this if you need cvars/concommands to respect flags sanitization rules

@@ -53,11 +53,7 @@
 #define THREAD_MUTEX_TRACING_ENABLED
 #endif
 
-#ifdef _X360
-#define MAX_THREADS_SUPPORTED 16
-#else
 #define MAX_THREADS_SUPPORTED 32
-#endif
 
 
 
@@ -131,7 +127,6 @@ inline void ThreadPause()
 	_mm_pause();
 #elif defined( POSIX )
 	__asm __volatile( "pause" );
-#elif defined( _X360 )
 #else
 #error "implement me"
 #endif

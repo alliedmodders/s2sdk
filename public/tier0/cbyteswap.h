@@ -185,54 +185,12 @@ private:
 	template<typename T> static void LowLevelByteSwap( T *output, T *input )
 	{
 		T temp = *output;
-#if defined( _X360 )
-		// Intrinsics need the source type to be fixed-point
-		DWORD* word = (DWORD*)input;
-		switch( sizeof(T) )
-		{
-		case 8:
-			{
-			__storewordbytereverse( *(word+1), 0, &temp );
-			__storewordbytereverse( *(word+0), 4, &temp );
-			}
-			break;
-
-		case 4:
-			__storewordbytereverse( *word, 0, &temp );
-			break;
-
-		case 2:
-			__storeshortbytereverse( *input, 0, &temp );
-			break;
-
-		case 1:
-			Q_memcpy( &temp, input, 1 );
-			break;
-
-		default:
-			Assert( "Invalid size in CByteswap::LowLevelByteSwap" && 0 );
-		}
-#else
 		for( size_t i = 0; i < sizeof(T); i++ )
 		{
 			((unsigned char* )&temp)[i] = ((unsigned char*)input)[sizeof(T)-(i+1)]; 
 		}
-#endif
 		Q_memcpy( output, &temp, sizeof(T) );
 	}
-
-#if defined( _X360 )
-	// specialized for void * to get 360 XDK compile working despite changelist 281331
-	//-----------------------------------------------------------------------------
-	// The lowest level byte swapping workhorse of doom.  output always contains the 
-	// swapped version of input.  ( Doesn't compare machine to target endianness )
-	//-----------------------------------------------------------------------------
-	template<> static void LowLevelByteSwap( void **output, void **input )
-	{
-		AssertMsgOnce( sizeof(void *) == sizeof(unsigned int) , "void *'s on this platform are not four bytes!" );	
-		__storewordbytereverse( *reinterpret_cast<unsigned int *>(input), 0, output );
-	}
-#endif
 
 	unsigned int m_bSwapBytes : 1;
 	unsigned int m_bBigEndian : 1;

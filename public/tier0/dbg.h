@@ -421,7 +421,7 @@ private:
 //
 // Purpose: Embed debug info in each file.
 //
-#if defined( _WIN32 ) && !defined( _X360 )
+#if defined( _WIN32 )
 
 	#ifdef _DEBUG
 		#pragma comment(compiler)
@@ -555,7 +555,7 @@ private:
 
 #endif
 
-// Code for programmatically setting/unsetting hardware breakpoints (there's probably a 360 and
+// Code for programmatically setting/unsetting hardware breakpoints
 #ifdef IS_WINDOWS_PC
 
 typedef void * HardwareBreakpointHandle_t;

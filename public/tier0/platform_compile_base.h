@@ -11,23 +11,6 @@
 #include <Windows.h>
 #endif
 
-#if defined( _X360 )
-#define NO_STEAM
-#define NO_VOICE
-// for the 360, the ppc platform and the rtos are tightly coupled
-// setup the 360 environment here !once! for much less leaf module include wackiness
-// these are critical order and purposely appear *before* anything else
-#define _XBOX
-#include <xaudio2.h>
-#include <xbdm.h>
-#include <xgraphics.h>
-#include <xui.h>
-#include <pmcpbsetup.h>
-#include <xmahardwareabstraction.h>
-#undef _XBOX
-
-#endif
-
 #define __STDC_LIMIT_MACROS
 #include <stdint.h>
 #include <stddef.h>
@@ -76,16 +59,7 @@
 
 // feature enables
 #define NEW_SOFTWARE_LIGHTING
-#if !defined( _X360 )
 #define SUPPORT_PACKED_STORE
-#endif
-#define BINK_ENABLED_FOR_X360
-
-
-
-// Deprecating, infavor of IsX360() which will revert to IsXbox()
-// after confidence of xbox 1 code flush
-#define IsXbox()	false
 
 // C functions for external declarations that call the appropriate C++ methods
 #ifndef EXPORT
@@ -108,7 +82,7 @@ typedef void * HINSTANCE;
 
 //-----------------------------------------------------------------------------
 // NOTE: All compiler defines are set up in the base VPC scripts
-// COMPILER_MSVC, COMPILER_MSVC32, COMPILER_MSVC64, COMPILER_MSVCX360
+// COMPILER_MSVC, COMPILER_MSVC32, COMPILER_MSVC64
 // COMPILER_GCC
 // The rationale for this is that we need COMPILER_MSVC for the pragma blocks
 // #pragma once that occur at the top of all header files, therefore we can't
@@ -123,40 +97,25 @@ typedef void * HINSTANCE;
 	#define IsPlatformLinux()	false
 	#define IsPlatformPosix()	false
 	#define IsPlatformOSX()		false
-	#define IsPlatformPS3()		false
 	#define IsPlatformWindows() true
 	#ifndef PLATFORM_WINDOWS
 	#define PLATFORM_WINDOWS	1
 	#endif
 
-	#ifndef _X360
-		#define IsPlatformX360() false
-		#define IsPlatformWindowsPC() true
-		#define PLATFORM_WINDOWS_PC 1
+	#define IsPlatformWindowsPC() true
+	#define PLATFORM_WINDOWS_PC 1
 
-		#ifdef _WIN64
-			#define IsPlatformWindowsPC64() true
-			#define IsPlatformWindowsPC32() false
-			#define PLATFORM_WINDOWS_PC64 1
-		#else
-			#define IsPlatformWindowsPC64() false
-			#define IsPlatformWindowsPC32() true
-			#define PLATFORM_WINDOWS_PC32 1
-		#endif
-
-	#else // _X360
-
-		#define IsPlatformWindowsPC()	false
-		#define IsPlatformWindowsPC64() false
+	#ifdef _WIN64
+		#define IsPlatformWindowsPC64() true
 		#define IsPlatformWindowsPC32() false
-		#define IsPlatformX360()		true
-		#define PLATFORM_X360 1
-
-	#endif // _X360
+		#define PLATFORM_WINDOWS_PC64 1
+	#else
+		#define IsPlatformWindowsPC64() false
+		#define IsPlatformWindowsPC32() true
+		#define PLATFORM_WINDOWS_PC32 1
+	#endif
 
 #elif defined(POSIX)
-	#define IsPlatformX360()		false
-	#define IsPlatformPS3()			false
 	#define IsPlatformWindows()		false
 	#define IsPlatformWindowsPC()	false
 	#define IsPlatformWindowsPC64()	false
@@ -196,8 +155,6 @@ typedef void * HINSTANCE;
 #define IsLinux()	IsPlatformLinux()
 #define IsOSX()		IsPlatformOSX()
 #define IsPosix()	IsPlatformPosix()
-#define IsX360()	IsPlatformX360()
-#define IsPS3()		IsPlatformPS3()
 
 // Setup platform defines.
 #ifdef COMPILER_MSVC
@@ -217,22 +174,6 @@ typedef void * HINSTANCE;
 #endif
 
 #endif // CROSS_PLATFORM_VERSION < 2
-
-
-//-----------------------------------------------------------------------------
-// Set up platform type defines.
-//-----------------------------------------------------------------------------
-#ifdef PLATFORM_X360
-	#ifndef _CONSOLE
-		#define _CONSOLE
-	#endif
-	#define IsPC()		false
-	#define IsConsole() true
-#else
-	#define IsPC()		true
-	#define IsConsole() false
-#endif
-
 
 
 //-----------------------------------------------------------------------------
@@ -278,13 +219,6 @@ typedef signed char					int8;
 	// (ie, sizeof(intp) >= sizeof(int) && sizeof(intp) >= sizeof(void *)
 	typedef intptr_t				intp;
 	typedef uintptr_t				uintp;
-
-	#if defined( COMPILER_MSVCX360 )
-		#ifdef __m128
-			#undef __m128
-		#endif
-		#define __m128				__vector4
-	#endif
 
 #else // !COMPILER_MSVC
 
@@ -552,11 +486,7 @@ typedef int OSFILEHANDLE;
 // Note: NJS: This is not enabled for regular PC, due to not knowing the implications of exporting a class with no no vtable.
 //       It's probable that this shouldn't be an issue, but an experiment should be done to verify this.
 //
-#ifndef COMPILER_MSVCX360
 	#define abstract_class class
-#else
-	#define abstract_class class NO_VTABLE
-#endif
 
 // MSVC CRT uses 0x7fff while gcc uses MAX_INT, leading to mismatches between platforms
 // As a result, we pick the least common denominator here.  This should be used anywhere
@@ -651,10 +581,8 @@ typedef int OSFILEHANDLE;
 //-----------------------------------------------------------------------------
 // Used to break into the debugger
 //-----------------------------------------------------------------------------
-#if defined( PLATFORM_WINDOWS ) && !defined( PLATFORM_X360 )
+#if defined( PLATFORM_WINDOWS )
 #define DebuggerBreak()  __debugbreak()
-#elif defined( PLATFORM_X360 )
-#define DebuggerBreak() DebugBreak()
 #else
 	// On OSX, SIGTRAP doesn't really stop the thread cold when debugging.
 	// So if being debugged, use INT3 which is precise.
