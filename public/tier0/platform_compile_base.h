@@ -48,6 +48,7 @@
 
 #include <malloc.h>
 
+#include <stdio.h>
 #include <string.h>
 
 #ifdef COMPILER_GCC

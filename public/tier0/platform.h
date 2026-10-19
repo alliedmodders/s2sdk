@@ -440,6 +440,59 @@ PLATFORM_INTERFACE bool				Plat_FileIsReadOnly( const char *pFileName );
 // bDontFollowLinks checks a symbolic link itself rather than its target. Returns -1 when the file doesn't exist.
 PLATFORM_INTERFACE int64			Plat_FileSize( const char *pFileName, bool bDontFollowLinks );
 PLATFORM_INTERFACE bool				Plat_IsDirectory( const char *pPath, bool bDontFollowLinks );
+PLATFORM_INTERFACE bool				Plat_IsFile( const char *pFileName, bool bDontFollowLinks );
+PLATFORM_INTERFACE bool				Plat_IsSymlink( const char *pFileName );
+
+// bWriteEveryone gives everyone write access on Linux
+PLATFORM_INTERFACE bool				Plat_CreateDirectory( const char *pFileName, bool bWriteEveryone );
+// Creates the missing directories of the path, or of the file's path
+PLATFORM_INTERFACE bool				Plat_CreateDirectoryTree( const char *pPath, bool bWriteEveryone );
+PLATFORM_INTERFACE bool				Plat_CreateDirectoryTreeForFile( const char *pFileName, bool bWriteEveryone );
+// Creates the directory unless there is one, following a symbolic link to it
+PLATFORM_INTERFACE bool				Plat_EnsureDirectory( const char *pPath, bool bWriteEveryone );
+// bDontFollowLinks removes a symbolic link rather than its target
+PLATFORM_INTERFACE bool				Plat_RemoveDirectory( const char *pPath, bool bDontFollowLinks );
+// Removes the directory and everything in it; nFlags 1 removes a symbolic link at pPath rather than its target
+PLATFORM_INTERFACE bool				Plat_RemoveDirectoryTree( const char *pPath, uint32 nFlags );
+PLATFORM_INTERFACE bool				Plat_RemoveFile( const char *pFileName, bool bDontFollowLinks );
+// Moves the file to the recycle bin on Windows; elsewhere removes it unless bRequireSafe
+PLATFORM_INTERFACE bool				Plat_SafeRemoveFile( const char *pFileName, bool bRequireSafe );
+PLATFORM_INTERFACE bool				Plat_RenameFile( const char *pFrom, const char *pTo );
+PLATFORM_INTERFACE bool				Plat_SetFileReadOnly( const char *pFileName, bool bReadOnly );
+// Sets the permission bits of nPermissionMask, which must have executable bits, to nPermissions; Windows only checks it's a file
+PLATFORM_INTERFACE bool				Plat_SetFileExecutable( const char *pFileName, uint32 nPermissions, uint32 nPermissionMask );
+
+// Returns 0 or the OS error code, see FioReadFileToMemory
+PLATFORM_INTERFACE int				PlatC_ReadFileToMemory( const char *pFileName, void **pContent, int32 *pContentBytes, bool bZeroTerminate, int32 nMaxBytes );
+
+PLATFORM_INTERFACE bool				Plat_GetTempDirectory( CBufferString *pOut );
+PLATFORM_INTERFACE void				Plat_GetDocumentDirectory( CBufferString *pOut );
+// Create a new temporary directory or file named from pPrefix, in pBaseDir or the temporary directory, and put its path in pOutPath
+PLATFORM_INTERFACE bool				Plat_CreateTempDirectory( CBufferString *pOutPath, const char *pPrefix, bool bWriteEveryone, const char *pBaseDir );
+// Returns -1 on failure
+PLATFORM_INTERFACE OSFILEHANDLE		Plat_CreateOpenTempFile( CBufferString *pOutPath, const char *pPrefix, const char *pBaseDir );
+// pMode must be a "w" mode of fopen
+PLATFORM_INTERFACE FILE *			Plat_CreateFOpenTempFile( const char *pMode, CBufferString *pOutPath, const char *pPrefix, const char *pBaseDir );
+
+PLATFORM_INTERFACE void				Plat_SetGameDirectory( const char *pGameDir );
+
+// Unbuffers stdin, stdout and stderr
+PLATFORM_INTERFACE void				Plat_DisableIOBuffering();
+
+// nStdioFlags: 1 stdout, 2 stderr
+PLATFORM_OVERLOAD bool				Plat_RedirectThisProcessStdioToFile( int nFile, uint32 nStdioFlags );
+#ifdef PLATFORM_WINDOWS
+PLATFORM_OVERLOAD bool				Plat_RedirectThisProcessStdioToFile( void *hFile, uint32 nStdioFlags );
+#endif
+// Moves the stdio streams redirected to nOldFile to nNewFile
+PLATFORM_OVERLOAD bool				Plat_UpdateThisProcessStdioRedirect( int nOldFile, int nNewFile );
+// The stdio streams redirected so far
+PLATFORM_INTERFACE uint32			Plat_GetThisProcessStdioRedirectFlags();
+
+// AMNOTE: An HKEY on Windows, always nullptr elsewhere
+typedef void *PlatRegistryKey_t;
+PLATFORM_INTERFACE bool				Plat_RegistryDirectoryOpenOrCreate( const char *rootKey, PlatRegistryKey_t &hKey );
+PLATFORM_INTERFACE void				Plat_RegistryDirectoryClose( PlatRegistryKey_t &hKey );
 
 PLATFORM_INTERFACE char const *		Plat_GetEnv( char const *pEnvVarName );
 
