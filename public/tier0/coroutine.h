@@ -36,4 +36,12 @@ PLATFORM_INTERFACE void Coroutine_YieldToMain();
 // returns true if the code is currently running inside of a coroutine
 PLATFORM_INTERFACE bool Coroutine_IsActive();
 
+#ifdef PLATFORM_LINUX
+// The assembly the coroutines run on. Coroutine_Launch_ASM saves the registers, puts the stack pointer of its caller in
+// *ppStackHigh and the address of the saved registers in *ppSavedRegisters, calls pFunc( pvParam ) and then pfnPostLaunch
+PLATFORM_INTERFACE void Coroutine_Launch_ASM( void **ppStackHigh, void **ppSavedRegisters, CoroutineFunc_t pFunc, void *pvParam, void (*pfnPostLaunch)() );
+// Saves RBX, RBP and R12 to R15 to pRegisters, in that order
+PLATFORM_INTERFACE void SaveNonVolatileRegs( uintp *pRegisters );
+#endif
+
 #endif // COROUTINE_H
