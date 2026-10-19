@@ -371,14 +371,14 @@ static void TestUnsignedIndexLoops()
 // The vector and hash map loops take the container's index type too, wider or narrower than int
 static void TestWideIndexLoops()
 {
-	CUtlVector<int, intp> vec;
+	CUtlVector<int, int64> vec;
 	for ( int i = 1; i <= 4; i++ )
 		vec.AddToTail( i );
 
 	int nSum = 0, nPrev = 0;
 	FOR_EACH_VEC( vec, i )
 	{
-		CHECK( sizeof( i ) == sizeof( intp ) && vec[i] > nPrev );
+		CHECK( sizeof( i ) == sizeof( int64 ) && vec[i] > nPrev );
 		nPrev = vec[i];
 		nSum += vec[i];
 	}
@@ -387,11 +387,20 @@ static void TestWideIndexLoops()
 	nSum = 0, nPrev = 5;
 	FOR_EACH_VEC_BACK( vec, i )
 	{
-		CHECK( sizeof( i ) == sizeof( intp ) && vec[i] < nPrev );
+		CHECK( sizeof( i ) == sizeof( int64 ) && vec[i] < nPrev );
 		nPrev = vec[i];
 		nSum += vec[i];
 	}
 	CHECK( nSum == 10 );
+
+	CUtlVector<int, int64> copy;
+	copy = vec;
+	CHECK( copy.Count() == 4 && copy[ 0 ] == 1 && copy[ 3 ] == 4 );
+
+	CUtlVectorFixedGrowable<int, 2, int64> fixed( 4 );
+	for ( int i = 1; i <= 3; i++ )
+		fixed.AddToTail( i );
+	CHECK( fixed.Count() == 3 && fixed[ 2 ] == 3 );
 
 	CUtlHashMap<int, int, CDefEquals<int>, DefaultHashFunctor<int>, short> map;
 	map.Insert( 1, 10 );
