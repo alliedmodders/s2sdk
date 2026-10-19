@@ -272,7 +272,7 @@ class CUtlVectorFixedGrowable : public CUtlVectorBase< T, I, CUtlVectorMemory_Fi
 public:
 
 	// constructor, destructor
-	CUtlVectorFixedGrowable( int growSize = 0 ) : BaseClass( growSize, MAX_SIZE ) {}
+	CUtlVectorFixedGrowable( I growSize = 0 ) : BaseClass( growSize, MAX_SIZE ) {}
 };
 
 //-----------------------------------------------------------------------------
@@ -356,9 +356,9 @@ inline CUtlVectorBase<T, I, A>& CUtlVectorBase<T, I, A>::operator=( CUtlVectorBa
 template< typename T, class I, class A >
 inline CUtlVectorBase<T, I, A>& CUtlVectorBase<T, I, A>::operator=( const CUtlVectorBase<T, I, A> &other )
 {
-	int nCount = other.Count();
+	I nCount = other.Count();
 	SetSize( nCount );
-	for ( int i = 0; i < nCount; i++ )
+	for ( I i = 0; i < nCount; i++ )
 	{
 		(*this)[ i ] = other[ i ];
 	}
