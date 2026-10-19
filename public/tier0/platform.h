@@ -114,7 +114,6 @@ PLATFORM_INTERFACE void Plat_Printf ( const tchar *pFmt, ... ) FMTFUNCTION( 1, 2
 // FP exception handling
 //-----------------------------------------------------------------------------
 //#define CHECK_FLOAT_EXCEPTIONS		1
-//#define CHECK_FPU_CONTROL_WORD_SET	1	// x360 only
 
 #if defined( COMPILER_MSVC64 )
 
@@ -173,41 +172,7 @@ PLATFORM_INTERFACE void Plat_Printf ( const tchar *pFmt, ... ) FMTFUNCTION( 1, 2
 		__asm __volatile ("fldcw %0" : : "m" (__cw));
 	}
 
-#elif defined( COMPILER_MSVCX360 )
-
-	#ifdef CHECK_FPU_CONTROL_WORD_SET
-		FORCEINLINE bool IsFPUControlWordSet()
-		{
-			float f = 0.996f;
-			union
-			{
-				double flResult;
-				int pResult[2];
-			};
-			flResult = __fctiw( f );
-			return ( pResult[1] == 1 );
-		}
-	#else
-		#define IsFPUControlWordSet() true
-	#endif
-
-	inline void SetupFPUControlWord()
-	{
-		// Set round-to-nearest in FPSCR
-		// (cannot assemble, must use op-code form)
-		__emit( 0xFF80010C );	// mtfsfi  7,0
-
-		// Favour compatibility over speed (make sure the VPU set to Java-compliant mode)
-		// NOTE: the VPU *always* uses round-to-nearest
-		__vector4  a = { 0.0f, 0.0f, 0.0f, 0.0f };
-		a;				//	Avoid compiler warning
-		__asm
-		{
-			mtvscr a;	// Clear the Vector Status & Control Register to zero
-		}
-	}
-
-#endif // COMPILER_MSVCX360
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -374,17 +339,6 @@ inline void SwapFloat( float *pOut, const float *pIn )		{ SafeSwapFloat( pOut, p
 
 #endif
 
-#if _X360
-FORCEINLINE unsigned long LoadLittleDWord( const unsigned long *base, unsigned int dwordIndex )
-		{
-			return __loadwordbytereverse( dwordIndex<<2, base );
-		}
-
-FORCEINLINE void StoreLittleDWord( unsigned long *base, unsigned int dwordIndex, unsigned long dword )
-		{
-			__storewordbytereverse( dword, dwordIndex<<2, base );
-		}
-#else
 FORCEINLINE uint32 LoadLittleDWord( const uint32 *base, unsigned int dwordIndex )
 	{
 		return LittleDWord( base[dwordIndex] );
@@ -394,7 +348,6 @@ FORCEINLINE void StoreLittleDWord( uint32 *base, unsigned int dwordIndex, uint32
 	{
 		base[dwordIndex] = LittleDWord(dword);
 	}
-#endif
 
 inline uint64 CastPtrToUint64( const void* p )
 {
@@ -618,81 +571,14 @@ PLATFORM_INTERFACE double Plat_GetCPUUsage();
 PLATFORM_INTERFACE void Plat_GetCurrentDate( int *pDay, int *pMonth, int *pYear );
 
 
-#if _X360
-#define Plat_FastMemset XMemSet
-#define Plat_FastMemcpy XMemCpy
-#else
 #define Plat_FastMemset memset
 #define Plat_FastMemcpy memcpy
-#endif
 
 //-----------------------------------------------------------------------------
 // Returns true if running on a 64 bit (windows) OS
 //-----------------------------------------------------------------------------
 PLATFORM_INTERFACE bool Plat_Is64BitOS();
 
-
-//-----------------------------------------------------------------------------
-// XBOX Components valid in PC compilation space
-//-----------------------------------------------------------------------------
-
-#define XBOX_DVD_SECTORSIZE			2048
-#define XBOX_DVD_ECC_SIZE			32768 // driver reads in quantum ECC blocks
-#define XBOX_HDD_SECTORSIZE			512
-
-// Custom windows messages for Xbox input
-#define WM_XREMOTECOMMAND					(WM_USER + 100)
-#define WM_XCONTROLLER_KEY					(WM_USER + 101)
-#define WM_SYS_UI							(WM_USER + 102)
-#define WM_SYS_SIGNINCHANGED				(WM_USER + 103)
-#define WM_SYS_STORAGEDEVICESCHANGED		(WM_USER + 104)
-#define WM_SYS_PROFILESETTINGCHANGED		(WM_USER + 105)
-#define WM_SYS_MUTELISTCHANGED				(WM_USER + 106)
-#define WM_SYS_INPUTDEVICESCHANGED			(WM_USER + 107)
-#define WM_SYS_INPUTDEVICECONFIGCHANGED		(WM_USER + 108)
-#define WM_LIVE_CONNECTIONCHANGED			(WM_USER + 109)
-#define WM_LIVE_INVITE_ACCEPTED				(WM_USER + 110)
-#define WM_LIVE_LINK_STATE_CHANGED			(WM_USER + 111)
-#define WM_LIVE_CONTENT_INSTALLED			(WM_USER + 112)
-#define WM_LIVE_MEMBERSHIP_PURCHASED		(WM_USER + 113)
-#define WM_LIVE_VOICECHAT_AWAY				(WM_USER + 114)
-#define WM_LIVE_PRESENCE_CHANGED			(WM_USER + 115)
-#define WM_FRIENDS_PRESENCE_CHANGED			(WM_USER + 116)
-#define WM_FRIENDS_FRIEND_ADDED				(WM_USER + 117)
-#define WM_FRIENDS_FRIEND_REMOVED			(WM_USER + 118)
-#define WM_CUSTOM_GAMEBANNERPRESSED			(WM_USER + 119)
-#define WM_CUSTOM_ACTIONPRESSED				(WM_USER + 120)
-#define WM_XMP_STATECHANGED					(WM_USER + 121)
-#define WM_XMP_PLAYBACKBEHAVIORCHANGED		(WM_USER + 122)
-#define WM_XMP_PLAYBACKCONTROLLERCHANGED	(WM_USER + 123)
-
-inline const char *GetPlatformExt( void )
-{
-	return IsPlatformX360() ? ".360" : "";
-}
-
-// flat view, 6 hw threads
-#define XBOX_PROCESSOR_0			( 1<<0 )
-#define XBOX_PROCESSOR_1			( 1<<1 )
-#define XBOX_PROCESSOR_2			( 1<<2 )
-#define XBOX_PROCESSOR_3			( 1<<3 )
-#define XBOX_PROCESSOR_4			( 1<<4 )
-#define XBOX_PROCESSOR_5			( 1<<5 )
-
-// core view, 3 cores with 2 hw threads each
-#define XBOX_CORE_0_HWTHREAD_0		XBOX_PROCESSOR_0
-#define XBOX_CORE_0_HWTHREAD_1		XBOX_PROCESSOR_1
-#define XBOX_CORE_1_HWTHREAD_0		XBOX_PROCESSOR_2
-#define XBOX_CORE_1_HWTHREAD_1		XBOX_PROCESSOR_3
-#define XBOX_CORE_2_HWTHREAD_0		XBOX_PROCESSOR_4
-#define XBOX_CORE_2_HWTHREAD_1		XBOX_PROCESSOR_5
-
-//-----------------------------------------------------------------------------
-// Include additional dependant header components.
-//-----------------------------------------------------------------------------
-#if defined( PLATFORM_X360 )
-#include "xbox/xbox_core.h"
-#endif
 
 //-----------------------------------------------------------------------------
 // There is no requirement that a va_list be usable in multiple calls,

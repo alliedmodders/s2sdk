@@ -110,10 +110,6 @@ inline void CCycleCount::Sample()
 	unsigned __int64* pSample = (unsigned __int64*)&m_Int64;
 	*pSample = __rdtsc(); 
 	//		Msg( "Sample = %I64x", pSample ); 
-#elif defined( _X360 )
-	// only need lower 32 bits, avoids doc'd read bug and 32 bit rollover is in 85 seconds
-	m_Int64 = (uint64)__mftb32();
-	// scale back up, needs to be viewed as 1 cycle/clock
 #elif defined( __GNUC__ )
 	unsigned long* pSample = (unsigned long *)&m_Int64;
 	__asm__ __volatile__ (  
@@ -217,17 +213,6 @@ inline void CFastTimer::End()
 {
 	CCycleCount cnt;
 	cnt.Sample();
-	if ( IsX360() )
-	{
-		// have to handle rollover, hires timer is only accurate to 32 bits
-		// more than one overflow should not have occurred, otherwise caller should use a slower timer
-		if ( (uint64)cnt.m_Int64 <= (uint64)m_Duration.m_Int64 )
-		{
-			// rollover occurred	
-			cnt.m_Int64 += 0x100000000LL;	
-		}
-	}
-
 	m_Duration.m_Int64 = cnt.m_Int64 - m_Duration.m_Int64;
 
 #ifdef DEBUG_FASTTIMER
@@ -239,17 +224,6 @@ inline CCycleCount CFastTimer::GetDurationInProgress() const
 {
 	CCycleCount cnt;
 	cnt.Sample();
-	if ( IsX360() )
-	{
-		// have to handle rollover, hires timer is only accurate to 32 bits
-		// more than one overflow should not have occurred, otherwise caller should use a slower timer
-		if ( (uint64)cnt.m_Int64 <= (uint64)m_Duration.m_Int64 )
-		{
-			// rollover occurred	
-			cnt.m_Int64 += 0x100000000LL;	
-		}
-	}
-
 	CCycleCount result;
 	result.m_Int64 = cnt.m_Int64 - m_Duration.m_Int64;
 	

@@ -22,10 +22,8 @@
 // For rand(). We really need a library!
 #include <stdlib.h>
 
-#ifndef _X360
 // For MMX intrinsics
 #include <xmmintrin.h>
-#endif
 
 #ifndef ALIGN16_POST
 #define ALIGN16_POST
@@ -236,15 +234,6 @@ private:
 };
 
 
-
-#ifdef _X360
-#define USE_M64S 1
-#else
-#define USE_M64S 0
-#endif
-
-
-
 //=========================================================
 // 4D Short Vector (aligned on 8-byte boundary)
 //=========================================================
@@ -256,12 +245,6 @@ public:
 
 	// Initialization
 	void Init(short ix = 0, short iy = 0, short iz = 0, short iw = 0 );
-
-
-#if USE_M64S
-	__m64 &AsM64() { return *(__m64*)&x; }
-	const __m64 &AsM64() const { return *(const __m64*)&x; } 
-#endif
 
 	// Setter
 	void Set( const ShortVector& vOther );
@@ -314,11 +297,6 @@ public:
 
 	// Initialization
 	void Init(int ix = 0, int iy = 0, int iz = 0, int iw = 0 );
-
-#if USE_M64S
-	__m64 &AsM64() { return *(__m64*)&x; }
-	const __m64 &AsM64() const { return *(const __m64*)&x; } 
-#endif
 
 	// Setter
 	void Set( const IntVector4D& vOther );
@@ -559,7 +537,6 @@ inline void Vector::Random( vec_t minVal, vec_t maxVal )
 	CHECK_VALID(*this);
 }
 
-// This should really be a single opcode on the PowerPC (move r0 onto the vec reg)
 inline void Vector::Zero()
 {
 	x = y = z = 0.0f;
@@ -2150,8 +2127,6 @@ inline void AngularImpulseToQAngle( const AngularImpulse &impulse, QAngle &angle
 	angles.z = impulse.x;
 }
 
-#if !defined( _X360 )
-
 FORCEINLINE vec_t InvRSquared( const float* v )
 {
 	return 1.0f / MAX( 1.0f, v[0] * v[0] + v[1] * v[1] + v[2] * v[2] );
@@ -2162,22 +2137,6 @@ FORCEINLINE vec_t InvRSquared( const Vector &v )
 	return InvRSquared( v.Base() );
 }
 
-#else
-
-// call directly
-FORCEINLINE float _VMX_InvRSquared( const Vector &v )
-{
-	XMVECTOR xmV = XMVector3ReciprocalLength( XMLoadVector3( v.Base() ) );
-	xmV = XMVector3Dot( xmV, xmV );
-	return xmV.x;
-}
-
-#define InvRSquared(x) _VMX_InvRSquared(x)
-
-#endif // _X360
-
-#if !defined( _X360 )
-
 // FIXME: Change this back to a #define once we get rid of the vec_t version
 float VectorNormalize( Vector& v );
 
@@ -2187,32 +2146,6 @@ FORCEINLINE float VectorNormalize( float * v )
 	return VectorNormalize(*(reinterpret_cast<Vector *>(v)));
 }
 
-#else
-
-// call directly
-FORCEINLINE float _VMX_VectorNormalize( Vector &vec )
-{
-	float mag = XMVector3Length( XMLoadVector3( vec.Base() ) ).x;
-	float den = 1.f / (mag + FLT_EPSILON );
-	vec.x *= den;
-	vec.y *= den;
-	vec.z *= den;
-	return mag;
-}
-// FIXME: Change this back to a #define once we get rid of the vec_t version
-FORCEINLINE float VectorNormalize( Vector& v )
-{
-	return _VMX_VectorNormalize( v );
-}
-// FIXME: Obsolete version of VectorNormalize, once we remove all the friggin float*s
-FORCEINLINE float VectorNormalize( float *pV )
-{
-	return _VMX_VectorNormalize(*(reinterpret_cast<Vector*>(pV)));
-}
-
-#endif // _X360
-
-#if !defined( _X360 )
 FORCEINLINE void VectorNormalizeFast (Vector& vec)
 {
 	float ool = FastRSqrt( FLT_EPSILON + vec.x * vec.x + vec.y * vec.y + vec.z * vec.z );
@@ -2221,19 +2154,6 @@ FORCEINLINE void VectorNormalizeFast (Vector& vec)
 	vec.y *= ool;
 	vec.z *= ool;
 }
-#else
-
-// call directly
-FORCEINLINE void VectorNormalizeFast( Vector &vec )
-{
-	XMVECTOR xmV = XMVector3LengthEst( XMLoadVector3( vec.Base() ) );
-	float den = 1.f / (xmV.x + FLT_EPSILON);
-	vec.x *= den;
-	vec.y *= den;
-	vec.z *= den;
-}
-
-#endif // _X360
 
 inline vec_t Vector::NormalizeInPlace()
 {

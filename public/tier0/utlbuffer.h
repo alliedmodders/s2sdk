@@ -119,9 +119,6 @@ public:
 
 	FORCEINLINE void ActivateByteSwappingIfBigEndian( void )
 	{
-#if defined( _X360 )
-			ActivateByteSwapping( true );
-#endif
 	}
 
 
@@ -380,9 +377,6 @@ protected:
 	unsigned char m_Error;
 	unsigned char m_Flags;
 	unsigned char m_Reserved;
-#if defined( _X360 )
-	unsigned char pad;
-#endif
 
 	int m_nTab;
 	int m_nMaxPut;
@@ -592,23 +586,7 @@ inline void CUtlBuffer::GetTypeBin< float >( float &dest )
 	if ( CheckGet( sizeof( float ) ) )
 	{
 		uintp pData = (uintp)PeekGet();
-#if defined( _X360 )
-		if ( pData & 0x03 )
-		{
-			// handle unaligned read
-			((unsigned char*)&dest)[0] = ((unsigned char*)pData)[0];
-			((unsigned char*)&dest)[1] = ((unsigned char*)pData)[1];
-			((unsigned char*)&dest)[2] = ((unsigned char*)pData)[2];
-			((unsigned char*)&dest)[3] = ((unsigned char*)pData)[3];
-		}
-		else
-		{
-			// aligned read
-			dest = *(float *)pData;
-		}
-#else
 		dest = *(float *)pData;
-#endif
 		if ( m_Byteswap.IsSwappingBytes() )
 		{
 			m_Byteswap.SwapBufferToTargetEndian< float >( &dest, &dest );
@@ -627,27 +605,7 @@ inline void CUtlBuffer::GetTypeBin< double >( double &dest )
 	if ( CheckGet( sizeof( double ) ) )
 	{
 		uintp pData = (uintp)PeekGet();
-#if defined( _X360 )
-		if ( pData & 0x07 )
-		{
-			// handle unaligned read
-			((unsigned char*)&dest)[0] = ((unsigned char*)pData)[0];
-			((unsigned char*)&dest)[1] = ((unsigned char*)pData)[1];
-			((unsigned char*)&dest)[2] = ((unsigned char*)pData)[2];
-			((unsigned char*)&dest)[3] = ((unsigned char*)pData)[3];
-			((unsigned char*)&dest)[4] = ((unsigned char*)pData)[4];
-			((unsigned char*)&dest)[5] = ((unsigned char*)pData)[5];
-			((unsigned char*)&dest)[6] = ((unsigned char*)pData)[6];
-			((unsigned char*)&dest)[7] = ((unsigned char*)pData)[7];
-		}
-		else
-		{
-			// aligned read
-			dest = *(double *)pData;
-		}
-#else
 		dest = *(double *)pData;
-#endif
 		if ( m_Byteswap.IsSwappingBytes() )
 		{
 			m_Byteswap.SwapBufferToTargetEndian< double >( &dest, &dest );
@@ -924,80 +882,6 @@ inline void CUtlBuffer::PutTypeBin( T src )
 		AddNullTermination();
 	}
 }
-
-#if defined( _X360 )
-template <>
-inline void CUtlBuffer::PutTypeBin< float >( float src )
-{
-	if ( CheckPut( sizeof( src ) ) )
-	{
-		if ( m_Byteswap.IsSwappingBytes() )
-		{
-			m_Byteswap.SwapBufferToTargetEndian<float>( &src, &src );
-		}
-
-		//
-		// Write the data
-		//
-		unsigned pData = (unsigned)PeekPut();
-		if ( pData & 0x03 )
-		{
-			// handle unaligned write
-			byte* dst = (byte*)pData;
-			byte* srcPtr = (byte*)&src;
-			dst[0] = srcPtr[0];
-			dst[1] = srcPtr[1];
-			dst[2] = srcPtr[2];
-			dst[3] = srcPtr[3];
-		}
-		else
-		{
-			*(float *)pData = src;
-		}
-
-		m_Put += sizeof(float);
-		AddNullTermination();
-	}
-}
-
-template <>
-inline void CUtlBuffer::PutTypeBin< double >( double src )
-{
-	if ( CheckPut( sizeof( src ) ) )
-	{
-		if ( m_Byteswap.IsSwappingBytes() )
-		{
-			m_Byteswap.SwapBufferToTargetEndian<double>( &src, &src );
-		}
-
-		//
-		// Write the data
-		//
-		unsigned pData = (unsigned)PeekPut();
-		if ( pData & 0x07 )
-		{
-			// handle unaligned write
-			byte* dst = (byte*)pData;
-			byte* srcPtr = (byte*)&src;
-			dst[0] = srcPtr[0];
-			dst[1] = srcPtr[1];
-			dst[2] = srcPtr[2];
-			dst[3] = srcPtr[3];
-			dst[4] = srcPtr[4];
-			dst[5] = srcPtr[5];
-			dst[6] = srcPtr[6];
-			dst[7] = srcPtr[7];
-		}
-		else
-		{
-			*(double *)pData = src;
-		}
-
-		m_Put += sizeof(double);
-		AddNullTermination();
-	}
-}
-#endif
 
 template <typename T> 
 inline void CUtlBuffer::PutType( T src )

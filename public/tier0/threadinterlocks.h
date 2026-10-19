@@ -28,12 +28,9 @@
 // ThreadMemoryBarrier is a fence/barrier sufficient for most uses. It prevents reads
 // from moving past reads, and writes moving past writes. It is sufficient for
 // read-acquire and write-release barriers. It is not a full barrier and it does
-// not prevent reads from moving past writes -- that would require a full __sync()
-// on PPC and is significantly more expensive.
-#if defined( _X360 ) || defined( _PS3 )
-	#define ThreadMemoryBarrier() __lwsync()
-
-#elif defined(_MSC_VER)
+// not prevent reads from moving past writes -- that would require a full barrier,
+// which is significantly more expensive.
+#if defined(_MSC_VER)
 	// Prevent compiler reordering across this barrier. This is
 	// sufficient for most purposes on x86/x64.
 
@@ -115,7 +112,6 @@ inline void *ThreadInterlockedExchangePointer( void * volatile *p, void *value )
 inline void *ThreadInterlockedCompareExchangePointer( void * volatile *p, void *value, void *comperand )	{ Assert( (size_t)p % sizeof(void*) == 0 ); return _InterlockedCompareExchangePointer( p, value, comperand ); }
 inline bool ThreadInterlockedAssignPointerIf( void * volatile *p, void *value, void *comperand )			{ Assert( (size_t)p % sizeof(void*) == 0 ); return ( _InterlockedCompareExchangePointer( p, value, comperand ) == comperand ); }
 #else
-// 360 implementation
 PLATFORM_INTERFACE int32 ThreadInterlockedIncrement( int32 volatile * ) NOINLINE;
 PLATFORM_INTERFACE int32 ThreadInterlockedDecrement( int32 volatile * ) NOINLINE;
 PLATFORM_INTERFACE int32 ThreadInterlockedExchange( int32 volatile *, int32 value ) NOINLINE;

@@ -47,9 +47,7 @@ public:
 	{
 		// we know we're aligned, so use simd
 		// we can't use the convenient abstract interface coz it gets declared later
-#ifdef _X360
-		XMStoreVector4A(Base(), XMLoadVector4A(vOther.Base()));
-#elif _WIN32
+#if _WIN32
 		_mm_store_ps(Base(), _mm_load_ps( vOther.Base() ));
 #else
 		Init(vOther.x, vOther.y, vOther.z, vOther.w);

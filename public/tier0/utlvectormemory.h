@@ -142,21 +142,6 @@ public:
 	void SetGrowSize( I size );
 
 protected:
-	void ValidateGrowSize()
-	{
-#ifdef _X360
-		if ( m_nGrowSize && (m_nGrowSize & EXTERNAL_BUFFER_MARKER) == 0 )
-		{
-			// Max grow size at 128 bytes on XBOX
-			const int MAX_GROW = 128;
-			if ( m_nGrowSize * sizeof(T) > MAX_GROW )
-			{
-				m_nGrowSize = max( 1, MAX_GROW / sizeof(T) );
-			}
-		}
-#endif
-	}
-
 	enum
 	{
 		EXTERNAL_CONST_BUFFER_MARKER = (1 << 30),
@@ -408,7 +393,6 @@ template< class T, class I, size_t UNK >
 CUtlVectorMemory_Growable<T,I,UNK>::CUtlVectorMemory_Growable( I nGrowSize, I nInitAllocationCount ) : m_pMemory(0), 
 	m_nAllocationCount( nInitAllocationCount ), m_nGrowSize( nGrowSize & ~(EXTERNAL_CONST_BUFFER_MARKER | EXTERNAL_BUFFER_MARKER) )
 {
-	ValidateGrowSize();
 	if (m_nAllocationCount)
 	{
 		UTLMEMORY_TRACK_ALLOC();
@@ -446,7 +430,7 @@ void CUtlVectorMemory_Growable<T,I,UNK>::Init( I nGrowSize /*= 0*/, I nInitSize 
 
 	m_nGrowSize = nGrowSize & ~(EXTERNAL_CONST_BUFFER_MARKER | EXTERNAL_BUFFER_MARKER);
 	m_nAllocationCount = nInitSize;
-	ValidateGrowSize();
+
 	if (m_nAllocationCount)
 	{
 		UTLMEMORY_TRACK_ALLOC();
@@ -613,7 +597,6 @@ template< class T, class I, size_t UNK >
 void CUtlVectorMemory_Growable<T,I,UNK>::SetGrowSize( I nSize )
 {
 	m_nGrowSize |= nSize & ~(EXTERNAL_CONST_BUFFER_MARKER | EXTERNAL_BUFFER_MARKER);
-	ValidateGrowSize();
 }
 
 
@@ -887,7 +870,6 @@ CUtlVectorMemory_Aligned<T, nAlignment, I>::CUtlVectorMemory_Aligned( I nGrowSiz
 	BaseClass::m_pMemory = 0; 
 	BaseClass::m_nAllocationCount = nInitAllocationCount;
 	BaseClass::m_nGrowSize = nGrowSize;
-	this->ValidateGrowSize();
 
 	// Alignment must be a power of two
 	COMPILE_TIME_ASSERT( (nAlignment & (nAlignment-1)) == 0 );
