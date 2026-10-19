@@ -793,6 +793,33 @@ public:
 };
 
 //-----------------------------------------------------------------------------
+// A mutex shared by the processes that open it with the same name, locked with Wait()
+//-----------------------------------------------------------------------------
+class PLATFORM_CLASS CThreadCrossProcessMutex : public CThreadSyncObject
+{
+public:
+	// bAllowAllUsers lets the processes of other users open it
+	CThreadCrossProcessMutex( const char *pszName = NULL, bool bAllowAllUsers = false );
+
+	bool Release();
+
+#ifdef PLATFORM_WINDOWS
+	bool TryLock( const char *pFileName, int nLine, uint32 dwTimeout );
+	void Unlock( const char *pFileName = NULL, int nLine = -1 );
+#else
+	bool TryLock( const char *pFileName, int nLine, uint32 dwTimeout ) { return Wait( dwTimeout ); }
+	void Unlock( const char *pFileName = NULL, int nLine = -1 ) { Release(); }
+#endif
+
+	bool AssertOwnedByCurrentThread() const { return true; }
+	void SetTrace( bool ) {}
+
+private:
+	CThreadCrossProcessMutex( const CThreadCrossProcessMutex & );
+	CThreadCrossProcessMutex &operator=( const CThreadCrossProcessMutex & );
+};
+
+//-----------------------------------------------------------------------------
 // Objects that ThreadMultiWait can wait on together
 //-----------------------------------------------------------------------------
 #ifdef _WIN32
