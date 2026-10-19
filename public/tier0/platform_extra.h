@@ -27,6 +27,13 @@ PLATFORM_INTERFACE bool				Plat_GetFileType( const char *pPath, CBufferString *p
 // Returns false if pPath tries to ".." past the root directory.
 PLATFORM_INTERFACE bool V_MakeAbsolutePathBuffer( CBufferString &buf, const char *pPath, const char *pStartingDir = NULL );
 
+// Like V_MakeAbsolutePathBuffer, but only joins the base directory and pPath without fixing up the result. Returns pOut's string.
+PLATFORM_INTERFACE const char *V_MakeAbsolutePathBufferUnfixed( CBufferString *pOut, const char *pPath, const char *pStartingDir = NULL );
+
+// Makes the path after the "vpk:" prefixes of pInPathName absolute, keeping the prefixes in front.
+// Returns false and copies pInPathName unchanged if it has no such prefix.
+PLATFORM_INTERFACE bool V_MakeAbsoluteVPKPathNameBuffer( CBufferString *pOut, const char *pInPathName, const char *pStartingDir = NULL );
+
 // Creates a relative path given two full paths
 // The first is the full path of the file to make a relative path for.
 // The second is the full path of the directory to make the first file relative to
