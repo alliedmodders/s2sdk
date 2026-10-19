@@ -501,6 +501,7 @@ struct CPUInformation
 	bool m_bAVX   : 1;		// Is AVX supported?
 	bool m_bAVXDisabled : 1;// Is AVX disabled by the system requirements?
 	bool m_bAVX2 : 1;
+	bool m_bAVX512 : 1;		// Is AVX-512 F/DQ/VL with VPCLMULQDQ supported?
 	bool m_bECores : 1;		// Has E-Cores?
 	bool m_bHYBRID : 1;		// Is using Hybrid Architecture?
 	
@@ -535,6 +536,7 @@ struct CPUInformation
 
 		EfficiencyType m_EfficiencyType;
 
+		// The max frequency in Hz instead on Linux
 		uint64 m_EfficiencyClass;
 	};
 
