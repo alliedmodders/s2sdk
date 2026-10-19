@@ -19,9 +19,6 @@
 // Henry Goffin (henryg) was here. Questions? Bugs? Go slap him around a bit.
 //-----------------------------------------------------------------------------
 
-// empty_t is the canonical "no-value" type which is fully defined but empty.
-struct empty_t {};
-
 // undefined_t is the canonical "undefined" type, used mostly for typedefs;
 // parameters of type undefined_t will not compile, which is actually useful
 // behavior when it comes to template programming. Google "SFINAE" for info.

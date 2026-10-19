@@ -51,10 +51,6 @@
 #define THREAD_MUTEX_TRACING_ENABLED
 #endif
 
-#ifdef _WIN32
-typedef void *HANDLE;
-#endif
-
 #ifdef _X360
 #define MAX_THREADS_SUPPORTED 16
 #else
