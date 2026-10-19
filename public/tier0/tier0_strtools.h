@@ -534,6 +534,9 @@ PLATFORM_INTERFACE void _V_FileBase( const char *in, char *out, int maxlen );
 // Remove the final characters of ppath if it's '\' or '/'.
 PLATFORM_INTERFACE void V_StripTrailingSlash( char *ppath );
 
+// Returns pPath without its first character if it's '\' or '/'.
+PLATFORM_INTERFACE const char *V_StripLeadingSlash( const char *pPath );
+
 // Remove the final characters of ppline if they are whitespace (uses V_isspace)
 PLATFORM_INTERFACE void V_StripTrailingWhitespace( char *ppline );
 
@@ -593,6 +596,10 @@ PLATFORM_INTERFACE bool V_RemoveDotSlashes( char *pFilename, char separator = CO
 PLATFORM_INTERFACE bool _V_MakeAbsolutePath( OUT_Z_CAP( outLen ) char *pOut, int outLen, const char *pPath, const char *pStartingDir = NULL, bool bLowercase = false );
 #define V_MakeAbsolutePath _V_MakeAbsolutePath
 
+// Makes the path after the "vpk:" prefixes of pInPathName absolute, keeping the prefixes in front.
+// Returns false and copies pInPathName unchanged if it has no such prefix.
+PLATFORM_INTERFACE bool V_MakeAbsoluteVPKPathName( OUT_Z_CAP( nBufLen ) char *pOut, int nBufLen, const char *pInPathName, const char *pStartingDir, bool bLowercaseName );
+
 PLATFORM_INTERFACE void V_RemoveFormatSpecifications( const char *pszFrom, char *pszTo, size_t sizeDest );
 
 // Creates a relative path given two full paths
@@ -612,6 +619,31 @@ PLATFORM_INTERFACE void _V_AppendSlash( INOUT_Z_CAP( strSize ) char *pStr, int s
 
 // Returns true if the path is an absolute path.
 PLATFORM_INTERFACE bool V_IsAbsolutePath( const char *pPath );
+
+// Returns true if the path starts with "vpk:" or "ugc:", ignoring case.
+PLATFORM_INTERFACE bool V_IsFakePath( const char *pStr );
+
+// Returns the form of the path: 0 if invalid, 1 if relative, 2 if absolute, 3 if drive-relative (C:dir) and 4 if relative to the current drive's root (\dir).
+// V_GetVPKPathForm also accepts the "vpk:" and "ugc:" prefixes.
+PLATFORM_INTERFACE int V_GetPathForm( const char *pPath );
+PLATFORM_INTERFACE int V_GetVPKPathForm( const char *pPath );
+
+// Returns the length of the root at the start of the path (like C:\ or /)
+PLATFORM_INTERFACE int V_GetPathOriginLength( const char *pPath );
+
+// Returns true if both paths are equal, ignoring case and treating '\' and '/' alike.
+// With bDirectoryNames, a trailing slash is ignored too.
+PLATFORM_INTERFACE bool V_AreFileNamesEqual( const char *pFileName1, const char *pFileName2, bool bDirectoryNames );
+PLATFORM_INTERFACE bool V_PathsMatch( const char *pPath1, const char *pPath2 );
+
+// Returns true if both paths are equal after V_FixupPathName, ignoring case
+PLATFORM_INTERFACE bool V_PathNamesAreEquivalent( const char *pFirst, const char *pSecond );
+
+// Returns true if pInner is inside pOuter, or equal to it with bAllowMatch
+PLATFORM_INTERFACE bool V_PathContainsPath( const char *pOuter, const char *pInner, bool bAllowMatch );
+
+// Shortens pPath to nMaxCharsAllowed by replacing its start with pReplacementString, returns the start of the shortened path within pPath
+PLATFORM_INTERFACE char *V_AbbreviatePathInPlace( char *pPath, int nMaxCharsAllowed, const char *pReplacementString );
 
 // Scans pIn and replaces all occurences of pMatch with pReplaceWith.
 // Writes the result to pOut.
@@ -645,6 +677,17 @@ PLATFORM_INTERFACE void V_FixSlashes( char *pname, char separator = CORRECT_PATH
 
 // This function fixes cases of filenames like materials\\blah.vmt or somepath\otherpath\\ and removes the extra double slash.
 PLATFORM_INTERFACE void V_FixDoubleSlashes( char *pStr );
+
+// Returns true if all slashes in pname are the separator character
+PLATFORM_INTERFACE bool V_AreSlashesCorrect( const char *pname, char separator );
+
+// Replace the characters that aren't valid in a file name or path with '_'
+PLATFORM_INTERFACE void V_FixInvalidFileNameCharacters( char *pFileName );
+PLATFORM_INTERFACE void V_FixInvalidPathCharacters( char *pFileName );
+
+// Replace every ch or space in pPath with '_'
+PLATFORM_INTERFACE void V_FixupPathCharToUnderscore( char *pPath, char ch );
+PLATFORM_INTERFACE void V_FixupPathSpaceToUnderscore( char *pPath );
 
 // Convert \r\n (Windows linefeeds) to \n (Unix linefeeds).
 PLATFORM_INTERFACE void V_TranslateLineFeedsToUnix( char *pStr );
