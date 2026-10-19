@@ -7,6 +7,9 @@
 
 #include "tier0/platform.h"
 
+#include <stdio.h>
+#include <setjmp.h>
+
 // Wrappers of the C runtime functions.
 // The d suffix takes and returns double and the f suffix float. Angles are in radians.
 
@@ -91,5 +94,87 @@ PLATFORM_INTERFACE int V_isnand( double x );
 PLATFORM_INTERFACE int64		V_atoi( const char *str );
 PLATFORM_INTERFACE int			V_snprintf( OUT_Z_CAP( destLen ) char *pDest, int destLen, PRINTF_FORMAT_STRING const char *pFormat, ... ) FMTFUNCTION( 3, 4 );
 PLATFORM_INTERFACE char *		V_strtok( const char *str, const char *delim );
+PLATFORM_INTERFACE int			V_sscanf( const char *buffer, const char *pFormat, ... );
+PLATFORM_INTERFACE int			V_swscanf( const wchar_t *buffer, const wchar_t *pFormat, ... );
+#ifdef PLATFORM_WINDOWS
+PLATFORM_INTERFACE int			V_sscanf_s( const char *buffer, const char *pFormat, ... );
+#endif
+
+// File functions
+PLATFORM_INTERFACE FILE *V_Get_stdin();
+PLATFORM_INTERFACE FILE *V_Get_stdout();
+PLATFORM_INTERFACE FILE *V_Get_stderr();
+
+PLATFORM_INTERFACE FILE *V_fopen( const char *filename, const char *mode );
+// Takes a UTF-8 file name on every platform
+PLATFORM_INTERFACE FILE *V_fopenUTF8( const char *filename, const char *mode );
+PLATFORM_INTERFACE FILE *V_freopen( const char *_Filename, const char *_Mode, FILE *_File );
+PLATFORM_INTERFACE FILE *V_fdopen( int nFileDescriptor, const char *mode );
+PLATFORM_INTERFACE int V_fclose( FILE *stream );
+
+PLATFORM_INTERFACE size_t V_fread( void *_DstBuf, size_t _ElementSize, size_t _Count, FILE *_File );
+PLATFORM_INTERFACE size_t V_fwrite( const void *_Str, size_t _Size, size_t _Count, FILE *_File );
+PLATFORM_INTERFACE int V_fgetc( FILE *stream );
+PLATFORM_INTERFACE char *V_fgets( char *str, int n, FILE *stream );
+PLATFORM_INTERFACE int V_ungetc( int c, FILE *stream );
+PLATFORM_INTERFACE int V_fputc( int c, FILE *stream );
+PLATFORM_INTERFACE int V_fputs( const char *str, FILE *stream );
+PLATFORM_INTERFACE int V_fprintf( FILE *stream, PRINTF_FORMAT_STRING const char *format, ... ) FMTFUNCTION( 2, 3 );
+PLATFORM_INTERFACE int V_vfprintf( FILE *stream, PRINTF_FORMAT_STRING const char *format, va_list argptr );
+PLATFORM_INTERFACE int V_fscanf( FILE *_File, const char *_Format, ... );
+
+// The offsets of V_fseek and V_ftell are 32-bit on Windows, use V_fseeki64 and V_ftelli64 for large files
+PLATFORM_INTERFACE int V_fseek( FILE *_File, long _Offset, int _Origin );
+PLATFORM_INTERFACE int V_fseeki64( FILE *_File, int64 _Offset, int _Origin );
+PLATFORM_INTERFACE long V_ftell( FILE *_File );
+PLATFORM_INTERFACE int64 V_ftelli64( FILE *_File );
+PLATFORM_INTERFACE void V_rewind( FILE *stream );
+
+PLATFORM_INTERFACE int V_fflush( FILE *_File );
+PLATFORM_INTERFACE int V_feof( FILE *_File );
+PLATFORM_INTERFACE int V_ferror( FILE *_File );
+PLATFORM_INTERFACE void V_clearerr( FILE *_File );
+PLATFORM_INTERFACE int V_fileno( FILE *_File );
+PLATFORM_INTERFACE int V_setvbuf( FILE *stream, char *buffer, int mode, size_t size );
+
+// File descriptor functions
+PLATFORM_INTERFACE int V_open( const char *filename, int oflag, int pmode );
+// Takes a UTF-8 file name on every platform
+PLATFORM_INTERFACE int V_openUTF8( const char *filename, int oflag, int pmode );
+PLATFORM_INTERFACE int V_close( int fd );
+PLATFORM_INTERFACE int V_dup( int fd );
+PLATFORM_INTERFACE int V_fstat( int fd, struct stat *buffer );
+PLATFORM_INTERFACE int V_mkstemps( char *szTemplate, int suffixlen );
+PLATFORM_INTERFACE int V_mkostemps( char *szTemplate, int suffixlen, int flags );
+#ifdef PLATFORM_WINDOWS
+PLATFORM_INTERFACE int V_stat( const char *path, struct stat *buffer );
+PLATFORM_INTERFACE int V_setmode( int fd, int mode );
+PLATFORM_INTERFACE intptr_t V_get_osfhandle( int fd );
+PLATFORM_INTERFACE int V_open_osfhandle( intptr_t osfhandle, int flags );
+PLATFORM_INTERFACE char *V_tmpnam( char *str );
+#endif
+
+// Other functions
+PLATFORM_INTERFACE int V_GetErrno();
+PLATFORM_INTERFACE void V_SetErrno( int err );
+PLATFORM_INTERFACE void V_abort();
+PLATFORM_INTERFACE struct lconv *V_localeconv();
+
+typedef int (*QSortCompareFunc_t)( const void *pLeft, const void *pRight );
+typedef int (*QSortContextCompareFunc_t)( void *pContext, const void *pLeft, const void *pRight );
+
+PLATFORM_INTERFACE void V_qsort( void *base, size_t num, size_t width, QSortCompareFunc_t compare );
+PLATFORM_INTERFACE void V_qsort_s( void *base, size_t num, size_t width, QSortContextCompareFunc_t compare, void *context );
+
+typedef struct _jmp_buf_holder
+{
+	jmp_buf buf;
+} jmp_buf_holder;
+
+PLATFORM_INTERFACE int V_setjmp( jmp_buf_holder *env );
+PLATFORM_INTERFACE void V_longjmp( jmp_buf_holder *env, int value );
+
+// The CRC-32 of zlib's crc32(), nStartCrc is 0 for a new checksum or the result of the previous call to continue one
+PLATFORM_INTERFACE uint32 V_tier0_crc32( uint32 nStartCrc, const void *pBuf, size_t nBufLen );
 
 #endif // TIER0_STDLIB_H
