@@ -1,6 +1,7 @@
 #include "tier0/keyvalues3.h"
 #include "tier0/utlbuffer.h"
 #include "tier0/utlstring.h"
+#include "tier0/utlleanvector.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -842,6 +843,74 @@ static void TestReadTypedArrays( KeyValues3 *root )
 	CHECK( b && b->GetVector() == Vector( 10.0f, -20.0f, 300.0f ) );
 }
 
+static bool IsInStorage( const CKV3MemberNameWithStorage &name )
+{
+	const char *pObject = (const char *)&name;
+	return name.GetString() >= pObject && name.GetString() < pObject + sizeof( name );
+}
+
+class CMemberNameWithSymId : public CKV3MemberNameWithStorage
+{
+public:
+	CMemberNameWithSymId( const char *pszString, UtlSymLargeId_t symid ) : CKV3MemberNameWithStorage( pszString ) { m_SymId = symid; }
+};
+
+// The name points at its own copy of the string, also after being copied or relocated
+static void TestMemberNameWithStorage( KeyValues3 *root )
+{
+	CKV3MemberNameWithStorage empty;
+	CHECK( empty.GetHashCode() == 0 && strcmp( empty.GetString(), "" ) == 0 && empty.GetSymId() == UTL_INVAL_SYMBOL_LARGE );
+
+	char buffer[64] = "Member_Name";
+	CKV3MemberNameWithStorage name( (const char *)buffer );
+	strcpy( buffer, "overwritten" );
+	CHECK( strcmp( name.GetString(), "Member_Name" ) == 0 && IsInStorage( name ) );
+	CHECK( name.GetHashCode() == CKV3MemberName( "member_name" ).GetHashCode() );
+
+	const char k_szLong[] = "a member name longer than the thirty two chars of inline storage";
+	CKV3MemberNameWithStorage longName( k_szLong );
+	CHECK( strcmp( longName.GetString(), k_szLong ) == 0 && !IsInStorage( longName ) );
+	CHECK( longName.GetHashCode() == CUtlStringToken( k_szLong ).GetHashCode() );
+
+	CKV3MemberNameWithStorage copy( name );
+	CHECK( strcmp( copy.GetString(), "Member_Name" ) == 0 && IsInStorage( copy ) && copy.GetHashCode() == name.GetHashCode() );
+
+	copy = longName;
+	CHECK( strcmp( copy.GetString(), k_szLong ) == 0 && copy.GetHashCode() == longName.GetHashCode() );
+
+	CKV3MemberNameWithStorage *pSelf = &copy;
+	copy = *pSelf;
+	CHECK( strcmp( copy.GetString(), k_szLong ) == 0 );
+
+	copy.Set( nullptr );
+	CHECK( copy.GetHashCode() == 0 && strcmp( copy.GetString(), "" ) == 0 );
+
+	// A new string drops the symbol id of the old one
+	CMemberNameWithSymId withSymId( "Member_Name", 7 );
+	CHECK( withSymId.GetSymId() == 7 );
+	withSymId.Set( "Other_Name" );
+	CHECK( withSymId.GetSymId() == UTL_INVAL_SYMBOL_LARGE && strcmp( withSymId.GetString(), "Other_Name" ) == 0 );
+
+	CMemberNameWithSymId assigned( "Member_Name", 7 );
+	static_cast< CKV3MemberNameWithStorage & >( assigned ) = longName;
+	CHECK( assigned.GetSymId() == UTL_INVAL_SYMBOL_LARGE && strcmp( assigned.GetString(), k_szLong ) == 0 );
+
+	// Growing relocates the names through their copy constructor
+	CUtlLeanVector< CKV3MemberNameWithStorage > names;
+	for ( int i = 0; i < 20; i++ )
+		names.AddToTail( name );
+
+	bool bIntact = true;
+	for ( int i = 0; i < names.Count(); i++ )
+		bIntact = bIntact && IsInStorage( names[i] ) && strcmp( names[i].GetString(), "Member_Name" ) == 0;
+	CHECK( bIntact );
+
+	// Usable wherever a CKV3MemberName is
+	root->SetMemberInt( name, 5 );
+	KeyValues3 *member = root->FindMember( CKV3MemberNameWithStorage( "MEMBER_NAME" ) );
+	CHECK( member && member->GetInt() == 5 );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -884,6 +953,7 @@ int main()
 	RunTest( TestBoolFromDouble );
 	RunTest( TestArrayInsertNonArray );
 	RunTest( TestReadTypedArrays );
+	RunTest( TestMemberNameWithStorage );
 
 	if ( g_nFailures )
 	{
