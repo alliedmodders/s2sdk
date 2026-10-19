@@ -385,10 +385,39 @@ public:
 	inline const char* GetString() const { return m_pszString; }
 	inline UtlSymLargeId_t GetSymId() const { return m_SymId; }
 
-private:
+protected:
 	CUtlStringToken m_nHashCode;
 	UtlSymLargeId_t m_SymId;
 	const char* m_pszString;
+};
+
+// A CKV3MemberName that holds a copy of its string. Copies don't keep the symbol id.
+class CKV3MemberNameWithStorage : public CKV3MemberName
+{
+public:
+	CKV3MemberNameWithStorage() { Set( "" ); }
+	CKV3MemberNameWithStorage( const char *pszString ) { Set( pszString ); }
+	CKV3MemberNameWithStorage( const CKV3MemberNameWithStorage &other ) { Set( other.GetString() ); }
+
+	CKV3MemberNameWithStorage &operator=( const CKV3MemberNameWithStorage &other )
+	{
+		if ( this != &other )
+			Set( other.GetString() );
+
+		return *this;
+	}
+
+	void Set( const char *pszString )
+	{
+		m_Storage.Clear();
+		m_Storage.Insert( 0, pszString ? pszString : "" );
+		m_nHashCode = CUtlStringToken( pszString );
+		m_SymId = UTL_INVAL_SYMBOL_LARGE;
+		m_pszString = m_Storage.Get();
+	}
+
+private:
+	CBufferStringN<32> m_Storage;
 };
 
 template<size_t SIZE, typename T>
