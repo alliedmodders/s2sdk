@@ -27,6 +27,12 @@ enum EStringConvertErrorPolicy
 // Returns the UTF8 encoded length in this byte
 PLATFORM_INTERFACE int V_UTF8LenFromFirst( char c );
 
+// Returns the number of bytes the first nStringUnits characters of pString, or all of it if nStringUnits is negative, take
+// when encoded as UTF-8, without the null terminator
+PLATFORM_OVERLOAD int V_GetUTF8BytesNeeded( const char *pString, int nStringUnits );
+PLATFORM_OVERLOAD int V_GetUTF8BytesNeeded( const uchar16 *pString, int nStringUnits );
+PLATFORM_OVERLOAD int V_GetUTF8BytesNeeded( const uchar32 *pString, int nStringUnits );
+
 // Conversion functions, returning the number of bytes consumed
 // Decode a single UTF-8 character to a uchar32, returns number of UTF-8 bytes parsed
 PLATFORM_INTERFACE int V_UTF8ToUChar32( const char *str, uchar32 &result, bool &failed );
