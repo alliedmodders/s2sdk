@@ -469,6 +469,35 @@ PLATFORM_INTERFACE char *V_PrettifyMem( float value, int digitsafterdecimal = 2,
 // Prints out a pretified integer with comma separators (eg, 7,233,270,000)
 PLATFORM_INTERFACE char *V_PrettifyNum( int64 value );
 
+// Prints out a pretified float with comma separators in the integer part (eg, 7,233.27)
+PLATFORM_INTERFACE char *V_PrettifyFloat( float value, int digitsafterdecimal );
+
+// Formats a duration as "1d.02:03:04", "2h:03:04", "3m:04" or "4s", followed by milliseconds (".005") and returns pOut's string.
+// nFlags: 1 appends to pOut instead of replacing its contents, 2 leaves out the milliseconds.
+PLATFORM_INTERFACE const char *V_PrettifyDurationMs( CBufferString *pOut, uint64 nDurationMs, uint32 nFlags );
+
+// Write the shortest text representation of the value with a null terminator, pOut must be large enough
+PLATFORM_INTERFACE void V_Int8ToString_Unsafe( int8 value, char *pOut );
+PLATFORM_INTERFACE void V_UInt8ToString_Unsafe( uint8 value, char *pOut );
+PLATFORM_INTERFACE void V_Int16ToString_Unsafe( int16 value, char *pOut );
+PLATFORM_INTERFACE void V_UInt16ToString_Unsafe( uint16 value, char *pOut );
+PLATFORM_INTERFACE void V_Int32ToString_Unsafe( int32 value, char *pOut );
+PLATFORM_INTERFACE void V_UInt32ToString_Unsafe( uint32 value, char *pOut );
+PLATFORM_INTERFACE void V_Int64ToString_Unsafe( int64 value, char *pOut );
+PLATFORM_INTERFACE void V_UInt64ToString_Unsafe( uint64 value, char *pOut );
+PLATFORM_INTERFACE void V_FloatToString_Unsafe( float value, char *pOut );
+PLATFORM_INTERFACE void V_DoubleToString_Unsafe( double value, char *pOut );
+
+// Like V_FloatToString_Unsafe and V_DoubleToString_Unsafe, but without exponent notation
+PLATFORM_INTERFACE void V_FloatToString_NoExponent( float value, OUT_Z_CAP( nOutSize ) char *pOut, int nOutSize );
+PLATFORM_INTERFACE void V_DoubleToString_NoExponent( double value, OUT_Z_CAP( nOutSize ) char *pOut, int nOutSize );
+
+// Writes the number pIn without exponent notation (eg, 1.5e-3 as 0.0015), returns false if pOut is too small
+PLATFORM_INTERFACE bool V_ExpandScientificNotation( OUT_Z_CAP( nOutSize ) char *pOut, const char *pIn, int nOutSize );
+
+// Removes the trailing zeros after the decimal point, keeping at least one digit after it
+PLATFORM_INTERFACE void V_StripExcessTrailingZeros( char *pStr );
+
 // Functions for converting hexidecimal character strings back into binary data etc.
 //
 // e.g., 
