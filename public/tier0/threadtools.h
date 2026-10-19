@@ -10,6 +10,8 @@
 #define THREADTOOLS_H
 
 #include <limits.h>
+#include <condition_variable>
+#include <mutex>
 #include <shared_mutex>
 
 #include "tier0/platform.h"
@@ -880,6 +882,70 @@ enum ThreadMultiWaitFlags_t
 // Waits on pSet, or pItems and pExtra when pSet is nullptr. nFlags is a combination of ThreadMultiWaitFlags_t.
 // Returns how many were signalled, with their bits set in pSignalled, 0 on timeout or -1 on failure.
 PLATFORM_INTERFACE int ThreadMultiWait( ThreadMultiWaitObjectSet_t *pSet, ThreadMultiWaitItem_t *pItems, ThreadMultiWaitExtra_t *pExtra, int nItems, uint32 nFlags, uint64 *pSignalled, uint32 nMillis );
+
+//-----------------------------------------------------------------------------
+// Blocks threads until the given number of them have arrived, then lets them
+// all through and starts over
+//-----------------------------------------------------------------------------
+class CThreadBarrier
+{
+public:
+	DLL_CLASS_IMPORT CThreadBarrier( uint32 nThreads );
+	DLL_CLASS_IMPORT ~CThreadBarrier();
+
+	DLL_CLASS_IMPORT void ArriveAndWait();
+
+private:
+	CThreadBarrier( const CThreadBarrier & );
+	CThreadBarrier &operator=( const CThreadBarrier & );
+
+	struct BarrierState_t
+	{
+		uint32 m_nThreadCount;
+		uint32 m_nThreadsToArrive;
+		// Completed rounds, the waiting threads leave once it changes
+		uint32 m_nRound;
+		std::mutex m_Mutex;
+		std::condition_variable m_RoundComplete;
+	};
+
+	BarrierState_t *m_pState;
+};
+
+//-----------------------------------------------------------------------------
+// Lets a thread pause background work: workers wrap each piece of work in
+// OnBeginBackgroundWork, which waits while paused, and OnEndBackgroundWork
+//-----------------------------------------------------------------------------
+class CThreadBackgroundWorkGate
+{
+public:
+	DLL_CLASS_IMPORT CThreadBackgroundWorkGate();
+	DLL_CLASS_IMPORT ~CThreadBackgroundWorkGate();
+
+	DLL_CLASS_IMPORT void OnBeginBackgroundWork();
+	DLL_CLASS_IMPORT void OnEndBackgroundWork();
+	// For workers to end their work early
+	DLL_CLASS_IMPORT bool PauseRequested() const;
+
+	// Waits until no background work is running
+	DLL_CLASS_IMPORT void PauseWork();
+	DLL_CLASS_IMPORT void ResumeWork();
+
+private:
+	CThreadBackgroundWorkGate( const CThreadBackgroundWorkGate & );
+	CThreadBackgroundWorkGate &operator=( const CThreadBackgroundWorkGate & );
+
+	struct GateState_t
+	{
+		std::mutex m_Mutex;
+		// Notified when the active work runs out and when work is resumed
+		std::condition_variable m_StateChanged;
+		int m_nActiveWork;
+		bool m_bPauseRequested;
+	};
+
+	GateState_t *m_pState;
+};
 
 
 //-----------------------------------------------------------------------------
