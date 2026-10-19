@@ -55,7 +55,7 @@ class IServerToolsInfo;
 class IClientToolsInfo;
 class INavSystem;
 class INavGameTest;
-class IAsyncFileSystem;
+class IAsyncFileSystem2;
 class IFileSystem;
 class IRenderHardwareConfig;
 class IInputSystem;
@@ -180,7 +180,7 @@ DECLARE_TIER1_INTERFACE( IProcessUtils, g_pProcessUtils );
 DECLARE_TIER2_INTERFACE( IFileSystem, g_pFullFileSystem );
 
 #define ASYNCFILESYSTEM_INTERFACE_VERSION		"VAsyncFileSystem2_001"
-DECLARE_TIER2_INTERFACE( IAsyncFileSystem, g_pAsyncFileSystem );
+DECLARE_TIER2_INTERFACE( IAsyncFileSystem2, g_pAsyncFileSystem );
 
 #define RESOURCESYSTEM_INTERFACE_VERSION		"ResourceSystem013"
 DECLARE_TIER2_INTERFACE( IResourceSystem, g_pResourceSystem );
