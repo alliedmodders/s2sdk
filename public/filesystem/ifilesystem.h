@@ -19,6 +19,7 @@
 #include "tier0/utlsymbol.h"
 #include "tier0/filenamesymboltable.h"
 #include "tier0/utlstring.h"
+#include "tier0/utlstringtoken.h"
 #include "tier0/checksum_crc.h"
 #include "tier0/utldelegate.h"
 #include "tier0/utlqueue.h"
@@ -37,6 +38,7 @@ class IFileList;
 struct SearchPathStateHandle_t;
 class ILowLevelFileIO;
 class CSteamID;
+class CPackedStore;
 
 typedef void * FileHandle_t;
 struct FileFindHandle_t
@@ -407,6 +409,59 @@ public:
 #define DLCFLAGS_PRESENCE_ONLY			0x0001	// causes no search path loadout
 
 
+enum MemoryMappedFileFlags_t
+{
+	MMF_READ = (1 << 0),
+	MMF_WRITE = (1 << 1),
+};
+
+//-----------------------------------------------------------------------------
+// A reference counted mapping of a file, or of a part of one
+//-----------------------------------------------------------------------------
+abstract_class IMemoryMappedFile
+{
+public:
+	IMemoryMappedFile() : m_pMappedMemory( NULL ), m_nMappedSize( 0 ), m_nFlags( (MemoryMappedFileFlags_t)0 ), m_nRefCount( 1 ) {}
+	virtual ~IMemoryMappedFile() {}
+
+	uint32 AddRef() { return ++m_nRefCount; }
+	// Unmaps the file when the last reference goes away
+	uint32 Release()
+	{
+		uint32 nRefCount = --m_nRefCount;
+		if ( nRefCount == 0 )
+			ReachedZeroReferences();
+		return nRefCount;
+	}
+
+	const void *GetMappedMemory() const { return m_pMappedMemory; }
+	size_t GetMappedSize() const { return m_nMappedSize; }
+	MemoryMappedFileFlags_t GetFlags() const { return m_nFlags; }
+
+	// Copies into the mapping, returns false unless it was mapped with MMF_WRITE
+	virtual bool WriteToContents( size_t nOffset, const void *pData, size_t nSize ) = 0;
+
+protected:
+	virtual void ReachedZeroReferences() = 0;
+
+	void *m_pMappedMemory;
+	size_t m_nMappedSize;
+	MemoryMappedFileFlags_t m_nFlags;
+	CInterlockedUInt m_nRefCount;
+};
+
+//-----------------------------------------------------------------------------
+// Picks the VPKs whose signatures get verified when they're mounted, and handles the ones that fail
+//-----------------------------------------------------------------------------
+abstract_class IVPKSignatureCallbacks
+{
+public:
+	// nReason is the result of the failed check
+	virtual void OnSignatureFailed( CPackedStore *pVPK, uint8 nReason ) = 0;
+	// Returning false skips the check
+	virtual bool ShouldVerifySignature( CPackedStore *pVPK ) = 0;
+};
+
 //-----------------------------------------------------------------------------
 // Main file system interface
 //-----------------------------------------------------------------------------
@@ -446,8 +501,9 @@ public:
 	virtual bool			UnzipFile(const char *pFileName, const char *pPathID, const char *pDestination) = 0;
 	virtual bool			CopyAFile(const char *pFileName, const char *pPathID, const char *pDestination, bool bDontOverwrite = false) = 0;
 
-	virtual void			unk001( FileHandle_t, bool ) = 0;
-	virtual void			unk001( const char *pFileName, void *pPathID, bool ) = 0;
+	// Returns NULL on failure, Release() the result when done
+	virtual IMemoryMappedFile *CreateMemoryMap( FileHandle_t hFile, MemoryMappedFileFlags_t nFlags ) = 0;
+	virtual IMemoryMappedFile *CreateMemoryMap( const char *pFileName, const char *pPathID, MemoryMappedFileFlags_t nFlags ) = 0;
 
 	//--------------------------------------------------------
 	// Search path manipulation
@@ -490,10 +546,10 @@ public:
 	// Returns the nSearchPathsToGet amount of paths, each path is separated by ;s. Returns true if pathID has any paths
 	virtual bool			GetSearchPath( const char *pathID, GetSearchPathTypes_t pathType, CBufferString &pPath, int nSearchPathsToGet ) = 0;
 	
-	// Returns a class or struct instance by value
-	virtual void unk003( const char *pFileName, const char *pPathID ) = 0;
-
-	virtual void unk004( int, CBufferString & ) = 0;
+	// Returns the merge token of the search path that holds pPath, or an empty token
+	virtual CUtlStringToken	GetMergeTokenForPath( const char *pPath, const char *pPathID ) = 0;
+	// Writes the paths merged under the token to pPath, returns its length plus one
+	virtual int				GetMergedPaths( CUtlStringToken pathMergeToken, CBufferString *pPath ) = 0;
 
 	//--------------------------------------------------------
 	// File manipulation operations
@@ -665,7 +721,27 @@ public:
 
 	virtual void			GetSearchPathsForPathID( const char*, GetSearchPathTypes_t, CUtlVector<CUtlString> & ) = 0;
 
-	virtual void			MarkContentCorrupt( bool bMissingFilesOnly, const char* pFile ) = 0;
+	virtual bool			MarkContentCorrupt( bool bMissingFilesOnly, const char *pFile, const char *pReason ) = 0;
+	virtual void			SetContentCorruptionReportingEnabled( bool bEnabled ) = 0;
+
+	// Nests, every true call needs a matching false one
+	virtual void			SuppressAsyncFileRequestFlushOnPathChange( bool bEnable ) = 0;
+
+	enum AccesLogWriteResult_t
+	{
+		ACCESS_LOG_WRITE_NO_LOG,
+		ACCESS_LOG_WRITE_FAILED,
+		ACCESS_LOG_WRITE_SUCCESS,
+	};
+
+	// Writes pHeader and the file access log to pFileName, then clears the log if bClearLog
+	virtual AccesLogWriteResult_t WriteFileAccessLog( const char *pHeader, const char *pFileName, const char *pPath, bool bClearLog ) = 0;
+
+	// Sets the key that the signatures of the VPKs mounted from now on are verified against, an empty key disables the check
+	virtual void			SetVPKSignatureVerification( const void *pKey, int nKeySize, IVPKSignatureCallbacks *pCallbacks ) = 0;
+	virtual void			MarkVPKAsUntrustedAddon( const char *pVPKPath ) = 0;
+	// Whether pPath is in a mounted VPK marked as an untrusted addon, or in a VPK inside one
+	virtual bool			IsFileInUntrustedAddon( const char *pPath ) = 0;
 };
 
 //-----------------------------------------------------------------------------
