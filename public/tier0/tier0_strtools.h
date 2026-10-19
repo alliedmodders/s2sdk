@@ -378,6 +378,34 @@ PLATFORM_INTERFACE float64 V_StringToFloat64Raw(const char *buf, float64 default
 // Parses string as a float32 value, if the parsing fails, default_value is returned, doesn't perform error checking/reporting
 PLATFORM_INTERFACE float32 V_StringToFloat32Raw(const char *buf, float32 default_value, bool *successful = NULL, char **remainder = NULL);
 
+// V_StringTo* variants that return whether parsing succeeded, storing the value (default_value if it failed) in out_value.
+// Parsing errors only go to err_listener, the ERROR_ASSERT, EMIT_WARNING and SILENT flags are ignored.
+PLATFORM_INTERFACE bool V_CheckStringToBool(const char *buf, IErrorListener *err_listener, uint32 flags, bool *out_value, bool default_value);
+PLATFORM_INTERFACE bool V_CheckStringToInt8(const char *buf, IErrorListener *err_listener, uint32 flags, int8 *out_value, int8 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToUint8(const char *buf, IErrorListener *err_listener, uint32 flags, uint8 *out_value, uint8 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToInt16(const char *buf, IErrorListener *err_listener, uint32 flags, int16 *out_value, int16 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToUint16(const char *buf, IErrorListener *err_listener, uint32 flags, uint16 *out_value, uint16 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToInt32(const char *buf, IErrorListener *err_listener, uint32 flags, int32 *out_value, int32 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToUint32(const char *buf, IErrorListener *err_listener, uint32 flags, uint32 *out_value, uint32 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToInt64(const char *buf, IErrorListener *err_listener, uint32 flags, int64 *out_value, int64 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToUint64(const char *buf, IErrorListener *err_listener, uint32 flags, uint64 *out_value, uint64 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToInt64Limit(const char *buf, int64 min, int64 max, IErrorListener *err_listener, uint32 flags, int64 *out_value, int64 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToUint64Limit(const char *buf, uint64 min, uint64 max, IErrorListener *err_listener, uint32 flags, uint64 *out_value, uint64 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToFloat32(const char *buf, IErrorListener *err_listener, uint32 flags, float32 *out_value, float32 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToFloat64(const char *buf, IErrorListener *err_listener, uint32 flags, float64 *out_value, float64 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToFloat32Limit(const char *buf, float32 min, float32 max, IErrorListener *err_listener, uint32 flags, float32 *out_value, float32 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToFloat64Limit(const char *buf, float64 min, float64 max, IErrorListener *err_listener, uint32 flags, float64 *out_value, float64 default_value);
+PLATFORM_INTERFACE bool V_CheckStringToVector(const char *buf, IErrorListener *err_listener, uint32 flags, Vector *out_value);
+PLATFORM_INTERFACE bool V_CheckStringToVector2D(const char *buf, IErrorListener *err_listener, uint32 flags, Vector2D *out_value);
+PLATFORM_INTERFACE bool V_CheckStringToVector4D(const char *buf, IErrorListener *err_listener, uint32 flags, Vector4D *out_value);
+PLATFORM_INTERFACE bool V_CheckStringToVectorWS(const char *buf, IErrorListener *err_listener, uint32 flags, VectorWS *out_value);
+PLATFORM_INTERFACE bool V_CheckStringToQAngle(const char *buf, IErrorListener *err_listener, uint32 flags, QAngle *out_value);
+PLATFORM_INTERFACE bool V_CheckStringToQuaternion(const char *buf, IErrorListener *err_listener, uint32 flags, Quaternion *out_value);
+PLATFORM_INTERFACE bool V_CheckStringToColor(const char *buf, IErrorListener *err_listener, uint32 flags, Color *out_value);
+
+// Reports a parsing error the way the V_StringTo* functions do, according to flags
+PLATFORM_INTERFACE void V_StringParseError(uint32 flags, IErrorListener *err_listener, PRINTF_FORMAT_STRING const char *fmt, ...) FMTFUNCTION( 3, 4 );
+
 // Templatised and shortened version of the generic V_StringTo* functions
 // these are silent, so you won't get error console warnings if parsing fails by default
 template <typename T>
