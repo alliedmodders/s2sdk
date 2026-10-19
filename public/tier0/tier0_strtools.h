@@ -91,6 +91,7 @@ PLATFORM_INTERFACE void			_V_strncpy32_bytes( uchar32 *pDest, const uchar32 *pSr
 PLATFORM_INTERFACE void			V_tier0_wcscpy( wchar_t *dest, const wchar_t *src );
 PLATFORM_INTERFACE void			_V_wcsncpy_bytes( OUT_Z_BYTECAP( bytes ) wchar_t *pDest, const wchar_t *pSrc, int bytes );
 
+PLATFORM_INTERFACE const char *	V_tier0_strchr( const char *s, char c );
 PLATFORM_INTERFACE char *		V_tier0_strrchr( const char *s, char c );
 PLATFORM_INTERFACE char *		V_strnchr( const char *s, char c, int n );
 PLATFORM_INTERFACE uchar32 *	V_strchr32( const uchar32 *s, uchar32 c );
@@ -131,11 +132,15 @@ PLATFORM_INTERFACE float		V_atofloat32( const char *str );
 PLATFORM_INTERFACE double		V_atofloat64( const char *str );
 
 PLATFORM_INTERFACE double		V_strtod( const char *str, char **endptr = NULL );
+PLATFORM_INTERFACE float		V_strtof( const char *str, char **endptr = NULL );
 PLATFORM_INTERFACE double		V_wcstod( const wchar_t *str, wchar_t **endptr = NULL );
 PLATFORM_INTERFACE int64		V_strtoi64( const char *str, char **endptr = NULL, int base = 10 );
 PLATFORM_INTERFACE int64		V_wcstoi64( const wchar_t *str, wchar_t **endptr = NULL, int base = 10 );
 PLATFORM_INTERFACE uint64		V_strtoui64( const char *str, char **endptr = NULL, int base = 10 );
 PLATFORM_INTERFACE uint64		V_wcstoui64( const wchar_t *str, wchar_t **endptr = NULL, int base = 10 );
+// Clamp the value to the int32/uint32 range
+PLATFORM_INTERFACE int32		V_strtoi32( const char *str, char **endptr = NULL, int base = 10 );
+PLATFORM_INTERFACE uint32		V_strtoui32( const char *str, char **endptr = NULL, int base = 10 );
 
 PLATFORM_OVERLOAD const char *	V_stristr_fast( const char *str, const char *search );
 PLATFORM_INTERFACE const char *	_V_strnistr_fast( const char *str, const char *search, int n );
@@ -145,6 +150,7 @@ PLATFORM_OVERLOAD int			V_strnlen( const char *str, int n );
 PLATFORM_OVERLOAD int			V_strnlen( const uchar16 *str, int n );
 PLATFORM_OVERLOAD int			V_strnlen( const uchar32 *str, int n );
 
+PLATFORM_INTERFACE size_t		V_strspn( const char *str, const char *strCharSet );
 PLATFORM_INTERFACE int			_V_strcspn( const char *s1, const char *s2 );
 
 #define COPY_ALL_CHARACTERS -1
@@ -171,6 +177,7 @@ template <size_t cchDest> wchar_t *V_wcscat_safe( INOUT_Z_ARRAY wchar_t( &pDest 
 PLATFORM_INTERFACE int			V_snprintfcat( OUT_Z_CAP( destLen ) char *pDest, int destLen, PRINTF_FORMAT_STRING const char *pFormat, ... ) FMTFUNCTION( 3, 4 );
 PLATFORM_INTERFACE int			V_snwprintf_bytes( OUT_Z_CAP( bytes ) wchar_t *pDest, int bytes, PRINTF_FORMAT_STRING const wchar_t *pFormat, ... );
 PLATFORM_INTERFACE int			V_snwprintf_cch( OUT_Z_CAP( symbols ) wchar_t *pDest, int symbols, PRINTF_FORMAT_STRING const wchar_t *pFormat, ... );
+PLATFORM_INTERFACE int			V_snprintfNoSecurityDoNotUse( OUT_Z_CAP( maxLenInChars ) char *pDest, int maxLenInChars, PRINTF_FORMAT_STRING const char *pFormat, ... ) FMTFUNCTION( 3, 4 );
 
 PLATFORM_INTERFACE int			V_vsnprintf( OUT_Z_CAP( maxLenInCharacters ) char *pDest, int maxLenInCharacters, PRINTF_FORMAT_STRING const char *pFormat, va_list params );
 PLATFORM_INTERFACE int			V_vsnprintfcat( OUT_Z_CAP( maxLenInCharacters ) char *pDest, int maxLenInCharacters, PRINTF_FORMAT_STRING const char *pFormat, va_list params );
@@ -206,6 +213,7 @@ PLATFORM_INTERFACE int			V_vsnwprintf_cch( OUT_Z_CAP( maxLenInCharacters ) wchar
 template <size_t maxLenInCharacters> int V_vswprintf_safe( OUT_Z_ARRAY wchar_t( &pDest )[maxLenInCharacters], PRINTF_FORMAT_STRING const wchar_t *pFormat, va_list params ) { return V_vsnwprintf_cch( pDest, maxLenInCharacters, pFormat, params ); }
 
 PLATFORM_INTERFACE int			V_vsnprintfRet( OUT_Z_CAP(maxLenInCharacters) char *pDest, int maxLenInCharacters, PRINTF_FORMAT_STRING const char *pFormat, va_list params, bool *pbTruncated );
+PLATFORM_INTERFACE int			V_vsnwprintfRet_cch( OUT_Z_CAP( maxLenInChars ) wchar_t *pDest, int maxLenInChars, PRINTF_FORMAT_STRING const wchar_t *pFormat, va_list params, bool *pbTruncated );
 template <size_t maxLenInCharacters> int V_vsprintfRet_safe( OUT_Z_ARRAY char (&pDest)[maxLenInCharacters], PRINTF_FORMAT_STRING const char *pFormat, va_list params, bool *pbTruncated ) { return V_vsnprintfRet( pDest, maxLenInCharacters, pFormat, params, pbTruncated ); }
 
 // Warns when the string is truncated, unless bQuietTruncation is set
@@ -214,6 +222,9 @@ PLATFORM_INTERFACE int			V_vsnprintfWarnTrunc( OUT_Z_CAP( maxLenInCharacters ) c
 
 // Returns the length of the whole formatted string without the terminator. pDest can be null with a length of 0.
 PLATFORM_INTERFACE int			V_vsnprintfSize( OUT_Z_CAP( maxLenInCharacters ) char *pDest, int maxLenInCharacters, PRINTF_FORMAT_STRING const char *pFormat, va_list params );
+
+// Returns the length of the formatted string without the terminator
+PLATFORM_INTERFACE int			V_vscprintf( PRINTF_FORMAT_STRING const char *pFormat, va_list params );
 
 // FMTFUNCTION can only be used on ASCII functions, not wide-char functions.
 int V_snwprintf( OUT_Z_CAP(maxLenInCharacters) wchar_t *pDest, int maxLenInCharacters, PRINTF_FORMAT_STRING const wchar_t *pFormat, ... );
@@ -478,6 +489,12 @@ template <> inline bool V_StringToValue<VectorWS>( const char *string, VectorWS 
 PLATFORM_INTERFACE const char *_V_StringAfterPrefix( const char *str, const char *prefix );
 PLATFORM_INTERFACE const char *_V_StringAfterPrefixCaseSensitive( const char *str, const char *prefix );
 
+// returns str past its leading whitespace
+PLATFORM_INTERFACE char *_V_StringAfterLeadingWhitespace( char *str );
+
+// returns true if pStr ends with pSuffix
+PLATFORM_INTERFACE bool _V_strEndsWith( const char *pStr, const char *pSuffix, bool bCaseSensitive );
+
 #define V_StringAfterPrefix(str, prefix)					_V_StringAfterPrefix((str), (prefix))
 #define V_StringAfterPrefixCaseSensitive(str, prefix)		_V_StringAfterPrefixCaseSensitive((str), (prefix))
 
@@ -568,6 +585,12 @@ PLATFORM_INTERFACE void V_StripTrailingWhitespace( char *ppline );
 
 // Remove the initial characters of ppline if they are whitespace (uses V_isspace)
 PLATFORM_INTERFACE void V_StripLeadingWhitespace( char *ppline );
+
+// Remove the initial and final characters of ppline if they are whitespace
+PLATFORM_INTERFACE void V_StripSurroundingWhitespace( char *ppline );
+
+// Remove the initial and final whitespace characters of pStr, returns its new length
+PLATFORM_INTERFACE int V_StrTrim( char *pStr );
 
 // Remove the initial/final characters of ppline if they are " quotes
 PLATFORM_INTERFACE void V_StripSurroundingQuotes( char *ppline );
@@ -698,6 +721,9 @@ PLATFORM_INTERFACE void _V_StrRight( const char *pStr, int nChars, char *pOut, i
 // returns a pointer to a newly allocated string, which you must delete[] when finished with.
 PLATFORM_INTERFACE char *V_AddBackSlashesToSpecialChars( char const *pSrc );
 
+// Replaces \n, \r and \t in pStr with the characters they stand for, and other backslash sequences with the character after the backslash
+PLATFORM_INTERFACE void V_DecodeBackslashSequencesInString( char *pStr );
+
 // Force slashes of either type to be = separator character
 PLATFORM_INTERFACE void V_FixSlashes( char *pname, char separator = CORRECT_PATH_SEPARATOR );
 
@@ -718,6 +744,10 @@ PLATFORM_INTERFACE void V_FixupPathSpaceToUnderscore( char *pPath );
 // Convert \r\n (Windows linefeeds) to \n (Unix linefeeds).
 PLATFORM_INTERFACE void V_TranslateLineFeedsToUnix( char *pStr );
 
+// Returns the number of line breaks in the first nLength characters of pText, or all of it if nLength is negative.
+// \r\n counts as one line break.
+PLATFORM_INTERFACE int V_CountTextLines( const char *pText, int nLength );
+
 // Encode a string for display as HTML -- this only encodes ' " & < >, which are the important ones to encode for 
 // security and ensuring HTML display doesn't break.  Other special chars like the ? sign and so forth will not
 // be encoded
@@ -730,6 +760,12 @@ PLATFORM_INTERFACE bool V_BasicHtmlEntityEncode( OUT_Z_CAP( nDestSize ) char *pD
 //
 // Returns false if there was not enough room in pDest to decode the entire source string, otherwise true
 PLATFORM_INTERFACE bool V_HtmlEntityDecodeToUTF8( OUT_Z_CAP( nDestSize ) char *pDest, const int nDestSize, char const *pIn, const int nInSize );
+
+// Encode and decode the XML entities of the first nInSize bytes of pIn, or all of it if nInSize is negative, and return pOut's string.
+// nFlags: 1 appends to pOut instead of replacing its contents, 4 also encodes spaces as &nbsp; and line breaks as <br>.
+// V_XMLDecode returns NULL if pIn isn't valid UTF-8 or pOut runs out of space.
+PLATFORM_INTERFACE const char *V_XMLEncode( const char *pIn, CBufferString *pOut, int nInSize, uint32 nFlags );
+PLATFORM_INTERFACE const char *V_XMLDecode( const char *pIn, CBufferString *pOut, int nInSize, uint32 nFlags );
 
 // strips HTML from a string.  Should call Q_HTMLEntityDecodeToUTF8 afterward.
 PLATFORM_INTERFACE void V_StripAndPreserveHTML( CBufferString *pbuffer, const char *pchHTML, const char **rgszPreserveTags, uint cPreserveTags, uint cMaxResultSize );
@@ -834,6 +870,38 @@ bool V_GenerateUniqueName( char *name, int memsize, const char *prefix, const Na
 PLATFORM_INTERFACE char *TrimRight( char *pString );
 
 PLATFORM_INTERFACE const char *SkipBlanks( const char *pString );
+
+// Reads a line of fp into pLine, with its line break if bKeepLineBreak is set. Returns false if nothing could be read.
+PLATFORM_INTERFACE bool V_ReadLine( FILE *fp, CBufferString *pLine, bool bKeepLineBreak );
+
+// Writes a dump of data to output with 24 bytes per line as text and hex, each line starting with label and " << " if input is set or " >> " otherwise.
+// V_LogMultilineToArray adds each line to output instead.
+PLATFORM_INTERFACE void V_LogMultiline( bool input, const char *label, const char *data, size_t len, CUtlString &output );
+PLATFORM_INTERFACE void V_LogMultilineToArray( bool input, const char *label, const char *data, size_t len, CUtlVector<CUtlString> &output );
+
+// Returns the number of Unicode code points to insert, delete or replace to turn one UTF-8 string into the other.
+// pbInvalidUTF8 is set if either string isn't valid UTF-8.
+PLATFORM_INTERFACE int V_LevenshteinDistance( const char *pString1, const char *pString2, bool *pbInvalidUTF8 );
+
+// Returns the offset of pNeedle in pHayStack, or -1 if it's not found
+PLATFORM_INTERFACE int V_BoyerMooreSearch( const byte *pNeedle, int nNeedleLength, const byte *pHayStack, int nHayStackLength );
+
+// AMNOTE: Unless pString starts with pBuf, truncates pBuf to the start it shares with pString, ending at an underscore
+PLATFORM_INTERFACE void V_CommonPrefixToUnderscore( CBufferString *pBuf, const char *pString );
+
+// Copies the first nTextLength characters of pText, or all of it if nTextLength is negative, to pOut with " replaced by ' and returns pOut's string.
+// pOut is cleared first unless bAppend is set.
+PLATFORM_OVERLOAD const char *V_SanitizeTextForCommandLine( const char *pText, CBufferString *pOut, bool bAppend, int nTextLength );
+
+// Returns nLen random letters and digits
+PLATFORM_OVERLOAD CUtlString V_RandomString( int nLen );
+
+#ifdef PLATFORM_WINDOWS
+// Converts buf in place between the Windows code pages, returns its string or NULL if it couldn't be converted
+PLATFORM_OVERLOAD const char *V_ConvertBetweenStringEncodings( CBufferString &buf, uint32 nFromCodePage, uint32 nToCodePage );
+// Converts buf in place from Windows-1252 to UTF-8
+PLATFORM_OVERLOAD const char *V_ConvertWin32ANSILatinToUTF8( CBufferString &buf );
+#endif
 
 // Encodes a string (or binary data) in URL encoding format, see rfc1738 section 2.2.
 // Dest buffer should be 3 times the size of source buffer to guarantee it has room to encode.
@@ -970,6 +1038,17 @@ PLATFORM_INTERFACE void CharacterSetBuild( characterset_t *pSetBuffer, const cha
 // Output : int - 1 if the character was in the set
 //-----------------------------------------------------------------------------
 #define IN_CHARACTERSET( SetBuffer, character )		((SetBuffer).set[static_cast<size_t>(character)])
+
+// Returns true if buffer has a token before its next line break
+PLATFORM_INTERFACE bool V_TokenWaiting( const char *buffer );
+
+// Copies the line at pStrIn to pLine without its line break and returns the position after the line break, or NULL if there's none
+PLATFORM_INTERFACE const char *V_ParseLine( const char *pStrIn, CBufferString *pLine );
+
+// Copies the next token of pStrIn to pToken and returns the position after it, or NULL if there's none.
+// Skips whitespace and // comments, handles quoted strings and makes every character of pTokenBreakCharacters
+// a token of its own ({}()': if NULL). pbOverflowed is set if the token didn't fit in bufsize.
+PLATFORM_INTERFACE const char *V_ParseToken( const char *pStrIn, char *pToken, int bufsize, bool *pbOverflowed, const characterset_t *pTokenBreakCharacters );
 
 //-----------------------------------------------------------------------------
 // Description of character conversions for string output
