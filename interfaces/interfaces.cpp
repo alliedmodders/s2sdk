@@ -15,7 +15,7 @@ IUtlStringTokenSystem *g_pStringTokenSystem;
 ITestScriptMgr *g_pTestScriptMgr;
 IProcessUtils *g_pProcessUtils;
 IFileSystem *g_pFullFileSystem;
-IAsyncFileSystem *g_pAsyncFileSystem;
+IAsyncFileSystem2 *g_pAsyncFileSystem;
 IResourceSystem *g_pResourceSystem;
 IResourceManifestRegistry *g_pResourceManifestRegistry;
 IResourceHandleUtils *g_pResourceHandleUtils;
