@@ -102,7 +102,7 @@ public:
 	ResourceType_t GetType() const { return m_Type; }
 
 protected:
-	CBufferStringN<200> m_Name;
+	CPathBufferString m_Name;
 	ResourceId_t m_Id;
 	ResourceType_t m_Type;
 };
@@ -131,7 +131,7 @@ inline bool FixupResourceName( CBufferString &name )
 	const char *pszName = name.Get();
 	int nLength = name.Length();
 
-	CBufferStringN<200> fixed;
+	CPathBufferString fixed;
 	char *pszFixed = fixed.SetLength( nLength );
 	int nFixedLength = 0;
 	char chLast = '\0';

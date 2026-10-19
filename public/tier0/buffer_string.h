@@ -351,6 +351,8 @@ private:
 	char m_FixedData[DATA_SIZE];
 };
 
+typedef CBufferStringN<200> CPathBufferString;
+
 class CUtlStringAndTokenWithStorage : public CUtlStringAndToken
 {
 public:
