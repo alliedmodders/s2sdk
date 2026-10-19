@@ -226,5 +226,7 @@ public:
 
 DECLARE_TIER1_INTERFACE( IProcessUtils, g_pProcessUtils );
 
+PLATFORM_INTERFACE IProcessUtils *V_GetProcessUtils();
+
 
 #endif // IPROCESSUTILS_H
