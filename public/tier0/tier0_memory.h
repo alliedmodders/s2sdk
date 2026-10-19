@@ -16,4 +16,9 @@ PLATFORM_INTERFACE void V_CopyMemory3D(
 	int nDestBytesPerRow, int nDestBytesPerSlice // strides for dest
 );
 
+#ifdef PLATFORM_WINDOWS
+// Returns true if p points into the calling thread's stack
+PLATFORM_INTERFACE bool V_IsPointerOnStack( const void *p );
+#endif
+
 #endif // TIER0_MEMORY_H
