@@ -132,10 +132,10 @@ PLATFORM_INTERFACE double		V_atofloat64( const char *str );
 
 PLATFORM_INTERFACE double		V_strtod( const char *str, char **endptr = NULL );
 PLATFORM_INTERFACE double		V_wcstod( const wchar_t *str, wchar_t **endptr = NULL );
-PLATFORM_INTERFACE int64		V_strtoi64( const char *str, char **endptr = NULL );
-PLATFORM_INTERFACE int64		V_wcstoi64( const wchar_t *str, wchar_t **endptr = NULL );
-PLATFORM_INTERFACE uint64		V_strtoui64( const char *str, char **endptr = NULL );
-PLATFORM_INTERFACE uint64		V_wcstoui64( const wchar_t *str, wchar_t **endptr = NULL );
+PLATFORM_INTERFACE int64		V_strtoi64( const char *str, char **endptr = NULL, int base = 10 );
+PLATFORM_INTERFACE int64		V_wcstoi64( const wchar_t *str, wchar_t **endptr = NULL, int base = 10 );
+PLATFORM_INTERFACE uint64		V_strtoui64( const char *str, char **endptr = NULL, int base = 10 );
+PLATFORM_INTERFACE uint64		V_wcstoui64( const wchar_t *str, wchar_t **endptr = NULL, int base = 10 );
 
 PLATFORM_OVERLOAD const char *	V_stristr_fast( const char *str, const char *search );
 PLATFORM_INTERFACE const char *	_V_strnistr_fast( const char *str, const char *search, int n );
@@ -234,7 +234,7 @@ inline bool V_isdigit( char c )
 }
 
 PLATFORM_INTERFACE bool V_isdigit_str( const char *str );
-PLATFORM_INTERFACE bool V_iswdigit( int c );
+PLATFORM_INTERFACE int V_iswdigit( uchar32 c );
 
 inline bool V_isempty( const char* pszString ) { return !pszString || !pszString[ 0 ]; }
 
@@ -258,7 +258,7 @@ inline bool V_isupper(char c) { return isupper( (unsigned char)c ) != 0; }
 inline bool V_islower(char c) { return islower( (unsigned char)c ) != 0; }
 inline bool V_iscntrl(char c) { return iscntrl( (unsigned char)c ) != 0; }
 inline bool V_isspace(char c) { return isspace( (unsigned char)c ) != 0; }
-PLATFORM_INTERFACE bool	V_iswspace( wchar_t c );
+PLATFORM_INTERFACE int	V_iswspace( uchar32 c );
 
 // Short form remaps
 #define V_strlen(str)					V_tier0_strlen		((str))
