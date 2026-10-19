@@ -236,6 +236,22 @@ inline bool V_isdigit( char c )
 PLATFORM_INTERFACE bool V_isdigit_str( const char *str );
 PLATFORM_INTERFACE int V_iswdigit( uchar32 c );
 
+// These return true for a NULL or empty string
+PLATFORM_INTERFACE bool V_isalpha_str_fast( const char *str );
+PLATFORM_INTERFACE bool V_isalnum_str_fast( const char *str );
+PLATFORM_INTERFACE bool V_isstrlower_fast( const char *pch );
+PLATFORM_INTERFACE bool V_isstrupper_fast( const char *pch );
+PLATFORM_INTERFACE bool V_isEntirelyWhitespace( const char *pStr );
+
+PLATFORM_INTERFACE bool V_containsWhitespace( const char *pStr );
+PLATFORM_INTERFACE bool V_StringHasNonAsciiCharacters( const char *pStr );
+
+// Returns true if V_strtod parses a number at the start of pString
+PLATFORM_INTERFACE bool V_AppearsToBeANumber( const char *pString );
+
+// Returns true if the first inputchars characters are hex digits, which must be an even and non-zero count
+PLATFORM_INTERFACE bool V_isvalidhex( const char *in, int inputchars );
+
 inline bool V_isempty( const char* pszString ) { return !pszString || !pszString[ 0 ]; }
 
 // The islower/isdigit/etc. functions all expect a parameter that is either
@@ -259,6 +275,16 @@ inline bool V_islower(char c) { return islower( (unsigned char)c ) != 0; }
 inline bool V_iscntrl(char c) { return iscntrl( (unsigned char)c ) != 0; }
 inline bool V_isspace(char c) { return isspace( (unsigned char)c ) != 0; }
 PLATFORM_INTERFACE int	V_iswspace( uchar32 c );
+PLATFORM_INTERFACE int	V_iswalpha( uchar32 c );
+PLATFORM_INTERFACE int	V_iswalnum( uchar32 c );
+PLATFORM_INTERFACE int	V_iswcntrl( uchar32 c );
+PLATFORM_INTERFACE int	V_iswlower( uchar32 c );
+PLATFORM_INTERFACE int	V_iswupper( uchar32 c );
+PLATFORM_INTERFACE int	V_iswpunct( uchar32 c );
+PLATFORM_INTERFACE int	V_isbreakablewspace( wchar_t ch );
+PLATFORM_INTERFACE int	V_isbreakablewspace32( uchar32 ch );
+PLATFORM_INTERFACE int	V_tier0_ispunct( int c );
+PLATFORM_INTERFACE int	V_tier0_isgraph( int c );
 
 // Short form remaps
 #define V_strlen(str)					V_tier0_strlen		((str))
