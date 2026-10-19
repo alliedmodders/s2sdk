@@ -133,6 +133,7 @@ protected:
 // File IO on the async IO threads. Usage:
 //
 //	auto pRequest = g_pAsyncFileSystem->NewReadRequest( "cfg/server.cfg", "GAME" )
+//		->SetTextMode( true )
 //		->SetPriority( ASYNC_REQUEST_PRIORITY_HIGH )
 //		->SetCallback( []( IAsyncReadRequest2 *pRequest, AsyncRequestStatus_t status ) { ... } )
 //		->Build();
@@ -153,11 +154,14 @@ public:
 
 		virtual ~IReadRequestBuilder() {}
 
+		// 0 reads to the end of the file
 		This *SetReadBytes( size_t nReadBytes ) { m_nReadBytes = nReadBytes; return this; }
 		size_t GetReadBytes() const { return m_nReadBytes; }
+		// 0 or less reads from the start of the file
 		This *SetReadOffset( int64 nReadOffset ) { m_nReadOffset = nReadOffset; return this; }
 		int64 GetReadOffset() const { return m_nReadOffset; }
 
+		// AMNOTE: The filesystem ignores these
 		This *SetAllowMemoryMap( bool bAllowMemoryMap ) { m_bAllowMemoryMap = bAllowMemoryMap; return this; }
 		bool GetAllowMemoryMap() const { return m_bAllowMemoryMap; }
 		This *SetPreferMemoryMap( bool bPreferMemoryMap ) { m_bPreferMemoryMap = bPreferMemoryMap; return this; }
@@ -165,23 +169,28 @@ public:
 
 		This *SetPriority( AsyncRequestPriority_t priority ) { m_priority = priority; return this; }
 		AsyncRequestPriority_t GetPriority() const { return m_priority; }
+		// Queues the request ahead of the queued requests of its priority
 		This *SetMoveToFrontOfQueue( bool bFrontOfQueue ) { m_bFrontOfQueue = bFrontOfQueue; return this; }
 		bool GetMoveToFrontOfQueue() const { return m_bFrontOfQueue; }
 
+		// Opens the file with "r" rather than "rb"
 		This *SetTextMode( bool bTextMode ) { m_bTextMode = bTextMode; return this; }
 		bool GetTextMode() const { return m_bTextMode; }
 
+		// AMNOTE: The filesystem ignores it, GetProfilingInfo() always fails
 		This *SetProfilingForRequest( bool bProfile ) { m_bProfile = bProfile; return this; }
 		bool GetProfilingForRequest() const { return m_bProfile; }
 
-		// Reads into pResultBuffer instead of a buffer allocated by the filesystem
+		// Reads up to nResultBufferSize bytes into pResultBuffer instead of a buffer allocated with AllocateBuffer()
 		This *SetResultBuffer( void *pResultBuffer, size_t nResultBufferSize ) { m_pResultBuffer = pResultBuffer; m_nResultBufferSize = nResultBufferSize; return this; }
 		void *GetResultBuffer() const { return m_pResultBuffer; }
 		size_t GetResultBufferSize() const { return m_nResultBufferSize; }
 
+		// Runs the callback from pCompletionQueue->ProcessResults() instead of the IO thread
 		This *SetCompletionQueue( IIOCompletionQueue *pCompletionQueue ) { m_pCompletionQueue = pCompletionQueue; return this; }
 		IIOCompletionQueue *GetCompletionQueue() const { return m_pCompletionQueue; }
 
+		// Called once the request is done, holding the lock of the async filesystem when it runs on the IO thread
 		This *SetCallback( ReadCallback_t callback ) { m_callback = std::move( callback ); return this; }
 
 		virtual std::shared_ptr<IAsyncReadRequest2> Build() = 0;
@@ -214,16 +223,20 @@ public:
 		This *SetPriority( AsyncRequestPriority_t priority ) { m_priority = priority; return this; }
 		AsyncRequestPriority_t GetPriority() const { return m_priority; }
 
+		// AMNOTE: The filesystem ignores it, GetProfilingInfo() always fails
 		This *SetProfilingForRequest( bool bProfile ) { m_bProfile = bProfile; return this; }
 		bool GetProfilingForRequest() const { return m_bProfile; }
 
+		// Opens the file with "w" rather than "wb", or "a+" rather than "ab+" when appending
 		This *SetTextMode( bool bTextMode ) { m_bTextMode = bTextMode; return this; }
 		bool GetTextMode() const { return m_bTextMode; }
+		// Opens the file with "ab+" rather than "wb", so the data is written after what the file already has
 		This *SetAppend( bool bAppend ) { m_bAppend = bAppend; return this; }
 		bool GetAppend() const { return m_bAppend; }
 
 		// Called with the written buffer once the request is done with it
 		This *SetFreeBufferCallback( std::function<void( const void *pBuffer )> freeBuffer ) { m_freeBuffer = std::move( freeBuffer ); return this; }
+		// Called once the request is done, on the IO thread holding the lock of the async filesystem
 		This *SetCallback( WriteCallback_t callback ) { m_callback = std::move( callback ); return this; }
 
 		virtual std::shared_ptr<IAsyncWriteRequest2> Build() = 0;
