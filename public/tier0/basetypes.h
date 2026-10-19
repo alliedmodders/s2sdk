@@ -243,13 +243,6 @@ typedef uint16 word;
 #endif
 
 #ifdef _WIN32
-typedef wchar_t ucs2; // under windows wchar_t is ucs2
-#else
-typedef unsigned short ucs2;
-#endif
-
-typedef float vec_t;
-#ifdef _WIN32
 typedef __int32 vec_t_as_gpr; // a general purpose register type equal in size to a vec_t (in case we have to avoid the fpu for some reason)
 #endif
 

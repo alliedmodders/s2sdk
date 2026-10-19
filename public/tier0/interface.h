@@ -20,11 +20,6 @@
 #endif
 
 //-----------------------------------------------------------------------------
-// Interface creation function
-//-----------------------------------------------------------------------------
-typedef void* (*CreateInterfaceFn)(const char *pName, int *pReturnCode);
-
-//-----------------------------------------------------------------------------
 // Load & Unload should be called in exactly one place for each module
 // The factory for that module should be passed on to dependent components for
 // proper versioning.
@@ -56,8 +51,6 @@ class IBaseInterface
 public:
 	virtual	~IBaseInterface() {}
 };
-
-typedef void* (*InstantiateInterfaceFn)();
 
 // Used internally to register classes.
 class InterfaceReg
