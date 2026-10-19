@@ -12,6 +12,15 @@ class CBufferString;
 // Get the process' executable filename.
 PLATFORM_INTERFACE void				Plat_GetModuleFilename( char *pOut, int nMaxBytes );
 PLATFORM_INTERFACE int				Plat_GetExecutablePathUTF8( CBufferString *buf );
+PLATFORM_INTERFACE void				Plat_SetModuleFilename( const char *pExeName );
+
+PLATFORM_INTERFACE void				Plat_TranslateSymbolicLinks( const char *pInDir, CBufferString *pOut );
+
+PLATFORM_INTERFACE bool				Plat_GetCurrentDirectory( CBufferString *pOut, bool bAppendSlash );
+PLATFORM_INTERFACE bool				Plat_SetCurrentDirectory( const char *pDir );
+
+// The description of the file's type, like Windows Explorer shows it
+PLATFORM_INTERFACE bool				Plat_GetFileType( const char *pPath, CBufferString *pOut );
 
 // If pPath is a relative path, this function makes it into an absolute path
 // using the current working directory as the base, or pStartingDir if it's non-NULL.
