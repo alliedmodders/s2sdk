@@ -790,7 +790,62 @@ public:
 	}
 };
 
-class CThreadMultiWaitEvent
+//-----------------------------------------------------------------------------
+// Objects that ThreadMultiWait can wait on together
+//-----------------------------------------------------------------------------
+#ifdef _WIN32
+typedef HANDLE ThreadMultiWaitItem_t;
+#else
+struct pollfd;
+typedef pollfd ThreadMultiWaitItem_t;
+#endif
+
+enum ThreadMultiWaitObjectFlags_t
+{
+	THREAD_MULTI_WAIT_NONE = 0,
+	THREAD_MULTI_WAIT_SEMAPHORE = (1 << 0),
+	THREAD_MULTI_WAIT_AUTO_RESET_EVENT = (1 << 1),
+	THREAD_MULTI_WAIT_MANUAL_RESET_EVENT = (1 << 2),
+};
+
+struct ThreadMultiWaitExtra_t
+{
+	// ThreadMultiWaitObjectFlags_t
+	uint32 nFlags;
+};
+
+// A copy of the objects to wait on, made by ThreadMultiWaitObjectSetCreate
+struct ThreadMultiWaitObjectSet_t
+{
+	ThreadMultiWaitItem_t *m_pItems;
+	ThreadMultiWaitExtra_t *m_pExtra;
+	int m_nItems;
+#ifdef PLATFORM_POSIX
+	// The epoll instance that watches m_pItems
+	int m_hEpoll;
+#endif
+};
+
+class CThreadMultiWaitObject
+{
+public:
+	DLL_CLASS_IMPORT CThreadMultiWaitObject();
+	DLL_CLASS_IMPORT ~CThreadMultiWaitObject();
+
+	// Releases a semaphore or sets an event
+	DLL_CLASS_IMPORT void Signal();
+
+protected:
+#ifdef _WIN32
+	HANDLE m_hEventFd;
+#else
+	int m_hEventFd;
+#endif
+	// ThreadMultiWaitObjectFlags_t
+	uint32 m_nExtraFlags;
+};
+
+class CThreadMultiWaitEvent : public CThreadMultiWaitObject
 {
 public:
 	DLL_CLASS_IMPORT CThreadMultiWaitEvent( bool bManualReset = false );
@@ -798,15 +853,33 @@ public:
 
 	DLL_CLASS_IMPORT void Set();
 	DLL_CLASS_IMPORT void Reset();
-
-private:
-#ifdef _WIN32
-	HANDLE m_hEvent;
-#else
-	int m_nEventFd;
-#endif
-	int m_nType; // AMNOTE: 2 for auto-reset, 4 for manual-reset
 };
+
+class CThreadMultiWaitSemaphore : public CThreadMultiWaitObject
+{
+public:
+	DLL_CLASS_IMPORT CThreadMultiWaitSemaphore();
+	DLL_CLASS_IMPORT ~CThreadMultiWaitSemaphore();
+
+	DLL_CLASS_IMPORT void Release();
+};
+
+// Builds a set from the objects, which must outlive it, to wait on them repeatedly
+PLATFORM_INTERFACE ThreadMultiWaitObjectSet_t *ThreadMultiWaitObjectSetCreate( const CThreadMultiWaitObject **ppObjects, int nObjects );
+PLATFORM_OVERLOAD ThreadMultiWaitObjectSet_t *ThreadMultiWaitObjectSetCreate( const ThreadMultiWaitItem_t *pItems, const ThreadMultiWaitExtra_t *pExtra, int nItems );
+PLATFORM_INTERFACE void ThreadMultiWaitObjectSetDestroy( ThreadMultiWaitObjectSet_t *pSet );
+PLATFORM_INTERFACE int ThreadMultiWaitObjectSetGetCount( ThreadMultiWaitObjectSet_t *pSet );
+
+enum ThreadMultiWaitFlags_t
+{
+	THREAD_MULTI_WAIT_FOR_ANY = 0,
+	// Only Windows waits for all of them; elsewhere any signalled object ends the wait
+	THREAD_MULTI_WAIT_FOR_ALL = (1 << 0),
+};
+
+// Waits on pSet, or pItems and pExtra when pSet is nullptr. nFlags is a combination of ThreadMultiWaitFlags_t.
+// Returns how many were signalled, with their bits set in pSignalled, 0 on timeout or -1 on failure.
+PLATFORM_INTERFACE int ThreadMultiWait( ThreadMultiWaitObjectSet_t *pSet, ThreadMultiWaitItem_t *pItems, ThreadMultiWaitExtra_t *pExtra, int nItems, uint32 nFlags, uint64 *pSignalled, uint32 nMillis );
 
 
 //-----------------------------------------------------------------------------
