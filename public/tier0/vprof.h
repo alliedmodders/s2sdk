@@ -246,6 +246,64 @@ private:
 PLATFORM_INTERFACE void VProf_EnterScopeAdHoc( const char *pszName, CUtlSourceLocation location );
 PLATFORM_INTERFACE void VProf_ExitScope();
 
+//-----------------------------------------------------------------------------
+// VProf lite: the time spent in each budget group, sampled per frame and per second
+//-----------------------------------------------------------------------------
+
+// Times are in seconds
+struct VProfLitePercentiles_t
+{
+	float m_flAvg;
+	float m_flP25;
+	float m_flP50;
+	float m_flP95;
+	float m_flP99;
+};
+
+struct VProfLiteBudgetGroupData_t
+{
+	int m_nBudgetGroupID;
+	const char *m_pszName;
+	int m_nNumSamples;
+	// One second intervals
+	int m_nNumIntervals;
+	// Over the frames where the group had time, then over all the frames
+	VProfLitePercentiles_t m_Active;
+	VProfLitePercentiles_t m_All;
+	// Over the highest frame time of each interval
+	VProfLitePercentiles_t m_IntervalMaxActive;
+	VProfLitePercentiles_t m_IntervalMaxAll;
+	float m_flMax;
+};
+
+struct VProfLiteHistoricalData_t
+{
+	int m_nExcludedFrames;
+	CUtlVector< VProfLiteBudgetGroupData_t > m_BudgetGroups;
+};
+
+// The current frame's time in a budget group so far, in seconds
+struct VProfLiteFrameStats_t
+{
+	float m_flTime;
+	// Without the groups entered from this one
+	float m_flExclusiveTime;
+};
+
+PLATFORM_INTERFACE void VProfLite_SetEnabled( bool bEnabled );
+PLATFORM_INTERFACE bool VProfLite_GetEnabled();
+// Clears the recorded data
+PLATFORM_INTERFACE void VProfLite_Clear();
+// Bases the percentiles on the time spent in the groups without the ones entered from them
+PLATFORM_INTERFACE void VProfLite_SetExclusivePercentiles( bool bExclusive );
+// AMNOTE: nFrameSampling: 2 records the frame's times, 1 counts it as excluded from the analysis
+PLATFORM_INTERFACE void VProfLite_NextFrame( int nFrameSampling );
+PLATFORM_INTERFACE VProfLiteFrameStats_t VProfLite_GetBudgetGroupCurrentFrameStats( int nBudgetGroupID, uint64 nCurrentTicks );
+PLATFORM_INTERFACE void VProfLite_GetHistoricalData( VProfLiteHistoricalData_t *pData );
+// Takes the dedicated server's sleep out of the frame times, keeping the time it overslept
+PLATFORM_INTERFACE void VProfLite_DedicatedServerSleepBegin();
+PLATFORM_INTERFACE void VProfLite_DedicatedServerSleepEnd( double flOversleepTime );
+
 struct VProfReportSettings_t;
 struct CVProfSummingContext;
 struct VProfBudgetGroupCallSite;
@@ -434,6 +492,23 @@ enum CounterGroup_t
 	COUNTER_GROUP_TEXTURE_PER_FRAME		// Per-frame texture usage counters.
 }; 
 
+// A node name's times summed over the profile, in milliseconds
+struct VProfDataReportItem_t
+{
+	const char *m_pszName;
+	int m_nCalls;
+	double m_flCallsPerFrame;
+	double m_flTotalTime;
+	double m_flTotalTimeLessChildren;
+	// Of the root's total time, up to 100
+	double m_flTotalTimePercent;
+	double m_flTotalTimeLessChildrenPercent;
+	double m_flTimePerFrame;
+	double m_flAvgTime;
+	double m_flAvgTimeLessChildren;
+	double m_flPeakTime;
+};
+
 class PLATFORM_CLASS CVProfile 
 {
 public:
@@ -452,8 +527,42 @@ public:
 	static VProfExitScopeCB EnterScopeBackgroundThread( const char *pszName, VProfBudgetGroupCallSite &budgetGroup, const CUtlSourceLocation &location );
 	static void ExitScopeBackgroundThread();
 	CVProfNode *GetBackgroundRoot();
+	CVProfNode *GetBackgroundRootNoCreate() const { return m_pBackgroundRoot; }
+	CAtomicMutex &GetBackgroundRootMutex() { return m_BackgroundRootMutex; }
 	void MergeBackgroundTrees();
 	void SetProfileAllThreads( bool bProfileAllThreads );
+	bool IsProfilingAllThreads() const { return m_bProfileAllThreads; }
+
+	ThreadId_t GetTargetThreadId() { return m_TargetThreadId; }
+	void SetTargetThreadId( ThreadId_t id ) { m_TargetThreadId = id; }
+	bool InTargetThread() { return m_TargetThreadId == ThreadGetCurrentId(); }
+
+#ifdef PLATFORM_WINDOWS
+	// Enters the scope on the target thread only, while profiling
+	void EnterScopeTargetThread( const char *pszName, bool, VProfBudgetGroupCallSite &budgetGroup, const CUtlSourceLocation &location );
+	// The same, for callers that checked both
+	void EnterScopeTargetThreadChecked( const char *pszName, bool, VProfBudgetGroupCallSite &budgetGroup, const CUtlSourceLocation &location );
+	void ExitScopeTargetThreadChecked();
+#endif
+
+	bool AtRoot() const { return m_fAtRoot; }
+	CVProfNode *GetRoot() { return &m_Root; }
+	CVProfNode *GetCurrentNode() { return m_pCurNode; }
+
+	int NumFramesSampled() const { return m_nFrames; }
+
+	// Times are in milliseconds
+	double GetTimeLastFrame() const { return m_Root.GetCurTime(); }
+	double GetPeakFrameTime() const { return m_Root.GetPeakTime(); }
+	double GetTotalTimeSampled() const { return m_Root.GetTotalTime(); }
+	double GetTotalSecondsSampled() const { return m_Root.GetTotalTime() / 1000.0; }
+	// Excludes the paused time
+	double GetTotalWallClockSecondsSampled();
+
+	void ResetPeaks();
+
+	// Sums the times of each node name, over the background threads too
+	void GenerateDataReport( CUtlVector< VProfDataReportItem_t > *pReport );
 
 	//
 	// Queries
@@ -477,6 +586,17 @@ public:
 
 	static int BudgetGroupNameToBudgetGroupID( const char *pBudgetGroupName );
 	static int BudgetGroupNameToBudgetGroupID( const char *pBudgetGroupName, int budgetFlagsToORIn );
+	// Returns -1 for a budget group that doesn't exist
+	static int BudgetGroupNameToBudgetGroupIDNoCreate( const char *pBudgetGroupName ) { return FindBudgetGroupName( pBudgetGroupName ); }
+
+#ifdef VPROF_VTUNE_GROUP
+	void EnableVTuneGroup( const char *pGroupName ) { m_nVTuneGroupID = BudgetGroupNameToBudgetGroupID( pGroupName, BUDGETFLAG_OTHER ); m_bVTuneGroupEnabled = true; }
+	void DisableVTuneGroup() { m_bVTuneGroupEnabled = false; }
+#ifdef PLATFORM_WINDOWS
+	void PushGroup( int nGroupID );
+	void PopGroup();
+#endif
+#endif
 
 	void HideBudgetGroup( int budgetGroupID, bool bHide = true );
 
@@ -491,6 +611,15 @@ public:
 	CounterGroup_t GetCounterGroup( int index ) const;
 
 protected:
+#ifdef VPROF_VTUNE_GROUP
+	bool VTuneGroupEnabled() { return m_bVTuneGroupEnabled; }
+	int VTuneGroupID() { return m_nVTuneGroupID; }
+#endif
+
+	static void EnterNodeScopeBackground( CVProfNode *pNode );
+	// Returns true when the node's outermost scope exited
+	static bool ExitNodeScopeBackground( CVProfNode *pNode );
+	static void MergeBackgroundNodes_R( CVProfNode *pSource, CVProfNode *pDest );
 
 	void FreeNodes_R( CVProfNode *pNode );
 
@@ -550,6 +679,25 @@ protected:
 //-------------------------------------
 
 PLATFORM_INTERFACE CVProfile g_VProfCurrentProfile;
+
+inline double CVProfile::GetTotalWallClockSecondsSampled()
+{
+	double flEndTime = m_enabled ? Plat_FloatTime() : ( m_flPauseStartTime != 0.0 ? m_flPauseStartTime : m_flStopTime );
+	return flEndTime - m_flStartTime - m_flTotalPauseTime;
+}
+
+inline void CVProfile::ResetPeaks()
+{
+	m_Root.ResetPeak();
+
+	AUTO_LOCK( m_BackgroundRootMutex );
+	if ( m_pBackgroundRoot )
+		m_pBackgroundRoot->ResetPeak();
+}
+
+// g_VProfCurrentProfile's
+PLATFORM_INTERFACE int VProf_AssignNextTimespanId();
+PLATFORM_INTERFACE uint64_t *VProf_FindOrCreateCounter( const char *pName, CounterGroup_t eCounterGroup );
 
 
 //-----------------------------------------------------------------------------
