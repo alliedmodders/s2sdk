@@ -113,6 +113,19 @@ static void TestCountAtTail()
 	CHECK( vec.Count() == 4 && vec[0] == 0 && vec[1] == 1 && vec[2] == 2 );
 }
 
+// CopyArray of a NULL array only resizes
+static void TestCopyArrayNull()
+{
+	CUtlVector<int> vec;
+	Fill( vec, 3, 0 );
+
+	vec.CopyArray( nullptr, 5 );
+	CHECK( vec.Count() == 5 && vec[0] == 0 && vec[1] == 1 && vec[2] == 2 );
+
+	vec.CopyArray( nullptr, 0 );
+	CHECK( vec.Count() == 0 );
+}
+
 // Resets itself before taking the other's value, so only an early return keeps it when a vector is assigned to itself
 struct ResetsFirst_t
 {
@@ -186,6 +199,7 @@ int main()
 	TestGrowableCopy();
 	TestCountKeepsElements();
 	TestCountAtTail();
+	TestCopyArrayNull();
 	TestSelfAssignReturnsEarly<CUtlVector<ResetsFirst_t>>( 3 );
 	TestSelfAssignReturnsEarly<CUtlVectorFixedGrowable<ResetsFirst_t, 4>>( 2 );
 	TestSelfAssignReturnsEarly<CUtlVectorFixedGrowable<ResetsFirst_t, 4>>( 10 );
