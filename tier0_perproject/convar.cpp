@@ -289,7 +289,8 @@ void ConVar_Unregister( )
 //-----------------------------------------------------------------------------
 CCommand::CCommand()
 {
-	EnsureBuffers();
+	m_ArgSBuffer.SetCount( COMMAND_MAX_LENGTH );
+	m_ArgvBuffer.SetCount( COMMAND_MAX_LENGTH );
 	Reset();
 }
 
@@ -341,6 +342,20 @@ CCommand::CCommand( int nArgC, const char **ppArgV ) : CCommand()
 	}
 
 	*pSBuf = '\0';
+}
+
+CCommand &CCommand::operator=( const CCommand &other )
+{
+	if ( this == &other )
+		return *this;
+
+	m_ArgSBuffer.SetCount( other.m_ArgvBuffer.Count() );
+	m_ArgvBuffer.SetCount( other.m_ArgvBuffer.Count() );
+	Tokenize( other.GetCommandString() );
+	m_unk101 = other.m_unk101;
+	m_flInputTime = other.m_flInputTime;
+	m_unk201 = other.m_unk201;
+	return *this;
 }
 
 void CCommand::EnsureBuffers()

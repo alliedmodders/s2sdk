@@ -154,6 +154,20 @@ for sdk_target in SdkHelpers.sdk_targets:
 
 builder.Add(vectest)
 
+# Copies CCommands, also full-length ones, which tokenizes them again with a test cvar system's break set
+cmdtest = builder.ProgramProject('ccommand_test')
+cmdtest.sources = [
+  os.path.join('tests', 'run', 'ccommand.cpp'),
+  os.path.join('tier0_perproject', 'convar.cpp'),
+  os.path.join('public', 'tier0', 'memoverride.cpp'),
+]
+
+for sdk_target in SdkHelpers.sdk_targets:
+  binary = cmdtest.Configure(sdk_target.cxx, 'ccommand_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
+  SdkHelpers.configureCxx(builder, binary, sdk)
+
+builder.Add(cmdtest)
+
 # Inserts dupes and non copyable elements into a CUtlRBTree and a CUtlOrderedMap
 maptest = builder.ProgramProject('utlrbtree_test')
 maptest.sources = [
