@@ -356,6 +356,9 @@ inline CUtlVectorBase<T, I, A>& CUtlVectorBase<T, I, A>::operator=( CUtlVectorBa
 template< typename T, class I, class A >
 inline CUtlVectorBase<T, I, A>& CUtlVectorBase<T, I, A>::operator=( const CUtlVectorBase<T, I, A> &other )
 {
+	if ( this == &other )
+		return *this;
+
 	I nCount = other.Count();
 	SetSize( nCount );
 	for ( I i = 0; i < nCount; i++ )

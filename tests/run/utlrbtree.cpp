@@ -1,10 +1,8 @@
 #include "tier0/utlrbtree.h"
 #include "tier0/utlmap.h"
 #include "tier0/utlvector.h"
-#include "tier0/utlstring.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <utility>
 
 static int g_nFailures = 0;
@@ -213,26 +211,31 @@ static void TestMapNonCopyable()
 	CHECK( map[l].Count() == 0 );
 }
 
-// Assigning a node to itself keeps its element, CUtlVector's copy assignment alone would clear it
+// Resets itself before taking the other's value, so only the node's own check keeps it on self-assignment
+struct ResetsFirst_t
+{
+	ResetsFirst_t( int nValue = 0 ) : m_nValue( nValue ) {}
+	ResetsFirst_t( const ResetsFirst_t &other ) = default;
+	ResetsFirst_t &operator=( const ResetsFirst_t &other ) { m_nValue = 0; m_nValue = other.m_nValue; return *this; }
+	ResetsFirst_t &operator=( ResetsFirst_t &&other ) { m_nValue = 0; V_swap( m_nValue, other.m_nValue ); return *this; }
+
+	int m_nValue;
+};
+
+// Assigning a node to itself keeps its element
 static void TestMapNodeSelfAssign()
 {
-	CUtlOrderedMap< int, CUtlVector< CUtlString >, CDefLess< int >, unsigned int > map;
-
-	CUtlVector< CUtlString > values;
-	values.AddToTail( CUtlString( "first" ) );
-	values.AddToTail( CUtlString( "second" ) );
-	unsigned int i = map.Insert( 5, std::move( values ) );
+	CUtlOrderedMap< int, ResetsFirst_t, CDefLess< int >, unsigned int > map;
+	unsigned int i = map.Insert( 5, ResetsFirst_t( 7 ) );
 
 	auto &node = ( *map.AccessTree() )[i];
 	auto *pSelf = &node;
 
 	node = *pSelf;
-	CHECK( map.Key( i ) == 5 && map[i].Count() == 2 );
-	CHECK( map[i].Count() == 2 && strcmp( map[i][0].Get(), "first" ) == 0 && strcmp( map[i][1].Get(), "second" ) == 0 );
+	CHECK( map.Key( i ) == 5 && map[i].m_nValue == 7 );
 
 	node = std::move( *pSelf );
-	CHECK( map.Key( i ) == 5 && map[i].Count() == 2 );
-	CHECK( map[i].Count() == 2 && strcmp( map[i][0].Get(), "first" ) == 0 && strcmp( map[i][1].Get(), "second" ) == 0 );
+	CHECK( map.Key( i ) == 5 && map[i].m_nValue == 7 );
 }
 
 int main()
