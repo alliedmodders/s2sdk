@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <type_traits>
 #include <utility>
 
 static int g_nFailures = 0;
@@ -38,6 +39,72 @@ static bool Holds( const V &vec, int nCount, int nFirst )
 	}
 
 	return true;
+}
+
+template< class V >
+static bool IsInside( const V &vec, const void *p )
+{
+	return p >= (const void *)&vec && p < (const void *)( &vec + 1 );
+}
+
+// Wipes a vector's inline storage before freeing it, so a vector still pointing into it reads other values
+template< class V >
+static void Destroy( V *pVec )
+{
+	pVec->~V();
+	memset( (void *)pVec, 0xAB, sizeof( V ) );
+	::operator delete( pVec );
+}
+
+// CUtlVector moves, the other vectors on CUtlVectorBase don't
+static_assert( std::is_move_constructible_v<CUtlVector<int>> );
+static_assert( !std::is_move_constructible_v<CUtlVectorFixedGrowable<int, 4>> );
+static_assert( !std::is_move_constructible_v<CUtlVectorConservative<int>> );
+static_assert( !std::is_move_constructible_v<CUtlVectorRawAllocator<int>> );
+
+// Moves swap the memory, so the destination owns the source's elements once the source is gone
+static void TestGrowableMove()
+{
+	{
+		auto *pSrc = new CUtlVector<int>;
+		Fill( *pSrc, 20, 0 );
+		const int *pMemory = pSrc->Base();
+
+		CUtlVector<int> dst( std::move( *pSrc ) );
+		CHECK( dst.Base() == pMemory );
+		CHECK( Holds( dst, 20, 0 ) );
+		CHECK( pSrc->Count() == 0 );
+		CHECK( pSrc->Base() == nullptr );
+
+		Destroy( pSrc );
+		CHECK( Holds( dst, 20, 0 ) );
+	}
+
+	{
+		auto *pSrc = new CUtlVector<int>;
+		Fill( *pSrc, 20, 0 );
+
+		const int *pMemory = pSrc->Base();
+
+		CUtlVector<int> dst;
+		Fill( dst, 3, 100 );
+		dst = std::move( *pSrc );
+		CHECK( dst.Base() == pMemory );
+		CHECK( Holds( dst, 20, 0 ) );
+		CHECK( Holds( *pSrc, 3, 100 ) );
+
+		Destroy( pSrc );
+		CHECK( Holds( dst, 20, 0 ) );
+	}
+
+	{
+		CUtlVector<int> vec;
+		Fill( vec, 5, 0 );
+
+		CUtlVector<int> &self = vec;
+		vec = std::move( self );
+		CHECK( Holds( vec, 5, 0 ) );
+	}
 }
 
 // Copy assignment copies the elements, it doesn't share them
@@ -126,6 +193,28 @@ static void TestCopyArrayNull()
 	CHECK( vec.Count() == 0 );
 }
 
+// Without moves, assigning from an rvalue copies into the destination's own memory, inline or on the heap
+template< class V >
+static void TestAssignCopies( int nSrcCount, int nDstCount )
+{
+	auto *pSrc = new V;
+	Fill( *pSrc, nSrcCount, 0 );
+
+	V dst;
+	Fill( dst, nDstCount, 100 );
+	dst = std::move( *pSrc );
+	CHECK( Holds( dst, nSrcCount, 0 ) );
+	CHECK( !IsInside( *pSrc, dst.Base() ) && ( nSrcCount == 0 || dst.Base() != pSrc->Base() ) );
+	CHECK( Holds( *pSrc, nSrcCount, 0 ) );
+
+	Destroy( pSrc );
+	CHECK( Holds( dst, nSrcCount, 0 ) );
+
+	V &self = dst;
+	dst = std::move( self );
+	CHECK( Holds( dst, nSrcCount, 0 ) );
+}
+
 // Resets itself before taking the other's value, so only an early return keeps it when a vector is assigned to itself
 struct ResetsFirst_t
 {
@@ -192,10 +281,14 @@ static void TestSelfAssign( int nCount )
 	V &self = vec;
 	vec = self;
 	CHECK( HoldsStrings( vec, nCount ) );
+
+	vec = std::move( self );
+	CHECK( HoldsStrings( vec, nCount ) );
 }
 
 int main()
 {
+	TestGrowableMove();
 	TestGrowableCopy();
 	TestCountKeepsElements();
 	TestCountAtTail();
@@ -203,6 +296,16 @@ int main()
 	TestSelfAssignReturnsEarly<CUtlVector<ResetsFirst_t>>( 3 );
 	TestSelfAssignReturnsEarly<CUtlVectorFixedGrowable<ResetsFirst_t, 4>>( 2 );
 	TestSelfAssignReturnsEarly<CUtlVectorFixedGrowable<ResetsFirst_t, 4>>( 10 );
+
+	// Inline to inline, inline to heap, heap to inline, heap to heap
+	TestAssignCopies<CUtlVectorFixedGrowable<int, 4>>( 2, 3 );
+	TestAssignCopies<CUtlVectorFixedGrowable<int, 4>>( 2, 10 );
+	TestAssignCopies<CUtlVectorFixedGrowable<int, 4>>( 10, 3 );
+	TestAssignCopies<CUtlVectorFixedGrowable<int, 4>>( 10, 20 );
+	TestAssignCopies<CUtlVectorFixed<int, 4>>( 2, 3 );
+	TestAssignCopies<CUtlVectorFixed<int, 4>>( 0, 3 );
+	TestAssignCopies<CUtlVectorConservative<int>>( 2, 3 );
+	TestAssignCopies<CUtlVectorRawAllocator<int>>( 2, 3 );
 
 	TestSelfAssign<CUtlVector<CUtlString>>( 5 );
 	TestSelfAssign<CUtlVectorFixedGrowable<CUtlString, 4>>( 2 );
