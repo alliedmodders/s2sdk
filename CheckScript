@@ -141,7 +141,7 @@ for sdk_target in test_targets:
 
 builder.Add(lvtest)
 
-# Resizes and copies CUtlVectors, also into themselves
+# Resizes and copies CUtlVectors, also into themselves and from NULL
 vectest = builder.ProgramProject('utlvector_test')
 vectest.sources = [
   os.path.join('tests', 'run', 'utlvector.cpp'),
