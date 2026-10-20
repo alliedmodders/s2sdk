@@ -58,6 +58,61 @@ static void TestGrowableCopy()
 	CHECK( Holds( dst, 5, 50 ) );
 }
 
+static int g_nConstructed = 0;
+static int g_nDestructed = 0;
+
+struct Counted_t
+{
+	Counted_t() { ++g_nConstructed; }
+	Counted_t( const Counted_t & ) { ++g_nConstructed; }
+	Counted_t &operator=( const Counted_t & ) = default;
+	~Counted_t() { ++g_nDestructed; }
+};
+
+// SetCount, and so copy assignment and CopyArray, constructs or destroys only the elements it adds or removes
+static void TestCountKeepsElements()
+{
+	CUtlVector<Counted_t> five, three, one;
+	five.AddMultipleToTail( 5 );
+	three.AddMultipleToTail( 3 );
+	one.AddMultipleToTail( 1 );
+	three.EnsureCapacity( 5 );
+
+	g_nConstructed = g_nDestructed = 0;
+	three = five;
+	CHECK( three.Count() == 5 && g_nConstructed == 2 && g_nDestructed == 0 );
+
+	g_nConstructed = g_nDestructed = 0;
+	three = one;
+	CHECK( three.Count() == 1 && g_nConstructed == 0 && g_nDestructed == 4 );
+
+	g_nConstructed = g_nDestructed = 0;
+	three.SetCount( 3 );
+	CHECK( three.Count() == 3 && g_nConstructed == 2 && g_nDestructed == 0 );
+
+	g_nConstructed = g_nDestructed = 0;
+	three.SetCount( 2 );
+	CHECK( three.Count() == 2 && g_nConstructed == 0 && g_nDestructed == 1 );
+
+	Counted_t source[3];
+	g_nConstructed = g_nDestructed = 0;
+	three.CopyArray( source, 3 );
+	CHECK( three.Count() == 3 && g_nConstructed == 1 && g_nDestructed == 0 );
+}
+
+// SetCount adds and removes at the tail, so the elements before it keep their values
+static void TestCountAtTail()
+{
+	CUtlVector<int> vec;
+	Fill( vec, 5, 0 );
+
+	vec.SetCount( 3 );
+	CHECK( Holds( vec, 3, 0 ) );
+
+	vec.SetCount( 4 );
+	CHECK( vec.Count() == 4 && vec[0] == 0 && vec[1] == 1 && vec[2] == 2 );
+}
+
 // Resets itself before taking the other's value, so only an early return keeps it when a vector is assigned to itself
 struct ResetsFirst_t
 {
@@ -129,6 +184,8 @@ static void TestSelfAssign( int nCount )
 int main()
 {
 	TestGrowableCopy();
+	TestCountKeepsElements();
+	TestCountAtTail();
 	TestSelfAssignReturnsEarly<CUtlVector<ResetsFirst_t>>( 3 );
 	TestSelfAssignReturnsEarly<CUtlVectorFixedGrowable<ResetsFirst_t, 4>>( 2 );
 	TestSelfAssignReturnsEarly<CUtlVectorFixedGrowable<ResetsFirst_t, 4>>( 10 );
