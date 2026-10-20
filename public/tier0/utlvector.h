@@ -126,10 +126,9 @@ public:
 	I InsertMultipleBefore( I elem, I num, const T *pToCopy );
 	I InsertMultipleAfter( I elem, I num );
 
-	// Calls RemoveAll() then AddMultipleToTail.
+	// Adds or removes elements at the tail, keeping the others.
 	void SetSize( I size );
 	void SetCount( I count );
-	void SetCountNonDestructively( I count ); //sets count by adding or removing elements to tail TODO: This should probably be the default behavior for SetCount
 	
 	// Calls SetSize and copies each element.
 	void CopyArray( const T *pArray, I size );
@@ -903,22 +902,17 @@ I CUtlVectorBase<T, I, A>::InsertMultipleAfter( I elem, I num )
 template< typename T, class I, class A >
 void CUtlVectorBase<T, I, A>::SetCount( I count )
 {
-	RemoveAll();
-	AddMultipleToTail( count );
+	I delta = count - m_Size;
+	if ( delta > 0 )
+		AddMultipleToTail( delta );
+	else if ( delta < 0 )
+		RemoveMultipleFromTail( -delta );
 }
 
 template< typename T, class I, class A >
 inline void CUtlVectorBase<T, I, A>::SetSize( I size )
 {
 	SetCount( size );
-}
-
-template< typename T, class I, class A >
-void CUtlVectorBase<T, I, A>::SetCountNonDestructively( I count )
-{
-	I delta = count - m_Size;
-	if(delta > 0) AddMultipleToTail( delta );
-	else if(delta < 0) RemoveMultipleFromTail( -delta );
 }
 
 template< typename T, class I, class A >
