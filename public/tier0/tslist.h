@@ -121,22 +121,11 @@ public:
 	// override new/delete so we can guarantee 8-byte aligned allocs
 	static void * operator new( size_t size )
 	{
-		CTSListBase *pNode = (CTSListBase *)MemAlloc_AllocAlignedFileLine( size, TSLIST_HEAD_ALIGNMENT, __FILE__, __LINE__ );
-		return pNode;
-	}
-
-	static void * operator new( size_t size, int nBlockUse, const char *pFileName, int nLine )
-	{
-		CTSListBase *pNode = (CTSListBase *)MemAlloc_AllocAlignedFileLine( size, TSLIST_HEAD_ALIGNMENT, pFileName, nLine );
+		CTSListBase *pNode = (CTSListBase *)MemAlloc_AllocAligned( size, TSLIST_HEAD_ALIGNMENT );
 		return pNode;
 	}
 
 	static void operator delete( void *p)
-	{
-		MemAlloc_FreeAligned( p );
-	}
-
-	static void operator delete( void *p, int nBlockUse, const char *pFileName, int nLine )
 	{
 		MemAlloc_FreeAligned( p );
 	}
@@ -269,25 +258,14 @@ public:
 	    // override new/delete so we can guarantee 8-byte aligned allocs
 	    static void * operator new( size_t size )
 	    {
-      		Node_t *pNode = (Node_t *)MemAlloc_AllocAlignedFileLine( size, TSLIST_NODE_ALIGNMENT, __FILE__, __LINE__ );
+			Node_t *pNode = (Node_t *)MemAlloc_AllocAligned( size, TSLIST_NODE_ALIGNMENT );
 			return pNode;
 	    }
-
-		// override new/delete so we can guarantee 8-byte aligned allocs
-		static void * operator new( size_t size, int nBlockUse, const char *pFileName, int nLine )
-		{
-			Node_t *pNode = (Node_t *)MemAlloc_AllocAlignedFileLine( size, TSLIST_NODE_ALIGNMENT, pFileName, nLine );
-			return pNode;
-		}
 
 	    static void operator delete( void *p)
 	    {
 			MemAlloc_FreeAligned( p );
 	    }
-		static void operator delete( void *p, int nBlockUse, const char *pFileName, int nLine )
-		{
-			MemAlloc_FreeAligned( p );
-		}
 
 	} TSLIST_NODE_ALIGN_POST;
 
@@ -462,23 +440,11 @@ public:
 	// override new/delete so we can guarantee 8-byte aligned allocs
 	static void * operator new( size_t size )
 	{
-		CTSQueue *pNode = (CTSQueue *)MemAlloc_AllocAlignedFileLine( size, TSLIST_HEAD_ALIGNMENT, __FILE__, __LINE__ );
-		return pNode;
-	}
-
-	// override new/delete so we can guarantee 8-byte aligned allocs
-	static void * operator new( size_t size, int nBlockUse, const char *pFileName, int nLine )
-	{
-		CTSQueue *pNode = (CTSQueue *)MemAlloc_AllocAlignedFileLine( size, TSLIST_HEAD_ALIGNMENT, pFileName, nLine );
+		CTSQueue *pNode = (CTSQueue *)MemAlloc_AllocAligned( size, TSLIST_HEAD_ALIGNMENT );
 		return pNode;
 	}
 
 	static void operator delete( void *p)
-	{
-		MemAlloc_FreeAligned( p );
-	}
-
-	static void operator delete( void *p, int nBlockUse, const char *pFileName, int nLine )
 	{
 		MemAlloc_FreeAligned( p );
 	}
@@ -501,22 +467,11 @@ public:
 		// override new/delete so we can guarantee 8-byte aligned allocs
 		static void * operator new( size_t size )
 		{
-			Node_t *pNode = (Node_t *)MemAlloc_AllocAlignedFileLine( size, TSLIST_NODE_ALIGNMENT, __FILE__, __LINE__ );
-			return pNode;
-		}
-
-		static void * operator new( size_t size, int nBlockUse, const char *pFileName, int nLine )
-		{
-			Node_t *pNode = (Node_t *)MemAlloc_AllocAlignedFileLine( size, TSLIST_NODE_ALIGNMENT, pFileName, nLine );
+			Node_t *pNode = (Node_t *)MemAlloc_AllocAligned( size, TSLIST_NODE_ALIGNMENT );
 			return pNode;
 		}
 
 		static void operator delete( void *p)
-		{
-			MemAlloc_FreeAligned( p );
-		}
-
-		static void operator delete( void *p, int nBlockUse, const char *pFileName, int nLine )
 		{
 			MemAlloc_FreeAligned( p );
 		}
@@ -533,7 +488,7 @@ public:
 		// override new/delete so we can guarantee 8-byte aligned allocs
 		static void * operator new( size_t size )
 		{
-			NodeLink_t *pNode = (NodeLink_t *)MemAlloc_AllocAlignedFileLine( size, TSLIST_HEAD_ALIGNMENT, __FILE__, __LINE__ );
+			NodeLink_t *pNode = (NodeLink_t *)MemAlloc_AllocAligned( size, TSLIST_HEAD_ALIGNMENT );
 			return pNode;
 		}
 

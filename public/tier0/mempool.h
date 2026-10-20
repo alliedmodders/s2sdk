@@ -251,7 +251,6 @@ public:
 	void *Alloc()
 	{
 		MEM_ALLOC_CREDIT_CLASS();
-#ifndef USE_MEM_DEBUG
 		if ( !m_pBase )
 		{
 			LOCAL_THREAD_LOCK();
@@ -271,17 +270,15 @@ public:
 		void *p = m_freeList.Pop();
 		if ( p )
 			return p;
-#endif
+
 		return malloc( ITEM_SIZE );
 	}
 
 	void Free( void *p )
 	{
-#ifndef USE_MEM_DEBUG
 		if ( Owns( p ) )
 			m_freeList.Push( (TSLNodeBase_t *)p );
 		else
-#endif
 			free( p );
 	}
 

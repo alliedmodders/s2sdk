@@ -63,29 +63,9 @@ public:
 		return MemAlloc_AllocAligned(nSize, 16);
 	}
 
-	void* operator new[] ( size_t nSize, const char *pFileName, int nLine)
-	{
-		return MemAlloc_AllocAlignedFileLine(nSize, 16, pFileName, nLine);
-	}
-
-	void* operator new[] ( size_t nSize, int /*nBlockUse*/, const char *pFileName, int nLine)
-	{
-		return MemAlloc_AllocAlignedFileLine(nSize, 16, pFileName, nLine);
-	}
-
 	void operator delete[] ( void* p) 
 	{
 		MemAlloc_FreeAligned(p);
-	}
-
-	void operator delete[] ( void* p, const char *pFileName, int nLine)  
-	{
-		MemAlloc_FreeAligned(p, pFileName, nLine);
-	}
-
-	void operator delete[] ( void* p, int /*nBlockUse*/, const char *pFileName, int nLine)  
-	{
-		MemAlloc_FreeAligned(p, pFileName, nLine);
 	}
 
 	// please don't allocate a single quaternion...
@@ -93,27 +73,9 @@ public:
 	{
 		return MemAlloc_AllocAligned(nSize, 16);
 	}
-	void* operator new   ( size_t nSize, const char *pFileName, int nLine )
-	{
-		return MemAlloc_AllocAlignedFileLine(nSize, 16, pFileName, nLine);
-	}
-	void* operator new   ( size_t nSize, int /*nBlockUse*/, const char *pFileName, int nLine )
-	{
-		return MemAlloc_AllocAlignedFileLine(nSize, 16, pFileName, nLine);
-	}
 	void operator delete ( void* p) 
 	{
 		MemAlloc_FreeAligned(p);
-	}
-
-	void operator delete ( void* p, const char *pFileName, int nLine)  
-	{
-		MemAlloc_FreeAligned(p, pFileName, nLine);
-	}
-
-	void operator delete ( void* p, int /*nBlockUse*/, const char *pFileName, int nLine)  
-	{
-		MemAlloc_FreeAligned(p, pFileName, nLine);
 	}
 #endif
 } ALIGN16_POST;

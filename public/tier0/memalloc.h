@@ -14,32 +14,6 @@
 #pragma once
 #endif
 
-// These memory debugging switches aren't relevant under Linux builds since memoverride.cpp
-// isn't built into Linux projects
-#ifndef POSIX
-// Define this in release to get memory tracking even in release builds
-//#define USE_MEM_DEBUG 1
-
-// Define this in release to get light memory debugging
-//#define USE_LIGHT_MEM_DEBUG
-
-// Define this to require -uselmd to turn light memory debugging on
-//#define LIGHT_MEM_DEBUG_REQUIRES_CMD_LINE_SWITCH
-#endif
-
-#if defined( _MEMTEST )
-#ifdef _WIN32
-#define USE_MEM_DEBUG 1
-#endif
-#endif
-
-// Undefine this if using a compiler lacking threadsafe RTTI (like vc6)
-#define MEM_DEBUG_CLASSNAME 1
-
-// GAMMACASE: This forces any debug usage to be disabled, due to the IMemAlloc structure being incorrect
-// which causes random crashes if used! Added until proper solution is made.
-#define PREVENT_DEBUG_USAGE
-
 #include "platform.h"
 #include <stddef.h>
 #if defined( OSX )
@@ -54,19 +28,32 @@
 
 #if !defined(STEAM) && !defined(NO_MALLOC_OVERRIDE)
 
-#define MEMALLOC_REGION_ALLOC_1		'4'
-#define MEMALLOC_REGION_ALLOC_2		'6'
-#define MEMALLOC_REGION_ALLOC_3		'8'
-#define MEMALLOC_REGION_ALLOC_4		':'
-#define MEMALLOC_REGION_ALLOC_5		'<'
-#define MEMALLOC_REGION_ALLOC_6		'>'
+// IMemAlloc::Alloc and Free
+#define MEMALLOC_REGION_ALLOC_DEFAULT			'4'
+#define MEMALLOC_REGION_FREE_DEFAULT			'5'
 
-#define MEMALLOC_REGION_FREE_1		'5'
-#define MEMALLOC_REGION_FREE_2		'7'
-#define MEMALLOC_REGION_FREE_3		'9'
-#define MEMALLOC_REGION_FREE_4		';'
-#define MEMALLOC_REGION_FREE_5		'='
-#define MEMALLOC_REGION_FREE_6		'?'
+// IMemAlloc::AllocAligned and FreeAligned
+#define MEMALLOC_REGION_ALLOC_ALIGNED			'6'
+#define MEMALLOC_REGION_FREE_ALIGNED			'7'
+
+// The tier0 heap allocator's aligned methods, internal to tier0
+#define MEMALLOC_REGION_ALLOC_HEAP_ALIGNED		'8'
+#define MEMALLOC_REGION_FREE_HEAP_ALIGNED		'9'
+
+// KeyValues3 clusters and metadata
+#define MEMALLOC_REGION_ALLOC_KV3				':'
+#define MEMALLOC_REGION_FREE_KV3				';'
+
+// Aligned operator new and delete
+#define MEMALLOC_REGION_ALLOC_NEW_ALIGNED		'<'
+#define MEMALLOC_REGION_FREE_NEW_ALIGNED		'='
+
+#define MEMALLOC_REGION_ALLOC_UNK6				'>'
+#define MEMALLOC_REGION_FREE_UNK6				'?'
+
+// Aligned operator new[] and delete[]
+#define MEMALLOC_REGION_ALLOC_NEW_ARRAY_ALIGNED	'@'
+#define MEMALLOC_REGION_FREE_NEW_ARRAY_ALIGNED	'A'
 
 enum MemAllocAttribute_t
 {
@@ -90,7 +77,11 @@ enum MemoryDebugType : int16
 {
 	MemoryDebugType_None = 0,
 	MemoryDebugType_Light = 1,
-	MemoryDebugType_Full = 2
+	MemoryDebugType_Full = 2,
+	// MemSetDbg fills with 0xD4 bytes
+	MemoryDebugType_Unk3 = 3,
+	// Reported by the Windows process heap allocator
+	MemoryDebugType_Unk4 = 4
 };
 
 struct MemoryInfoState
@@ -101,7 +92,6 @@ struct MemoryInfoState
 	bool m_bDebug;
 };
 
-struct _CrtMemState;
 class CBufferString;
 
 #define MEMALLOC_VERSION 1
@@ -122,15 +112,13 @@ abstract_class IMemAlloc
 private:
 	virtual ~IMemAlloc() = 0;
 
+public:
 	// Release versions
 	virtual void *Alloc( size_t nSize ) = 0;
-public:
 	virtual void *Realloc( void *pMem, size_t nSize ) = 0;
 	virtual void Free( void *pMem ) = 0;
 
-private:
 	virtual void *AllocAligned( size_t nSize, size_t align ) = 0;
-public:
 	virtual void *ReallocAligned( void *pMem, size_t nSize, size_t align ) = 0;
 	virtual void FreeAligned( void *pMem ) = 0;
 
@@ -141,15 +129,11 @@ public:
 	// absolutely the same to the above functions, but with a different name as they aren't merged together
 	// in the vtable in the win binaries. So it's mostly a guess, same goes to their params.
 	// ===============================================================
-private:
 	virtual void *AllocDbg( size_t nSize ) = 0;
-public:
 	virtual void *ReallocDbg( void *pMem, size_t nSize ) = 0;
 	virtual void FreeDbg( void *pMem ) = 0;
 
-private:
 	virtual void *AllocAlignedDbg( size_t nSize, size_t align ) = 0;
-public:
 	virtual void *ReallocAlignedDbg( void *pMem, size_t nSize, size_t align ) = 0;
 	virtual void FreeAlignedDbg( void *pMem ) = 0;
 	// ===============================================================
@@ -167,8 +151,8 @@ public:
 	virtual size_t GetSize( void *pMem ) = 0;
 	virtual size_t GetSizeAligned( void *pMem ) = 0;
 
-	// If out arg is NULL or "<stdout>" it would output all the info to console,
-	// otherwise a file with that name would be created at the game root folder
+	// Writes the stats to "<out_path>.txt" next to the executable, or to "memstats_<n>.txt" when out_path is NULL,
+	// "<stdout>" prints them to the console instead. Does nothing with the default pass-through allocator
 	virtual void DumpStats( const char *out_path ) = 0;
 
 	// AMNOTE: Stub, returns -1
@@ -185,16 +169,15 @@ public:
 	virtual void CompactOnFail() = 0;
 
 	// Logs the out of memory message, breaks in the debugger and exits the process
-	virtual void ReportFailedAllocation( int nSize ) = 0;
+	virtual void ReportFailedAllocation( size_t nSize ) = 0;
 
 	// memset's at the pMem location with nSize bytes of specified type, where:
-	// MemoryDebugType_None - would do nothing;
 	// MemoryDebugType_Light - would memset with 0xDD bytes;
 	// MemoryDebugType_Full - would memset with 0xD8 bytes;
+	// MemoryDebugType_Unk3 - would memset with 0xD4 bytes;
 	// the input pMem is returned
-	// 
-	// NOTE: This would do nothing if the allocator is not in the debug memory mode or if
-	// state has the m_bDebug set to false
+	//
+	// NOTE: This would do nothing unless state has m_bDebug set or the allocator is in the debug memory mode
 	virtual void *MemSetDbg( void *pMem, size_t nSize, MemoryInfoState state ) = 0;
 
 	// Returns true if the underlying allocator is using DebugMemoryType different to DebugMemoryType::DebugMemoryType_None
@@ -205,28 +188,30 @@ public:
 	// Otherwise a more deep check would be performed
 	virtual MemoryState GetMemoryState( void *pMem ) = 0;
 
-	// Logs a warning and breaks in a debugger if the pMem state doesn't match provided state
-	virtual void ReportBadMemory( void *pMem, MemoryState state = MemoryState_Operational ) = 0;
+	// Logs a warning and breaks in a debugger if the pMem state doesn't match provided state,
+	// MemoryState_Unknown matches any state, but MemoryState_Corrupt and MemoryState_Invalid are
+	// always reported. Returns the state pMem is in
+	virtual MemoryState ReportBadMemory( void *pMem, MemoryState state = MemoryState_Unknown ) = 0;
 
 	// Returns memory debug type of this allocator
 	virtual MemoryDebugType GetMemoryDebugType() = 0;
 
 	// Returns previous total allocation size that was used
-	// Directly limits how much bytes could be allocated with (Re)Alloc* functions
+	// AMNOTE: Likely unused, the allocators only store the value
 	virtual size_t SetTotalAllocationSize( size_t new_total_alloc_size ) = 0;
 
 	// Returns previous allocation limit size that was used
-	// Directly limits how much bytes could be allocated with (Re)Alloc* functions
+	// AMNOTE: Likely unused, the allocators only store the value
 	virtual size_t SetAllocationLimitSize( size_t new_alloc_limit_size ) = 0;
 
 	// Writes detailed info about this allocator and settings used
 	// Example output of a non debug allocator:
 	// Heap: standard allocator pass-through to low-level
-	// Low - level allocator : jemalloc
+	// Low-level allocator: mimalloc
 	//
 	// Example output of a debug allocator with custom settings:
 	// Heap: standard allocator + mem init + stackstats + light verifier + full mem debug
-	// Low - level allocator : jemalloc
+	// Low-level allocator: mimalloc
 	virtual void GetAllocatorDescription( CBufferString &buf ) = 0;
 
 	// Returns true if stackstats is enabled and -memstackstats_disable_pools launch option was used
@@ -271,21 +256,6 @@ MEM_INTERFACE wchar_t *MemAlloc_WcStrDupFunc( const wchar_t *pString );
 
 //-----------------------------------------------------------------------------
 
-#ifdef MEMALLOC_REGIONS
-#ifndef MEMALLOC_REGION
-#define MEMALLOC_REGION 0
-#endif
-inline void *MemAlloc_Alloc( size_t nSize )
-{ 
-	return g_pMemAlloc->RegionAlloc( MEMALLOC_REGION, nSize );
-}
-
-inline void *MemAlloc_Alloc( size_t nSize, const char *pFileName, int nLine )
-{ 
-	return g_pMemAlloc->RegionAlloc( MEMALLOC_REGION, nSize, pFileName, nLine );
-}
-#else
-#undef MEMALLOC_REGION
 inline void *MemAlloc_Alloc( size_t nSize )
 { 
 	return g_pMemAlloc->IndirectAlloc( nSize );
@@ -295,7 +265,6 @@ inline void *MemAlloc_Alloc( size_t nSize, const char *pFileName, int nLine )
 { 
 	return g_pMemAlloc->IndirectAlloc( nSize /*, pFileName, nLine*/ );
 }
-#endif
 inline void MemAlloc_Free( void *ptr )
 {
 	g_pMemAlloc->Free( ptr );
@@ -306,11 +275,6 @@ inline void MemAlloc_Free( void *ptr, const char *pFileName, int nLine )
 }
 
 //-----------------------------------------------------------------------------
-
-#ifdef MEMALLOC_REGIONS
-#else
-#endif
-
 
 inline bool ValueIsPowerOfTwo( size_t value )			// don't clash with mathlib definition
 {
@@ -323,19 +287,7 @@ inline void *MemAlloc_AllocAlignedUnattributed( size_t size, size_t align )
 	return g_pMemAlloc->IndirectAllocAligned( size, align );
 }
 
-inline void *MemAlloc_AllocAlignedFileLine( size_t size, size_t align, const char *pszFile, int nLine )
-{
-	return g_pMemAlloc->IndirectAllocAligned( size, align /*, pszFile, nLine*/ );
-}
-
-#ifdef USE_MEM_DEBUG
-#define MemAlloc_AllocAligned( s, a )	MemAlloc_AllocAlignedFileLine( s, a, __FILE__, __LINE__ )
-#elif defined(USE_LIGHT_MEM_DEBUG)
-extern const char *g_pszModule; 
-#define MemAlloc_AllocAligned( s, a )	MemAlloc_AllocAlignedFileLine( s, a, g_pszModule, 0 )
-#else
 #define MemAlloc_AllocAligned( s, a )	MemAlloc_AllocAlignedUnattributed( s, a )
-#endif
 
 inline void *MemAlloc_ReallocAligned( void *ptr, size_t size, size_t align )
 {
@@ -345,11 +297,6 @@ inline void *MemAlloc_ReallocAligned( void *ptr, size_t size, size_t align )
 inline void MemAlloc_FreeAligned( void *pMemBlock )
 {
 	g_pMemAlloc->FreeAligned( pMemBlock );
-}
-
-inline void MemAlloc_FreeAligned( void *pMemBlock, const char *pszFile, int nLine )
-{
-	g_pMemAlloc->FreeAligned( pMemBlock /*, pszFile, nLine*/ );
 }
 
 inline size_t MemAlloc_GetSizeAligned( void *pMemBlock )
@@ -372,11 +319,6 @@ public:
 		return MemAlloc_AllocAligned( nSize, bytesAlignment );
 	}
 
-	void* operator new( size_t nSize, int nBlockUse, const char *pFileName, int nLine )
-	{
-		return MemAlloc_AllocAlignedFileLine( nSize, bytesAlignment, pFileName, nLine );
-	}
-
 	void operator delete(void *pData)
 	{
 		if ( pData )
@@ -384,147 +326,7 @@ public:
 			MemAlloc_FreeAligned( pData );
 		}
 	}
-
-	void operator delete( void* pData, int nBlockUse, const char *pFileName, int nLine )
-	{
-		if ( pData )
-		{
-			MemAlloc_FreeAligned( pData, pFileName, nLine );
-		}
-	}
 };
-
-//-----------------------------------------------------------------------------
-
-#if (defined(_DEBUG) || defined(USE_MEM_DEBUG)) && !defined(PREVENT_DEBUG_USAGE)
-#define MEM_ALLOC_CREDIT_(tag)	CMemAllocAttributeAlloction memAllocAttributeAlloction( tag, __LINE__ )
-#define MemAlloc_PushAllocDbgInfo( pszFile, line ) g_pMemAlloc->PushAllocDbgInfo( pszFile, line )
-#define MemAlloc_PopAllocDbgInfo() g_pMemAlloc->PopAllocDbgInfo()
-#define MemAlloc_RegisterAllocation( pFileName, nLine, nLogicalSize, nActualSize, nTime ) g_pMemAlloc->RegisterAllocation( pFileName, nLine, nLogicalSize, nActualSize, nTime )
-#define MemAlloc_RegisterDeallocation( pFileName, nLine, nLogicalSize, nActualSize, nTime ) g_pMemAlloc->RegisterDeallocation( pFileName, nLine, nLogicalSize, nActualSize, nTime )
-#else
-#define MEM_ALLOC_CREDIT_(tag)	((void)0)
-#define MemAlloc_PushAllocDbgInfo( pszFile, line ) ((void)0)
-#define MemAlloc_PopAllocDbgInfo() ((void)0)
-#define MemAlloc_RegisterAllocation( pFileName, nLine, nLogicalSize, nActualSize, nTime ) ((void)0)
-#define MemAlloc_RegisterDeallocation( pFileName, nLine, nLogicalSize, nActualSize, nTime ) ((void)0)
-#endif
-
-//-----------------------------------------------------------------------------
-
-class CMemAllocAttributeAlloction
-{
-public:
-	CMemAllocAttributeAlloction( const char *pszFile, int line ) 
-	{
-		MemAlloc_PushAllocDbgInfo( pszFile, line );
-	}
-	
-	~CMemAllocAttributeAlloction()
-	{
-		MemAlloc_PopAllocDbgInfo();
-	}
-};
-
-#define MEM_ALLOC_CREDIT()	MEM_ALLOC_CREDIT_(__FILE__)
-
-//-----------------------------------------------------------------------------
-
-#if defined(MSVC) && ( defined(_DEBUG) || defined(USE_MEM_DEBUG) ) && !defined(PREVENT_DEBUG_USAGE)
-
-	#pragma warning(disable:4290)
-	#pragma warning(push)
-	#include <typeinfo.h>
-
-	// MEM_DEBUG_CLASSNAME is opt-in.
-	// Note: typeid().name() is not threadsafe, so if the project needs to access it in multiple threads
-	// simultaneously, it'll need a mutex.
-	#if defined(_CPPRTTI) && defined(MEM_DEBUG_CLASSNAME)
-
-		template <typename T> const char *MemAllocClassName( T *p )
-		{
-			static const char *pszName = typeid(*p).name(); // @TODO: support having debug heap ignore certain allocations, and ignore memory allocated here [5/7/2009 tom]
-			return pszName;
-		}
-
-		#define MEM_ALLOC_CREDIT_CLASS()	MEM_ALLOC_CREDIT_( MemAllocClassName( this ) )
-		#define MEM_ALLOC_CLASSNAME(type) (typeid((type*)(0)).name())
-	#else
-		#define MEM_ALLOC_CREDIT_CLASS()	MEM_ALLOC_CREDIT_( __FILE__ )
-		#define MEM_ALLOC_CLASSNAME(type) (__FILE__)
-	#endif
-
-	// MEM_ALLOC_CREDIT_FUNCTION is used when no this pointer is available ( inside 'new' overloads, for example )
-	#ifdef _MSC_VER
-		#define MEM_ALLOC_CREDIT_FUNCTION()		MEM_ALLOC_CREDIT_( __FUNCTION__ )
-	#else
-		#define MEM_ALLOC_CREDIT_FUNCTION() (__FILE__)
-	#endif
-
-	#pragma warning(pop)
-#else
-	#define MEM_ALLOC_CREDIT_CLASS()
-	#define MEM_ALLOC_CLASSNAME(type) NULL
-	#define MEM_ALLOC_CREDIT_FUNCTION() 
-#endif
-
-//-----------------------------------------------------------------------------
-
-#if (defined(_DEBUG) || defined(USE_MEM_DEBUG)) && !defined(PREVENT_DEBUG_USAGE)
-struct MemAllocFileLine_t
-{
-	const char *pszFile;
-	int line;
-};
-
-#define MEMALLOC_DEFINE_EXTERNAL_TRACKING( tag ) \
-	static CUtlOrderedMap<void *, MemAllocFileLine_t> s_##tag##Allocs; \
-	CUtlOrderedMap<void *, MemAllocFileLine_t> * g_p##tag##Allocs = &s_##tag##Allocs; \
-	const char * g_psz##tag##Alloc = strcpy( (char *)MemAlloc_Alloc( strlen( #tag "Alloc" ) + 1, "intentional leak", 0 ), #tag "Alloc" );
-
-#define MEMALLOC_DECLARE_EXTERNAL_TRACKING( tag ) \
-	extern CUtlOrderedMap<void *, MemAllocFileLine_t> * g_p##tag##Allocs; \
-	extern const char * g_psz##tag##Alloc;
-
-#define MemAlloc_RegisterExternalAllocation( tag, p, size ) \
-	if ( !p ) \
-		; \
-	else \
-	{ \
-		MemAllocFileLine_t fileLine = { g_psz##tag##Alloc, 0 }; \
-		g_pMemAlloc->GetActualDbgInfo( fileLine.pszFile, fileLine.line ); \
-		if ( fileLine.pszFile != g_psz##tag##Alloc ) \
-		{ \
-			g_p##tag##Allocs->Insert( p, fileLine ); \
-		} \
-		\
-		MemAlloc_RegisterAllocation( fileLine.pszFile, fileLine.line, size, size, 0); \
-	}
-
-#define MemAlloc_RegisterExternalDeallocation( tag, p, size ) \
-	if ( !p ) \
-		; \
-	else \
-	{ \
-		MemAllocFileLine_t fileLine = { g_psz##tag##Alloc, 0 }; \
-		CUtlOrderedMap<void *, MemAllocFileLine_t>::IndexType_t iRecordedFileLine = g_p##tag##Allocs->Find( p ); \
-		if ( iRecordedFileLine !=  g_p##tag##Allocs->InvalidIndex() ) \
-		{ \
-			fileLine = (*g_p##tag##Allocs)[iRecordedFileLine]; \
-			g_p##tag##Allocs->RemoveAt( iRecordedFileLine ); \
-		} \
-		\
-		MemAlloc_RegisterDeallocation( fileLine.pszFile, fileLine.line, size, size, 0); \
-	}
-
-#else
-
-#define MEMALLOC_DEFINE_EXTERNAL_TRACKING( tag )
-#define MEMALLOC_DECLARE_EXTERNAL_TRACKING( tag )
-#define MemAlloc_RegisterExternalAllocation( tag, p, size ) ((void)0)
-#define MemAlloc_RegisterExternalDeallocation( tag, p, size ) ((void)0)
-
-#endif
 
 //-----------------------------------------------------------------------------
 
@@ -542,9 +344,8 @@ inline void _aligned_free( void *ptr )																				{ free( ptr ); }
 inline void *MemAlloc_Alloc( size_t nSize, const char *pFileName = NULL, int nLine = 0 )							{ return malloc( nSize ); }
 inline void MemAlloc_Free( void *ptr, const char *pFileName = NULL, int nLine = 0 )									{ free( ptr ); }
 
-inline void *MemAlloc_AllocAligned( size_t size, size_t align, const char *pszFile = NULL, int nLine = 0  )	        { return memalign( align, size ); }
-inline void *MemAlloc_AllocAlignedFileLine( size_t size, size_t align, const char *pszFile = NULL, int nLine = 0 )	{ return memalign( align, size ); }
-inline void MemAlloc_FreeAligned( void *pMemBlock, const char *pszFile = NULL, int nLine = 0 ) 						{ free( pMemBlock ); }
+inline void *MemAlloc_AllocAligned( size_t size, size_t align )													{ return memalign( align, size ); }
+inline void MemAlloc_FreeAligned( void *pMemBlock ) 																{ free( pMemBlock ); }
 
 #if defined( OSX )
 inline size_t _msize( void *ptr )																					{ return malloc_size( ptr ); }
@@ -567,71 +368,20 @@ inline void *MemAlloc_ReallocAligned( void *ptr, size_t size, size_t align )
 
 	return ptr_new_aligned;
 }
-#else
-#define MemAlloc_GetDebugInfoSize() g_pMemAlloc->GetDebugInfoSize()
-#define MemAlloc_SaveDebugInfo( pvDebugInfo ) g_pMemAlloc->SaveDebugInfo( pvDebugInfo )
-#define MemAlloc_RestoreDebugInfo( pvDebugInfo ) g_pMemAlloc->RestoreDebugInfo( pvDebugInfo )
-#define MemAlloc_InitDebugInfo( pvDebugInfo, pchRootFileName, nLine ) g_pMemAlloc->InitDebugInfo( pvDebugInfo, pchRootFileName, nLine )
-
 #endif // !STEAM && !NO_MALLOC_OVERRIDE
 
 //-----------------------------------------------------------------------------
 
-#if !defined(STEAM) && defined(NO_MALLOC_OVERRIDE)
+#if !defined(STEAM)
 #define MEM_ALLOC_CREDIT_(tag)	((void)0)
 #define MEM_ALLOC_CREDIT()	MEM_ALLOC_CREDIT_(__FILE__)
-#define MEM_ALLOC_CREDIT_FUNCTION()
 #define MEM_ALLOC_CREDIT_CLASS()
+#define MEM_ALLOC_CREDIT_FUNCTION()
 #define MEM_ALLOC_CLASSNAME(type) NULL
-
-#define MemAlloc_PushAllocDbgInfo( pszFile, line )
-#define MemAlloc_PopAllocDbgInfo()
-
-#define MEMALLOC_DEFINE_EXTERNAL_TRACKING( tag )
-#define MemAlloc_RegisterExternalAllocation( tag, p, size ) ((void)0)
-#define MemAlloc_RegisterExternalDeallocation( tag, p, size ) ((void)0)
-
-#endif // !STEAM && NO_MALLOC_OVERRIDE
+#define MemAlloc_RegisterAllocation( pFileName, nLine, nLogicalSize, nActualSize, nTime ) ((void)0)
+#define MemAlloc_RegisterDeallocation( pFileName, nLine, nLogicalSize, nActualSize, nTime ) ((void)0)
+#endif // !STEAM
 
 //-----------------------------------------------------------------------------
-
-
-
-// linux memory tracking via hooks.
-#ifdef _POSIX
-PLATFORM_INTERFACE void MemoryLogMessage( char const *s );						// throw a message into the memory log
-PLATFORM_INTERFACE void EnableMemoryLogging( bool bOnOff );
-PLATFORM_INTERFACE void DumpMemoryLog( int nThresh );
-PLATFORM_INTERFACE void DumpMemorySummary( void );
-PLATFORM_INTERFACE void SetMemoryMark( void );
-PLATFORM_INTERFACE void DumpChangedMemory( int nThresh );
-
-// ApproximateProcessMemoryUsage returns the approximate memory footprint of this process.
-PLATFORM_INTERFACE size_t ApproximateProcessMemoryUsage( void );
-#else
-inline void MemoryLogMessage( char const * )
-{
-}
-inline void EnableMemoryLogging( bool )
-{
-}
-inline void DumpMemoryLog( int )
-{
-}
-inline void DumpMemorySummary( void )
-{
-}
-inline void SetMemoryMark( void )
-{
-}
-inline void DumpChangedMemory( int )
-{
-}
-inline size_t ApproximateProcessMemoryUsage( void )
-{
-	return 0;
-}
-#endif
-
 
 #endif /* TIER0_MEMALLOC_H */
