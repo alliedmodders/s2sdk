@@ -130,7 +130,7 @@ public:
 	void SetSize( I size );
 	void SetCount( I count );
 	
-	// Calls SetSize and copies each element.
+	// Calls SetSize and copies each element, none for a NULL array.
 	void CopyArray( const T *pArray, I size );
 
 	// Fast swap
@@ -922,6 +922,9 @@ void CUtlVectorBase<T, I, A>::CopyArray( const T *pArray, I size )
 	Assert( (Base() == NULL) || !pArray || (Base() >= (pArray + size)) || (pArray >= (Base() + Count()) ) ); 
 
 	SetSize( size );
+	if ( !pArray )
+		return;
+
 	for( I i=0; i < size; i++ )
 	{
 		(*this)[i] = pArray[i];
