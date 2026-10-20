@@ -295,6 +295,9 @@ class CCommand
 public:
 	CCommand();
 	CCommand( int nArgC, const char **ppArgV );
+	// Tokenizes the other's command string again, so the arguments point into this one's buffers
+	CCommand( const CCommand &other ) : CCommand() { *this = other; }
+	CCommand &operator=( const CCommand &other );
 	bool Tokenize( CUtlString pCommand, characterset_t *pBreakSet = nullptr );
 	void Reset();
 
