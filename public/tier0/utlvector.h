@@ -63,9 +63,6 @@ public:
 	CUtlVectorBase( T* pMemory, I allocationCount, I numElements = 0 );
 	~CUtlVectorBase();
 
-	CUtlVectorBase( CUtlVectorBase&& src );
-	CUtlVectorBase<T, I, A>& operator=( CUtlVectorBase<T, I, A> &&other );
-	
 	// Copy the array.
 	CUtlVectorBase<T, I, A>& operator=( const CUtlVectorBase<T, I, A> &other );
 
@@ -243,6 +240,12 @@ class CUtlVector : public CUtlVectorBase< T, I, A >
 public:
 
 	using BaseClass::BaseClass;
+
+	// Moves swap the memory; the other vectors on CUtlVectorBase copy when assigned from an rvalue
+	CUtlVector( CUtlVector &&src )										{ this->Swap( src ); }
+	CUtlVector<T, I, A>& operator=( CUtlVector<T, I, A> &&other )		{ this->Swap( other ); return *this; }
+
+	CUtlVector<T, I, A>& operator=( const CUtlVector<T, I, A> &other ) = default;
 };
 
 //-----------------------------------------------------------------------------
@@ -336,20 +339,6 @@ template< typename T, class I, class A >
 inline CUtlVectorBase<T, I, A>::~CUtlVectorBase()
 {
 	Purge();
-}
-
-template< typename T, class I, class A >
-inline CUtlVectorBase<T, I, A>::CUtlVectorBase( CUtlVectorBase&& src ) :
-	CUtlVectorBase( 0, 0 )
-{
-	Swap( src );
-}
-
-template< typename T, class I, class A >
-inline CUtlVectorBase<T, I, A>& CUtlVectorBase<T, I, A>::operator=( CUtlVectorBase<T, I, A> &&other )
-{
-	Swap( other );
-	return *this;
 }
 
 template< typename T, class I, class A >

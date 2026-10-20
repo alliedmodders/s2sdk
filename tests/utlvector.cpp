@@ -6,6 +6,7 @@
 #include "tier0/utlblockvector.h"
 
 template class CUtlVectorBase<CUtlString>;
+template class CUtlVector<CUtlString>;
 template class CUtlVectorMemory_Growable<CUtlString>;
 template class CCopyableUtlVector<CUtlString>;
 template class CUtlLeanVectorImpl<CUtlLeanVectorBase<CUtlString, int, CMemAllocAllocator>, CUtlString, int>;
