@@ -8,7 +8,6 @@
 
 
 #if !defined(STEAM) && !defined(NO_MALLOC_OVERRIDE)
-#define AVOID_INCLUDING_ALGORITHM
 
 #if defined( _WIN32 )
 #define WIN_32_LEAN_AND_MEAN
@@ -39,32 +38,25 @@
 #define __cdecl
 #endif
 
-#if defined(USE_LIGHT_MEM_DEBUG) || defined(USE_MEM_DEBUG)
-#pragma optimize( "", off )
-#define inline
-#endif
-
-const char *g_pszModule = MKSTRING( MEMOVERRIDE_MODULE );
 inline void *AllocUnattributed( size_t nSize )
 {
-#if !defined(USE_LIGHT_MEM_DEBUG) && !defined(USE_MEM_DEBUG)
-	return MemAlloc_Alloc(nSize);
-#else
-	return MemAlloc_Alloc(nSize, g_pszModule, 0);
-#endif
+	return g_pMemAlloc->Alloc( nSize );
 }
 
 inline void *ReallocUnattributed( void *pMem, size_t nSize )
 {
-#if !defined(USE_LIGHT_MEM_DEBUG) && !defined(USE_MEM_DEBUG)
-	return g_pMemAlloc->Realloc(pMem, nSize);
-#else
-	return g_pMemAlloc->Realloc(pMem, nSize, g_pszModule, 0);
-#endif
+	return g_pMemAlloc->Realloc( pMem, nSize );
 }
 
-#undef inline
-
+// Zeroes the memory past the old size of the allocation
+inline void *RecallocUnattributed( void *pMem, size_t nSize )
+{
+	size_t nOldSize = pMem ? g_pMemAlloc->GetSize( pMem ) : 0;
+	void *pMemOut = ReallocUnattributed( pMem, nSize );
+	if ( pMemOut && nSize > nOldSize )
+		memset( (char *)pMemOut + nOldSize, 0, nSize - nOldSize );
+	return pMemOut;
+}
 
 //-----------------------------------------------------------------------------
 // Standard functions in the CRT that we're going to override to call our allocator
@@ -72,17 +64,11 @@ inline void *ReallocUnattributed( void *pMem, size_t nSize )
 #if defined(_WIN32) && !defined(_STATIC_LINKED)
 // this magic only works under win32
 // under linux this malloc() overrides the libc malloc() and so we
-// end up in a recursion (as MemAlloc_Alloc() calls malloc)
-#if _MSC_VER >= 1400
-
+// end up in a recursion (as g_pMemAlloc->Alloc() calls malloc)
 #if _MSC_VER >= 1900
-#ifndef _CRT_NOEXCEPT
-#define _CRT_NOEXCEPT
-#endif
-
-#define _CRTNOALIAS
-#endif
-
+#define ALLOC_CALL  __declspec(restrict)
+#define FREE_CALL
+#elif _MSC_VER >= 1400
 #define ALLOC_CALL _CRTNOALIAS _CRTRESTRICT 
 #define FREE_CALL _CRTNOALIAS 
 #else
@@ -100,11 +86,7 @@ ALLOC_CALL void *malloc( size_t nSize )
 
 FREE_CALL void free( void *pMem )
 {
-#if !defined(USE_LIGHT_MEM_DEBUG) && !defined(USE_MEM_DEBUG)
-	g_pMemAlloc->Free(pMem);
-#else
-	g_pMemAlloc->Free(pMem, g_pszModule, 0 );
-#endif
+	g_pMemAlloc->Free( pMem );
 }
 
 ALLOC_CALL void *realloc( void *pMem, size_t nSize )
@@ -115,7 +97,8 @@ ALLOC_CALL void *realloc( void *pMem, size_t nSize )
 ALLOC_CALL void *calloc( size_t nCount, size_t nElementSize )
 {
 	void *pMem = AllocUnattributed( nElementSize * nCount );
-	memset(pMem, 0, nElementSize * nCount);
+	if ( pMem )
+		memset( pMem, 0, nElementSize * nCount );
 	return pMem;
 }
 
@@ -129,68 +112,48 @@ extern "C"
 
 // 64-bit
 #ifdef _WIN64
+#if ( defined ( _MSC_VER ) && _MSC_VER >= 1900 )
+	_CRTRESTRICT
+#endif
 void* __cdecl _malloc_base( size_t nSize )
 {
 	return AllocUnattributed( nSize );
 }
 #else
-void *_malloc_base( size_t nSize )
+ALLOC_CALL void *_malloc_base( size_t nSize )
 {
 	return AllocUnattributed( nSize );
 }
 #endif
 
-#if ( defined ( _MSC_VER ) && _MSC_VER >= 1900 )
-_CRTRESTRICT void *_calloc_base(size_t nCount, size_t nSize)
+ALLOC_CALL void *_calloc_base( size_t nCount, size_t nSize )
 {
-	void *pMem = AllocUnattributed(nCount * nSize);
-	memset(pMem, 0, nCount * nSize);
+	void *pMem = AllocUnattributed( nSize * nCount );
+	if ( pMem )
+		memset( pMem, 0, nSize * nCount );
 	return pMem;
 }
-#else
-void *_calloc_base(size_t nSize)
-{
-	void *pMem = AllocUnattributed(nSize);
-	memset(pMem, 0, nSize);
-	return pMem;
-}
-#endif
 
-void *_realloc_base( void *pMem, size_t nSize )
+ALLOC_CALL void *_realloc_base( void *pMem, size_t nSize )
 {
 	return ReallocUnattributed( pMem, nSize );
 }
 
-#if 0
-// AMNOTE: Disabled due to causing issues/crashes on library unload, direct cause is unknown
-// but _recalloc_base by itself calls to _realloc_base which we also override above
-// thus still preserving the memory allocation to the game's allocator.
-// As a side note _msize_base is also called from it, so now it should be also maintained!
-
-#if ( defined ( _MSC_VER ) && _MSC_VER >= 1900 )
-void *_recalloc_base( void *pMem, size_t nCount, size_t nSize )
+#if ( defined ( _MSC_VER ) && _MSC_VER >= 1920 )
+ALLOC_CALL void *_recalloc_base( void *pMem, size_t nCount, size_t nSize )
 {
-	void *pMemOut = ReallocUnattributed( pMem, nCount * nSize );
-	memset(pMemOut, 0, nCount * nSize);
-	return pMemOut;
+	return RecallocUnattributed( pMem, nSize * nCount );
 }
 #else
-void *_recalloc_base(void *pMem, size_t nSize)
+ALLOC_CALL void *_recalloc_base(void *pMem, size_t nSize)
 {
-	void *pMemOut = ReallocUnattributed(pMem, nSize);
-	memset(pMemOut, 0, nSize);
-	return pMemOut;
+	return RecallocUnattributed( pMem, nSize );
 }
-#endif
 #endif
 
 void _free_base( void *pMem )
 {
-#if !defined(USE_LIGHT_MEM_DEBUG) && !defined(USE_MEM_DEBUG)
-	g_pMemAlloc->Free(pMem);
-#else
-	g_pMemAlloc->Free(pMem, g_pszModule, 0 );
-#endif
+	g_pMemAlloc->Free( pMem );
 }
 
 void *__cdecl _expand_base( void *pMem, size_t nNewSize, int nBlockUse )
@@ -207,11 +170,7 @@ void * __cdecl _malloc_crt(size_t size)
 
 void * __cdecl _calloc_crt(size_t count, size_t size)
 {
-#if (defined( _MSC_VER ) && _MSC_VER >= 1900)
-	return _calloc_base(count, size);
-#else
-	return _calloc_base(count * size);
-#endif
+	return _calloc_base( count, size );
 }
 
 void * __cdecl _realloc_crt(void *ptr, size_t size)
@@ -221,36 +180,26 @@ void * __cdecl _realloc_crt(void *ptr, size_t size)
 
 void * __cdecl _recalloc_crt(void *ptr, size_t count, size_t size)
 {
-#if (defined( _MSC_VER ) && _MSC_VER >= 1900)
-	return _recalloc_base(ptr, count, size);
+#if ( defined ( _MSC_VER ) && _MSC_VER >= 1920 )
+	return _recalloc_base( ptr, count, size );
 #else
-	return _recalloc_base(ptr, size * count);
+	return _recalloc_base( ptr, size * count );
 #endif
-	
 }
-
-#if 0
-// AMNOTE: Read the comment on _recalloc_base to see the reason of this being disabled
 
 ALLOC_CALL void * __cdecl _recalloc ( void * memblock, size_t count, size_t size )
 {
-	void *pMem = ReallocUnattributed( memblock, size * count );
-	memset( pMem, 0, size * count );
-	return pMem;
+	return RecallocUnattributed( memblock, size * count );
 }
-#endif
 
-#if ( defined ( _MSC_VER ) && _MSC_VER >= 1900 )
-size_t _msize_base( void *pMem ) _CRT_NOEXCEPT
-{
-	return g_pMemAlloc->GetSize(pMem);
-}
+#if ( defined ( _MSC_VER ) && _MSC_VER >= 1930 )
+size_t _msize_base( void *pMem ) noexcept
 #else
-size_t _msize_base(void *pMem) _CRT_NOEXCEPT
+size_t _msize_base( void *pMem )
+#endif
 {
 	return g_pMemAlloc->GetSize(pMem);
 }
-#endif
 
 size_t _msize( void *pMem )
 {
@@ -325,7 +274,6 @@ size_t __cdecl _heapused( size_t *, size_t * )
 }
 
 #ifdef _WIN32
-#include <malloc.h>
 int __cdecl _heapwalk( _HEAPINFO * )
 {
 	return 0;
@@ -346,17 +294,17 @@ extern "C"
 	
 void *malloc_db( size_t nSize, const char *pFileName, int nLine )
 {
-	return MemAlloc_Alloc(nSize, pFileName, nLine);
+	return g_pMemAlloc->AllocDbg( nSize );
 }
 
 void free_db( void *pMem, const char *pFileName, int nLine )
 {
-	g_pMemAlloc->Free(pMem/*, pFileName, nLine*/);
+	g_pMemAlloc->FreeDbg( pMem );
 }
 
 void *realloc_db( void *pMem, size_t nSize, const char *pFileName, int nLine )
 {
-	return g_pMemAlloc->Realloc(pMem, nSize/*, pFileName, nLine*/);
+	return g_pMemAlloc->ReallocDbg( pMem, nSize );
 }
 	
 } // end extern "C"
@@ -390,18 +338,49 @@ void *__cdecl operator new( size_t nSize )
 	return AllocUnattributed( nSize );
 }
 
-void *__cdecl operator new( size_t nSize, int nBlockUse, const char *pFileName, int nLine )
-{
-	return MemAlloc_Alloc(nSize, pFileName, nLine );
-}
-
 void __cdecl operator delete( void *pMem ) noexcept
 {
-#if !defined(USE_LIGHT_MEM_DEBUG) && !defined(USE_MEM_DEBUG)
-	g_pMemAlloc->Free(pMem);
-#else
-	g_pMemAlloc->Free(pMem, g_pszModule, 0 );
-#endif
+	g_pMemAlloc->Free( pMem );
+}
+
+void operator delete(void *pMem, std::size_t) noexcept
+{
+	g_pMemAlloc->Free( pMem );
+}
+
+void *__cdecl operator new( size_t nSize, const std::nothrow_t & ) noexcept
+{
+	return AllocUnattributed( nSize );
+}
+
+void __cdecl operator delete( void *pMem, const std::nothrow_t & ) noexcept
+{
+	g_pMemAlloc->Free( pMem );
+}
+
+void *__cdecl operator new( size_t nSize, std::align_val_t nAlign )
+{
+	return g_pMemAlloc->RegionAllocAligned( MEMALLOC_REGION_ALLOC_NEW_ALIGNED, nSize, (size_t)nAlign );
+}
+
+void *__cdecl operator new( size_t nSize, std::align_val_t nAlign, const std::nothrow_t & ) noexcept
+{
+	return g_pMemAlloc->RegionAllocAligned( MEMALLOC_REGION_ALLOC_NEW_ALIGNED, nSize, (size_t)nAlign );
+}
+
+void __cdecl operator delete( void *pMem, std::align_val_t ) noexcept
+{
+	g_pMemAlloc->RegionFreeAligned( MEMALLOC_REGION_FREE_NEW_ALIGNED, pMem );
+}
+
+void __cdecl operator delete( void *pMem, std::size_t, std::align_val_t ) noexcept
+{
+	g_pMemAlloc->RegionFreeAligned( MEMALLOC_REGION_FREE_NEW_ALIGNED, pMem );
+}
+
+void __cdecl operator delete( void *pMem, std::align_val_t, const std::nothrow_t & ) noexcept
+{
+	g_pMemAlloc->RegionFreeAligned( MEMALLOC_REGION_FREE_NEW_ALIGNED, pMem );
 }
 
 void *__cdecl operator new[] ( size_t nSize )
@@ -409,18 +388,49 @@ void *__cdecl operator new[] ( size_t nSize )
 	return AllocUnattributed( nSize );
 }
 
-void *__cdecl operator new[] ( size_t nSize, int nBlockUse, const char *pFileName, int nLine )
-{
-	return MemAlloc_Alloc(nSize, pFileName, nLine);
-}
-
 void __cdecl operator delete[] ( void *pMem ) noexcept
 {
-#if !defined(USE_LIGHT_MEM_DEBUG) && !defined(USE_MEM_DEBUG)
-	g_pMemAlloc->Free(pMem);
-#else
-	g_pMemAlloc->Free(pMem, g_pszModule, 0 );
-#endif
+	g_pMemAlloc->Free( pMem );
+}
+
+void __cdecl operator delete[] ( void *pMem, std::size_t ) noexcept
+{
+	g_pMemAlloc->Free( pMem );
+}
+
+void *__cdecl operator new[] ( size_t nSize, const std::nothrow_t & ) noexcept
+{
+	return AllocUnattributed( nSize );
+}
+
+void __cdecl operator delete[] ( void *pMem, const std::nothrow_t & ) noexcept
+{
+	g_pMemAlloc->Free( pMem );
+}
+
+void *__cdecl operator new[] ( size_t nSize, std::align_val_t nAlign )
+{
+	return g_pMemAlloc->RegionAllocAligned( MEMALLOC_REGION_ALLOC_NEW_ARRAY_ALIGNED, nSize, (size_t)nAlign );
+}
+
+void *__cdecl operator new[] ( size_t nSize, std::align_val_t nAlign, const std::nothrow_t & ) noexcept
+{
+	return g_pMemAlloc->RegionAllocAligned( MEMALLOC_REGION_ALLOC_NEW_ARRAY_ALIGNED, nSize, (size_t)nAlign );
+}
+
+void __cdecl operator delete[] ( void *pMem, std::align_val_t ) noexcept
+{
+	g_pMemAlloc->RegionFreeAligned( MEMALLOC_REGION_FREE_NEW_ARRAY_ALIGNED, pMem );
+}
+
+void __cdecl operator delete[] ( void *pMem, std::size_t, std::align_val_t ) noexcept
+{
+	g_pMemAlloc->RegionFreeAligned( MEMALLOC_REGION_FREE_NEW_ARRAY_ALIGNED, pMem );
+}
+
+void __cdecl operator delete[] ( void *pMem, std::align_val_t, const std::nothrow_t & ) noexcept
+{
+	g_pMemAlloc->RegionFreeAligned( MEMALLOC_REGION_FREE_NEW_ARRAY_ALIGNED, pMem );
 }
 #endif
 
@@ -431,49 +441,6 @@ void __cdecl operator delete[] ( void *pMem ) noexcept
 // link to a debug static lib!!!
 //-----------------------------------------------------------------------------
 #ifndef _STATIC_LINKED
-#ifdef _WIN32
-
-#ifdef PREVENT_DEBUG_USAGE
-
-#define AttribIfCrt()
-
-#else
-
-// This here just hides the internal file names, etc of allocations
-// made in the c runtime library
-#define CRT_INTERNAL_FILE_NAME "C-runtime internal"
-
-class CAttibCRT
-{
-public:
-	CAttibCRT( int nBlockUse ) : m_nBlockUse( nBlockUse )
-	{
-		if(m_nBlockUse == _CRT_BLOCK)
-		{
-			g_pMemAlloc->PushAllocDbgInfo( CRT_INTERNAL_FILE_NAME, 0 );
-		}
-	}
-
-	~CAttibCRT()
-	{
-		if(m_nBlockUse == _CRT_BLOCK)
-		{
-			g_pMemAlloc->PopAllocDbgInfo();
-		}
-	}
-
-private:
-	int m_nBlockUse;
-};
-
-#define AttribIfCrt() CAttibCRT _attrib(nBlockUse)
-
-#endif
-
-#elif defined(POSIX)
-#define AttribIfCrt()
-#endif // _WIN32
-
 
 extern "C"
 {
@@ -481,31 +448,34 @@ extern "C"
 void *__cdecl _nh_malloc_dbg( size_t nSize, int nFlag, int nBlockUse,
 								const char *pFileName, int nLine )
 {
-	AttribIfCrt();
-	return MemAlloc_Alloc(nSize, pFileName, nLine);
+	return g_pMemAlloc->AllocDbg( nSize );
 }
 
 void *__cdecl _malloc_dbg( size_t nSize, int nBlockUse,
 							const char *pFileName, int nLine )
 {
-	AttribIfCrt();
-	return MemAlloc_Alloc(nSize, pFileName, nLine);
+	return g_pMemAlloc->AllocDbg( nSize );
 }
 
 void *__cdecl _calloc_dbg( size_t nNum, size_t nSize, int nBlockUse,
 							const char *pFileName, int nLine )
 {
-	AttribIfCrt();
-	void *pMem = MemAlloc_Alloc(nSize * nNum, pFileName, nLine);
-	memset(pMem, 0, nSize * nNum);
+	void *pMem = g_pMemAlloc->AllocDbg( nSize * nNum );
+	if ( pMem )
+		memset( pMem, 0, nSize * nNum );
 	return pMem;
+}
+
+void *__cdecl _calloc_dbg_impl( size_t nNum, size_t nSize, int nBlockUse,
+								const char *szFileName, int nLine, int *errno_tmp )
+{
+	return _calloc_dbg( nNum, nSize, nBlockUse, szFileName, nLine );
 }
 
 void *__cdecl _realloc_dbg( void *pMem, size_t nNewSize, int nBlockUse,
 							const char *pFileName, int nLine )
 {
-	AttribIfCrt();
-	return g_pMemAlloc->Realloc(pMem, nNewSize/*, pFileName, nLine*/);
+	return g_pMemAlloc->ReallocDbg( pMem, nNewSize );
 }
 
 void *__cdecl _expand_dbg( void *pMem, size_t nNewSize, int nBlockUse,
@@ -517,22 +487,12 @@ void *__cdecl _expand_dbg( void *pMem, size_t nNewSize, int nBlockUse,
 
 void __cdecl _free_dbg( void *pMem, int nBlockUse )
 {
-	AttribIfCrt();
-#if !defined(USE_LIGHT_MEM_DEBUG) && !defined(USE_MEM_DEBUG)
-	g_pMemAlloc->Free(pMem);
-#else
-	g_pMemAlloc->Free(pMem, g_pszModule, 0 );
-#endif
+	g_pMemAlloc->FreeDbg( pMem );
 }
 
 size_t __cdecl _msize_dbg( void *pMem, int nBlockUse )
 {
-#ifdef _WIN32
-	return _msize(pMem);
-#elif POSIX
-	Assert( "_msize_dbg unsupported" );
-	return 0;
-#endif
+	return g_pMemAlloc->GetSize( pMem );
 }
 
 
@@ -542,7 +502,7 @@ size_t __cdecl _msize_dbg( void *pMem, int nBlockUse )
 // aligned base
 ALLOC_CALL void *__cdecl _aligned_malloc_base( size_t size, size_t align )
 {
-	return MemAlloc_AllocAligned( size, align );
+	return g_pMemAlloc->AllocAligned( size, align );
 }
 
 ALLOC_CALL void *__cdecl _aligned_realloc_base( void *ptr, size_t size, size_t align )
@@ -645,10 +605,15 @@ int _CrtSetDbgFlag( int nNewFlag )
 }
 
 // 64-bit port.
-#define AFNAME(var) __p_ ## var
+#define AFNAME(var) __p_##var
 #define AFRET(var)  &var
+#if defined(_crtDbgFlag)
+#undef _crtDbgFlag
+#endif
+#if defined(_crtBreakAlloc)
+#undef _crtBreakAlloc
+#endif
 
-#if !( defined( _MSC_VER ) && _MSC_VER >= 1900)
 int _crtDbgFlag = _CRTDBG_ALLOC_MEM_DF;
 int* AFNAME(_crtDbgFlag)(void)
 {
@@ -660,7 +625,6 @@ long* AFNAME(_crtBreakAlloc) (void)
 {
 	return AFRET(_crtBreakAlloc);
 }
-#endif
 
 void __cdecl _CrtSetDbgBlockType( void *pMem, int nBlockUse )
 {
@@ -678,9 +642,17 @@ long __cdecl _CrtSetBreakAlloc( long lNewBreakAlloc )
 	return 0;
 }
 					 
+// A live block is MemoryState_UnexpectedlyAllocated. Outside the debug memory mode tier0 only
+// rejects NULL and misaligned pointers and reports MemoryState_Operational for the rest
+static bool IsValidHeapBlock( const void *pMem )
+{
+	MemoryState state = g_pMemAlloc->GetMemoryState( const_cast<void *>( pMem ) );
+	return state == MemoryState_UnexpectedlyAllocated || state == MemoryState_Operational;
+}
+
 int __cdecl _CrtIsValidHeapPointer( const void *pMem )
 {
-	return 1;
+	return IsValidHeapBlock( pMem );
 }
 
 int __cdecl _CrtIsValidPointer( const void *pMem, unsigned int size, int access )
@@ -696,8 +668,15 @@ int __cdecl _CrtCheckMemory( void )
 int __cdecl _CrtIsMemoryBlock( const void *pMem, unsigned int nSize,
     long *plRequestNumber, char **ppFileName, int *pnLine )
 {
-	DebuggerBreak();
-	return 1;
+	// There are no allocation request numbers or file and line info to return
+	if ( plRequestNumber )
+		*plRequestNumber = 0;
+	if ( ppFileName )
+		*ppFileName = NULL;
+	if ( pnLine )
+		*pnLine = 0;
+
+	return IsValidHeapBlock( pMem );
 }
 
 int __cdecl _CrtMemDifference( _CrtMemState *pState, const _CrtMemState * oldState, const _CrtMemState * newState )
@@ -749,12 +728,6 @@ _CRT_REPORT_HOOK __cdecl _CrtSetReportHook( _CRT_REPORT_HOOK pfnNewHook )
 int __cdecl _CrtDbgReport( int nRptType, const char * szFile,
         int nLine, const char * szModule, const char * szFormat, ... )
 {
-	static char output[1024];
-	va_list args;
-	va_start( args, szFormat );
-	_vsnprintf( output, sizeof( output )-1, szFormat, args );
-	va_end( args );
-
 	return 0;
 }
 
@@ -770,7 +743,7 @@ void __cdecl _invalid_parameter_noinfo(void)
 
 #endif /* defined( _DEBUG ) */
 
-#if defined( _DEBUG ) || defined( USE_MEM_DEBUG )
+#if defined( _DEBUG )
 
 int __cdecl __crtMessageWindowW( int nRptType, const wchar_t * szFile, const wchar_t * szLine,
 								 const wchar_t * szModule, const wchar_t * szUserMessage )
@@ -816,7 +789,7 @@ int __cdecl _CrtSetReportHook2( int mode, _CRT_REPORT_HOOK pfnNewHook )
 }
  
 
-#endif  /* defined( _DEBUG ) || defined( USE_MEM_DEBUG ) */
+#endif  /* defined( _DEBUG ) */
 
 extern "C" int __crtDebugCheckCount = FALSE;
 
@@ -834,9 +807,7 @@ extern "C" int __cdecl _CrtGetCheckCount( void )
 // aligned offset debug
 extern "C" void * __cdecl _aligned_offset_recalloc_dbg( void * memblock, size_t count, size_t size, size_t align, size_t offset, const char * f_name, int line_n )
 {
-	void *pMem = ReallocUnattributed( memblock, size * count );
-	memset( pMem, 0, size * count );
-	return pMem;
+	return RecallocUnattributed( memblock, size * count );
 }
 
 extern "C" void * __cdecl _aligned_recalloc_dbg( void *memblock, size_t count, size_t size, size_t align, const char * f_name, int line_n )
@@ -978,13 +949,12 @@ void __cdecl _aligned_free_dbg( void * memblock)
     _aligned_free(memblock);
 }
 
-#if 0
+#if defined( _MSC_VER ) && _MSC_VER < 1900
 size_t __cdecl _CrtSetDebugFillThreshold( size_t _NewDebugFillThreshold)
 {
 	Assert(0);
     return 0;
 }
-#endif
 
 //===========================================
 // NEW!!! 64-bit
@@ -992,11 +962,15 @@ size_t __cdecl _CrtSetDebugFillThreshold( size_t _NewDebugFillThreshold)
 char * __cdecl _strdup ( const char * string )
 {
 	int nSize = (int)strlen(string) + 1;
+	// Check for integer underflow.
+	if(nSize <= 0)
+		return NULL;
 	char *pCopy = (char*)AllocUnattributed( nSize );
 	if ( pCopy )
 		memcpy( pCopy, string, nSize );
 	return pCopy;
 }
+#endif
 
 #if 0
 _TSCHAR * __cdecl _tfullpath_dbg ( _TSCHAR *UserBuf, const _TSCHAR *path, size_t maxlen, int nBlockUse, const char * szFileName, int nLine )
@@ -1046,7 +1020,6 @@ _TSCHAR * __cdecl _ttempnam ( const _TSCHAR *dir, const _TSCHAR *pfx )
 	Assert(0);
 	return 0;
 }
-#endif
 
 wchar_t * __cdecl _wcsdup_dbg ( const wchar_t * string, int nBlockUse, const char * szFileName, int nLine )
 {
@@ -1059,172 +1032,11 @@ wchar_t * __cdecl _wcsdup ( const wchar_t * string )
 	Assert(0);
 	return 0;
 }
+#endif
 
 } // end extern "C"
 
 #if _MSC_VER >= 1400
-
-#define MAX_LANG_LEN        64  /* max language name length */
-#define MAX_CTRY_LEN        64  /* max country name length */
-#define MAX_MODIFIER_LEN    0   /* max modifier name length - n/a */
-#define MAX_LC_LEN          (MAX_LANG_LEN+MAX_CTRY_LEN+MAX_MODIFIER_LEN+3)
-
-#if 0
-// GAMMACASE: Disabled due to being too outdated
-struct _is_ctype_compatible {
-        unsigned long id;
-        int is_clike;
-};
-typedef struct setloc_struct {
-    /* getqloc static variables */
-    char *pchLanguage;
-    char *pchCountry;
-    int iLcidState;
-    int iPrimaryLen;
-    BOOL bAbbrevLanguage;
-    BOOL bAbbrevCountry;
-    LCID lcidLanguage;
-    LCID lcidCountry;
-    /* expand_locale static variables */
-    LC_ID       _cacheid;
-    UINT        _cachecp;
-    char        _cachein[MAX_LC_LEN];
-    char        _cacheout[MAX_LC_LEN];
-    /* _setlocale_set_cat (LC_CTYPE) static variable */
-    struct _is_ctype_compatible _Lcid_c[5];
-} _setloc_struct, *_psetloc_struct;
-
-struct _tiddata {
-    unsigned long   _tid;       /* thread ID */
-
-
-    uintptr_t _thandle;         /* thread handle */
-
-    int     _terrno;            /* errno value */
-    unsigned long   _tdoserrno; /* _doserrno value */
-    unsigned int    _fpds;      /* Floating Point data segment */
-    unsigned long   _holdrand;  /* rand() seed value */
-    char *      _token;         /* ptr to strtok() token */
-    wchar_t *   _wtoken;        /* ptr to wcstok() token */
-    unsigned char * _mtoken;    /* ptr to _mbstok() token */
-
-    /* following pointers get malloc'd at runtime */
-    char *      _errmsg;        /* ptr to strerror()/_strerror() buff */
-    wchar_t *   _werrmsg;       /* ptr to _wcserror()/__wcserror() buff */
-    char *      _namebuf0;      /* ptr to tmpnam() buffer */
-    wchar_t *   _wnamebuf0;     /* ptr to _wtmpnam() buffer */
-    char *      _namebuf1;      /* ptr to tmpfile() buffer */
-    wchar_t *   _wnamebuf1;     /* ptr to _wtmpfile() buffer */
-    char *      _asctimebuf;    /* ptr to asctime() buffer */
-    wchar_t *   _wasctimebuf;   /* ptr to _wasctime() buffer */
-    void *      _gmtimebuf;     /* ptr to gmtime() structure */
-    char *      _cvtbuf;        /* ptr to ecvt()/fcvt buffer */
-    unsigned char _con_ch_buf[MB_LEN_MAX];
-                                /* ptr to putch() buffer */
-    unsigned short _ch_buf_used;   /* if the _con_ch_buf is used */
-
-    /* following fields are needed by _beginthread code */
-    void *      _initaddr;      /* initial user thread address */
-    void *      _initarg;       /* initial user thread argument */
-
-    /* following three fields are needed to support signal handling and
-     * runtime errors */
-    void *      _pxcptacttab;   /* ptr to exception-action table */
-    void *      _tpxcptinfoptrs; /* ptr to exception info pointers */
-    int         _tfpecode;      /* float point exception code */
-
-    /* pointer to the copy of the multibyte character information used by
-     * the thread */
-    pthreadmbcinfo  ptmbcinfo;
-
-    /* pointer to the copy of the locale informaton used by the thead */
-    pthreadlocinfo  ptlocinfo;
-    int         _ownlocale;     /* if 1, this thread owns its own locale */
-
-    /* following field is needed by NLG routines */
-    unsigned long   _NLG_dwCode;
-
-    /*
-     * Per-Thread data needed by C++ Exception Handling
-     */
-    void *      _terminate;     /* terminate() routine */
-    void *      _unexpected;    /* unexpected() routine */
-    void *      _translator;    /* S.E. translator */
-    void *      _purecall;      /* called when pure virtual happens */
-    void *      _curexception;  /* current exception */
-    void *      _curcontext;    /* current exception context */
-    int         _ProcessingThrow; /* for uncaught_exception */
-    void *              _curexcspec;    /* for handling exceptions thrown from std::unexpected */
-#if defined (_M_IA64) || defined (_M_AMD64)
-    void *      _pExitContext;
-    void *      _pUnwindContext;
-    void *      _pFrameInfoChain;
-    unsigned __int64    _ImageBase;
-#if defined (_M_IA64)
-    unsigned __int64    _TargetGp;
-#endif  /* defined (_M_IA64) */
-    unsigned __int64    _ThrowImageBase;
-    void *      _pForeignException;
-#elif defined (_M_IX86)
-    void *      _pFrameInfoChain;
-#endif  /* defined (_M_IX86) */
-    _setloc_struct _setloc_data;
-
-    void *      _encode_ptr;    /* EncodePointer() routine */
-    void *      _decode_ptr;    /* DecodePointer() routine */
-
-    void *      _reserved1;     /* nothing */
-    void *      _reserved2;     /* nothing */
-    void *      _reserved3;     /* nothing */
-
-    int _cxxReThrow;        /* Set to True if it's a rethrown C++ Exception */
-
-    unsigned long __initDomain;     /* initial domain used by _beginthread[ex] for managed function */
-};
-
-typedef struct _tiddata * _ptiddata;
-
-class _LocaleUpdate
-{
-    _locale_tstruct localeinfo;
-    _ptiddata ptd;
-    bool updated;
-    public:
-    _LocaleUpdate(_locale_t plocinfo)
-        : updated(false)
-    {
-		/*
-        if (plocinfo == NULL)
-        {
-            ptd = _getptd();
-            localeinfo.locinfo = ptd->ptlocinfo;
-            localeinfo.mbcinfo = ptd->ptmbcinfo;
-
-            __UPDATE_LOCALE(ptd, localeinfo.locinfo);
-            __UPDATE_MBCP(ptd, localeinfo.mbcinfo);
-            if (!(ptd->_ownlocale & _PER_THREAD_LOCALE_BIT))
-            {
-                ptd->_ownlocale |= _PER_THREAD_LOCALE_BIT;
-                updated = true;
-            }
-        }
-        else
-        {
-            localeinfo=*plocinfo;
-        }
-		*/
-    }
-    ~_LocaleUpdate()
-    {
-//        if (updated)
-//	        ptd->_ownlocale = ptd->_ownlocale & ~_PER_THREAD_LOCALE_BIT;
-    }
-    _locale_t GetLocaleT()
-    {
-        return &localeinfo;
-    }
-};
-#endif
 
 #pragma warning(push)
 #pragma warning(disable: 4483)

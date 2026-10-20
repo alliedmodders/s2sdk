@@ -1342,7 +1342,7 @@ inline T *KeyValues3::AllocateOnHeap( int initial_size )
 	if(initial_size <= 0)
 		initial_size = T::DATA_SIZE;
 
-	auto element = (T *)g_pMemAlloc->RegionAlloc( MEMALLOC_REGION_ALLOC_4, T::TotalSizeOf( initial_size ) );
+	auto element = (T *)g_pMemAlloc->RegionAlloc( MEMALLOC_REGION_ALLOC_KV3, T::TotalSizeOf( initial_size ) );
 	Construct( element, -1, initial_size );
 
 	return element;
@@ -1353,7 +1353,7 @@ inline void KeyValues3::FreeOnHeap( T *element )
 {
 	Destruct( element, element->GetAllocatedSize() );
 
-	g_pMemAlloc->RegionFree( MEMALLOC_REGION_FREE_4, element );
+	g_pMemAlloc->RegionFree( MEMALLOC_REGION_FREE_KV3, element );
 }
 
 template < typename T >
@@ -1548,7 +1548,7 @@ void CKeyValues3ClusterImpl<SIZE, T>::EnableMetaData( bool bEnable )
 	{
 		if(!m_pMetaData)
 		{
-			m_pMetaData = (kv3metadata_t *)g_pMemAlloc->RegionAlloc( MEMALLOC_REGION_ALLOC_4, (NumAllocated() * sizeof(KV3MetaData_t)) + 8 );
+			m_pMetaData = (kv3metadata_t *)g_pMemAlloc->RegionAlloc( MEMALLOC_REGION_ALLOC_KV3, (NumAllocated() * sizeof(KV3MetaData_t)) + 8 );
 			m_pMetaData->m_AllocatedElements = NumAllocated();
 
 			for(int i = 0; i < m_pMetaData->m_AllocatedElements; i++)
@@ -1585,7 +1585,7 @@ void CKeyValues3ClusterImpl<SIZE, T>::PurgeMetaData()
 			Destruct( &m_pMetaData->m_elements[i] );
 		}
 
-		g_pMemAlloc->RegionFree( MEMALLOC_REGION_FREE_4, m_pMetaData );
+		g_pMemAlloc->RegionFree( MEMALLOC_REGION_FREE_KV3, m_pMetaData );
 	}
 
 	m_pMetaData = nullptr;
@@ -1708,7 +1708,7 @@ inline void CKV3Arena::PurgeClusterNodeChain( ClusterNodeChain<CLUSTER> &cluster
 		if(node->IsAllocatedOnHeap())
 		{
 			node->Purge();
-			g_pMemAlloc->RegionFree( MEMALLOC_REGION_FREE_4, node );
+			g_pMemAlloc->RegionFree( MEMALLOC_REGION_FREE_KV3, node );
 		}
 		else
 		{
@@ -1761,7 +1761,7 @@ auto CKV3Arena::Alloc( ClusterNodeChain<CLUSTER> &partial_clusters,
 	}
 	else
 	{
-		cluster = (CLUSTER *)g_pMemAlloc->RegionAlloc( MEMALLOC_REGION_ALLOC_4, CLUSTER::TotalSizeOf( initial_size ) );
+		cluster = (CLUSTER *)g_pMemAlloc->RegionAlloc( MEMALLOC_REGION_ALLOC_KV3, CLUSTER::TotalSizeOf( initial_size ) );
 
 		Construct( cluster, this, true, initial_size );
 
@@ -1816,7 +1816,7 @@ void CKV3Arena::Free( NODE *element, ClusterNodeChain<CLUSTER> &partial_clusters
 		partial_clusters.RemoveFromChain( cluster );
 
 		Destruct( cluster );
-		g_pMemAlloc->RegionFree( MEMALLOC_REGION_FREE_4, cluster );
+		g_pMemAlloc->RegionFree( MEMALLOC_REGION_FREE_KV3, cluster );
 	}
 }
 

@@ -754,15 +754,6 @@ inline unsigned IFileSystem::GetOptimalReadSize(FileHandle_t hFile, unsigned nLo
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Async memory tracking
-//-----------------------------------------------------------------------------
-
-#if (defined(_DEBUG) || defined(USE_MEM_DEBUG))
-#define AsyncRead( a, b ) AsyncReadCreditAlloc( a, __FILE__, __LINE__, b )
-#define AsyncReadMutiple( a, b, c ) AsyncReadMultipleCreditAlloc( a, b, __FILE__, __LINE__, c )
-#endif
-
-//-----------------------------------------------------------------------------
 // Globals Exposed
 //-----------------------------------------------------------------------------
 DECLARE_TIER2_INTERFACE( IFileSystem, g_pFullFileSystem );
