@@ -37,10 +37,19 @@ public:
 	// This is an index into the network string table (sv.GetInstanceBaselineTable()).
 	int m_InstanceBaselineIndex; // INVALID_STRING_INDEX if not initialized yet.
 
-	bool m_Unk1;
-	bool m_Unk2; // Set if one of the base classes has the FENTCLASS_UNK008 flag
-	bool m_Unk3; // Set if one of the base classes has the FENTCLASS_UNK009 flag
-	bool m_Unk4;
+	bool m_bFakeClassForSourceTVRelay;
+	bool m_bHasAlternateBaselines;
+	bool m_bAlternateBaselinesUseRecipientsFilters;
+	bool m_bFakeClassForDemoPlayback;
+	bool m_bHasMixedOutOfPVSUpdateFields;
+};
+
+// Registered by DECLARE_NETWORKCLASS
+struct NetworkClassRegistration_t
+{
+	const char *m_pDLLClassName;
+	const char *m_pNetworkName;
+	NetworkClassRegistration_t *m_pNext;
 };
 
 
