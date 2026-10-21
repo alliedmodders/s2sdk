@@ -128,7 +128,7 @@ public:
 	const EventListenerInfo_t *IterateListener( DelegateIterator_t &iterationStruct ) { return CEventDispatcher_Base::IterateListener( iterationStruct ); }
 	void IterateListeners_End( DelegateIterator_t &iterationStruct );
 
-	static bool IsValidEventID( EventID_t EventID ) { return EventID != nullptr && ( EventID->m_nFlags1 & SCHEMA_CF1_GLOBAL_TYPE_SCOPE ) != 0; }
+	static bool IsValidEventID( EventID_t EventID ) { return EventID != nullptr && ( EventID->m_nClassFlags1 & SCHEMA_CF1_GLOBAL_TYPE_SCOPE ) != 0; }
 
 protected:
 	// Requires m_Lock
