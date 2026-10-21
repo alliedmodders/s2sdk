@@ -11,48 +11,48 @@
 class CSchemaEnumInfo;
 class CSchemaSystemTypeScope;
 
-enum SchemaEnumFlags_t : uint8
+enum SchemaEnumFlags1_t : uint8
 {
-	SCHEMA_EF_IS_REGISTERED = (1 << 0),
-	SCHEMA_EF_MODULE_LOCAL_TYPE_SCOPE = (1 << 1),
-	SCHEMA_EF_GLOBAL_TYPE_SCOPE = (1 << 2),
-	SCHEMA_EF_UNSIGNED_STORAGE_TYPE = (1 << 3),
-	SCHEMA_EF_IS_FLAGS_ENUM = (1 << 4),
-	SCHEMA_EF_IS_SCOPED_ENUM = (1 << 5)
+	SCHEMA_EF1_INFO_IS_INITIALIZED = (1 << 0),
+	SCHEMA_EF1_MODULE_LOCAL_TYPE_SCOPE = (1 << 1),
+	SCHEMA_EF1_GLOBAL_TYPE_SCOPE = (1 << 2),
+	SCHEMA_EF1_UNSIGNED_STORAGE_TYPE = (1 << 3),
+	SCHEMA_EF1_IS_FLAGS_ENUM = (1 << 4),
+	SCHEMA_EF1_IS_SCOPED_ENUM = (1 << 5)
 };
 
 struct SchemaEnumeratorInfoData_t
 {
-	const char* m_pszName;
+	const char* m_pName;
 	
 	int64 m_nValue;
 	
-	uint16 m_nStaticMetadataCount;
-	SchemaMetadataEntryData_t* m_pStaticMetadata;
+	uint16 m_nNumMetadata;
+	SchemaMetadataEntryData_t* m_pMetadata;
 };
 
 struct SchemaEnumInfoData_t
 {
-	CSchemaEnumInfo* m_pSchemaBinding;
+	CSchemaEnumInfo* m_pPrimaryBinding;
 	
-	const char* m_pszName;
-	const char* m_pszProjectName;
+	const char* m_pName;
+	const char* m_pProjectName;
 	
-	uint8 m_nSize;
-	uint8 m_nAlignment;
+	uint8 m_nSizeOf;
+	uint8 m_nAlignOf;
 	
-	uint16 m_nFlags;
+	uint16 m_nEnumFlags1;
 
-	uint16 m_nEnumeratorCount;
-	uint16 m_nStaticMetadataCount;
+	uint16 m_nNumEnumerators;
+	uint16 m_nNumMetadata;
 	
 	SchemaEnumeratorInfoData_t* m_pEnumerators;
-	SchemaMetadataEntryData_t* m_pStaticMetadata;
+	SchemaMetadataEntryData_t* m_pMetadata;
 	
-	CSchemaSystemTypeScope* m_pTypeScope;
+	CSchemaSystemTypeScope* m_pOuterTypeScope;
 	
-	int64 m_nMinEnumeratorValue;
-	int64 m_nMaxEnumeratorValue;
+	int64 m_nMinValue;
+	int64 m_nMaxValue;
 };
 
 #endif // SCHEMAENUMINFO_DATA_H

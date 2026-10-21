@@ -7,7 +7,7 @@
 
 struct SchemaMetadataEntryData_t
 {
-	const char* m_pszName;
+	const char* m_pName;
 	void* m_pData;
 };
 
