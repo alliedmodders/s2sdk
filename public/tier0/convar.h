@@ -223,8 +223,12 @@ struct CVarCreationBase_t
 #define FCVAR_EXECUTE_PER_TICK		(1ull<<29)
 #define FCVAR_SNAPSHOT_IGNORED		(1ull<<30) // TakeConVarSnapshot and ResetConVarsToSnapshot ignores cvars with this flag set
 #define FCVAR_DEFENSIVE				(1ull<<32)
+#define FCVAR_EXECUTE_IMMEDIATELY	(1ull<<33) // Not queued inside a __beginseq batch
 
 #define FCVAR_GAMEINFO_CANNOT_OVERRIDE (1ull<<34) // Code defaults can't be overridden from gameinfo
+
+#define FCVAR_VCONSOLE_NO_CHANGE_NOTIFY	(1ull<<36)
+#define FCVAR_ENUM_VALUE			(1ull<<37) // The value is a schema enum
 
 //-----------------------------------------------------------------------------
 // Called when a ConCommand needs to execute
