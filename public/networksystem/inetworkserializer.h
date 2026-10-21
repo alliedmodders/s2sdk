@@ -106,6 +106,15 @@ enum OOPVSUpdates_t
 	OOPVSUpdates_Default,
 };
 
+// AMNOTE: Only struct and polymorphic classes can be allocated through m_pfnManipulator
+enum NetworkClassKind_t
+{
+	ClassKind_Struct = 1,
+	ClassKind_Polymorphic,
+	ClassKind_PolymorphicWithStaticClassInfo,
+	ClassKind_Abstract,
+};
+
 struct VarTypeOverride_t
 {
 	const char *m_FieldName;
@@ -127,12 +136,18 @@ struct UserGroupProxy_t
 	NetworkRecipientsFilter_t::FilterOwnerType m_ProxyOwnerType;
 };
 
-struct ReplayCompatField_t
+enum NetworkReplayCompatFieldFlags_t : uint8
+{
+	NETWORK_REPLAY_COMPAT_FIELD_REGEX = (1 << 0), // m_FieldPath is a regular expression
+	NETWORK_REPLAY_COMPAT_FIELD_AGGREGATED = (1 << 1),
+};
+
+struct NetworkReplayCompatField_t
 {
 	const char *m_FieldPath;
 	const char *m_CallbackName;
-	void *m_unk001;
-	int8 m_unk002;
+	const char *m_pszClassName;
+	uint8 m_nFlags; // NetworkReplayCompatFieldFlags_t
 };
 
 class CNetworkSerializerFieldInfo
@@ -152,6 +167,7 @@ public:
 	CUtlStringToken m_NetworkTypeAliasHash;
 	const char *m_NetworkTypeAlias;
 
+	// AMNOTE: The constructor zeroes it and nothing else writes it
 	void *m_unk001;
 
 	const char *m_NetworkSerializer;
@@ -265,18 +281,18 @@ public:
 	CUtlVector<VarTypeOverride_t *> m_NetworkVarTypeOverrides;
 	CUtlVector<SerializedFieldTypeMapping_t *> m_FieldTypeMappings;
 	CUtlVector<UserGroupProxy_t *> m_UserGroupProxies;
-	CUtlVector<ReplayCompatField_t *> m_NetworkReplayCompatFields;
+	CUtlVector<NetworkReplayCompatField_t *> m_NetworkReplayCompatFields;
 	CNetworkSerializerCodeGenDatabase *m_pDatabase;
 
 	int32_t m_nClassSize;
 	OOPVSUpdates_t m_NetworkOutOfPVSUpdates;
-	// AMNOTE: Allocation mode, only 1 and 2 allow allocating and freeing through m_pfnManipulator
-	int m_unk201;
+	NetworkClassKind_t m_nClassKind;
 
 	ManipulatorFn_t m_pfnManipulator;
 
 	bool m_Initialized;
 	bool m_NetworkVarsAtomic;
+	// AMNOTE: Never set, would skip the MNetworkEnable without CNetworkVar warning
 	bool m_unk301;
 	bool m_NetworkNoBase;
 	bool m_NetworkStructNotInNetworkUtlVectorEmbedded;
