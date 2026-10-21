@@ -21,8 +21,8 @@ enum EntityClassFlags_t
 	ECF_BECOME_SUSPENDED_INSTEAD_OF_DORMANT = (1 << 5), // Suspend entities outside of PVS
 	ECF_ANONYMOUS_ENTITY					= (1 << 6), // If the EntityClass is anonymous
 	ECF_PRECACHE_NETWORKED_ENTITY_ON_CLIENT	= (1 << 7),
-	ECF_UNK001								= (1 << 8),
-	ECF_UNK002								= (1 << 9),
+	ECF_HAS_ALTERNATE_BASELINES				= (1 << 8),
+	ECF_ALTERNATE_BASELINES_USE_RECIPIENTS_FILTERS = (1 << 9),
 	ECF_FORCE_WORLDGROUPID					= (1 << 10) // Forces worldgroupid to be 1 on created entities
 };
 

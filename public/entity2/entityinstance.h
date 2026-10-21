@@ -157,7 +157,7 @@ public:
 	
 	virtual bool GetFieldPathChildIndices( const CFieldPath& path, CUtlVector<int>* pChildIndices ) = 0;
 	// AMNOTE: Returns false in every entity class
-	virtual bool unk201() = 0;
+	virtual bool GetAlternateBaselineName( const char **ppszName ) = 0;
 
 	virtual void Pulse_OnDynamicAttributeChanged() = 0;
 

@@ -308,7 +308,7 @@ public:
 	
 	virtual void			ResetChangeAccessorsSerialNumbersToZero() = 0;
 	
-	virtual bool			GetWorldspaceCenter( CEntityIndex nEntityIndex, Vector *pCenter ) const = 0;
+	virtual bool			GetAlternateBaselineName( CEntityIndex nEntityIndex, const char **ppszName ) const = 0;
 
 	virtual void			OnPrePackEntities( const CUtlVector<Entity2Networkable_t *> &ents ) const = 0;
 };
