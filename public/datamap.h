@@ -186,7 +186,7 @@ DECLARE_FIELD_SIZE( FIELD_SOUNDNAME,	sizeof(int))
 #define FTYPEDESC_INPUT				(1 << 3)		// This field can be written to by string name at run time, and a function called
 #define FTYPEDESC_OUTPUT			(1 << 4)		// This field propogates it's value to all targets whenever it changes
 #define FTYPEDESC_PTR				(1 << 5)		// This field is a pointer, not an embedded object
-// #define FTYPEDESC_UNK			(1 << 6)
+// #define FTYPEDESC_UNK			(1 << 6) // AMNOTE: Unused
 #define FTYPEDESC_ADDED_KEYFIELD	(1 << 7)
 
 #define FTYPEDESC_GEN_ARRAY_KEYNAMES_0	(1 << 8)
@@ -198,6 +198,7 @@ DECLARE_FIELD_SIZE( FIELD_SOUNDNAME,	sizeof(int))
 #define FTYPEDESC_REMOVED_KEYFIELD		(1 << 14)
 #define FTYPEDESC_WAS_INPUT				(1 << 15)
 #define FTYPEDESC_WAS_OUTPUT			(1 << 16)
+#define FTYPEDESC_REPORT_KEY_USE		(1 << 19)
 
 #define TD_MSECTOLERANCE		0.001f		// This is a FIELD_FLOAT and should only be checked to be within 0.001 of the networked info
 
