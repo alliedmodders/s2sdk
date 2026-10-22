@@ -192,11 +192,7 @@ ALLOC_CALL void * __cdecl _recalloc ( void * memblock, size_t count, size_t size
 	return RecallocUnattributed( memblock, size * count );
 }
 
-#if ( defined ( _MSC_VER ) && _MSC_VER >= 1930 )
-size_t _msize_base( void *pMem ) noexcept
-#else
-size_t _msize_base( void *pMem )
-#endif
+size_t _msize_base( void *pMem ) _CRT_NOEXCEPT
 {
 	return g_pMemAlloc->GetSize(pMem);
 }
