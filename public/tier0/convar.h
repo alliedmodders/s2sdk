@@ -975,7 +975,7 @@ public:
 	bool UpdateMaxValueString( const char *value ) { return HasMaxValue() && TypeTraits()->StringToValue( value, m_maxValue ); }
 
 	// Sets default value by copying it, doesn't need to be allocated
-	void SetDefaultValue( CVValue_t *value ) { TypeTraits()->Copy( m_defaultValue, value ); }
+	void SetDefaultValue( CVValue_t *value ) { TypeTraits()->Copy( m_defaultValue, *value ); }
 
 	// AMNOTE: Expects you to manually allocate its value and for it to be alive while it's used by the cvar
 	// Also you should be responsible for clearing memory on cleanup, by default game uses CCvar memory allocator for this
