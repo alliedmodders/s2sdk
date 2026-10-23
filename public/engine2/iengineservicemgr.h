@@ -121,6 +121,7 @@ public:
 	virtual void		RegisterEventMap( CEventDispatcher<CEventIDManager_Default> *pEventDispatcher, EventMapRegistrationType_t nRegistrationType ) = 0;
 	virtual uint16		GetServiceIndex( void ) = 0;
 	virtual void		SetServiceIndex( uint16 index ) = 0;
+	virtual ~IEngineService() {}
 };
 
 template< class IInterface >
