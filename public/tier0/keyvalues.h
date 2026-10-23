@@ -65,6 +65,7 @@ private:
 	HTemporaryKeyValueAllocationScope m_hScope;
 };
 
+#pragma pack(push, 1)
 class CKeyValues_Data
 {
 public:
@@ -161,6 +162,7 @@ protected:
 	uint32 m_bAllocatedExternalMemory : 1;
 	uint32 m_bKeySymbolCaseSensitiveMatchesCaseInsensitive : 1;
 	uint32 m_bStoredSubKey : 1;
+	uint32 m_bOwnsKeyValuesSystem : 1;
 };
 
 //-----------------------------------------------------------------------------
@@ -184,7 +186,6 @@ protected:
 //	are \n, \t, \\, \n and \". The number character '#' is used for macro purposes 
 //	(eg #include), don't use it as first charater in key names.
 //-----------------------------------------------------------------------------
-#pragma pack(push, 1)
 class KeyValues : public CKeyValues_Data
 {
 public:
@@ -228,14 +229,19 @@ public:
 	enum KV_DISPOSABLE_STRING_TABLE_STATE {};
 
 	// Quick setup constructors
-	KeyValues( const char *setName, IKeyValuesSystem *kvsystem = NULL, bool unkState = false );
+	// The destructor deletes kvsystem when bOwnsKeyValuesSystem is set; child keys don't own it
+	KeyValues( const char *setName, IKeyValuesSystem *kvsystem = NULL, bool bOwnsKeyValuesSystem = false );
 	// AMNOTE: Gives the KeyValues a string table of its own instead of the global one
 	KeyValues( const char *setName, KV_DISPOSABLE_STRING_TABLE_STATE );
+	// AMNOTE: Copies only the name of pOther, not its system, keys or values, and doesn't read the bool
+	KeyValues( const KeyValues *pOther, bool );
 	KeyValues( const char *setName, const char *firstKey, const char *firstValue );
 	KeyValues( const char *setName, const char *firstKey, const wchar_t *firstValue );
 	KeyValues( const char *setName, const char *firstKey, int firstValue );
+	KeyValues( const char *setName, const char *firstKey, bool firstValue );
+	KeyValues( const char *setName, const char *firstKey, float firstValue );
+	KeyValues( const char *setName, const char *firstKey, uint64 firstValue );
 	KeyValues( const char *setName, const char *firstKey, const char *firstValue, const char *secondKey, const char *secondValue );
-	KeyValues( const char *setName, const char *firstKey, int firstValue, const char *secondKey, int secondValue );
 
 	~KeyValues();
 
@@ -252,18 +258,18 @@ public:
 
 	// File access. Set UsesEscapeSequences true, if resource file/buffer uses Escape Sequences (eg \n, \t)
 	void UsesEscapeSequences( bool state ); // default false
-	bool LoadFromFile( IFileSystem *filesystem, const char *resourceName, const char *pathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, void *pUnk1 = NULL, const char *pUnk2 = NULL );
+	bool LoadFromFile( IFileSystem *filesystem, const char *resourceName, const char *pathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, void *pSymbolProcContext = NULL, const char *pszNameForEmptyKeys = NULL );
 	bool SaveToFile( IFileSystem *filesystem, const char *resourceName, const char *pathID = NULL, bool bAllowEmptyString = false, bool binaryWrite = true );
 	// Read from a buffer...  Note that the buffer must be null terminated
-	bool LoadFromBuffer( char const *resourceName, const char *pBuffer, IFileSystem *pFileSystem = NULL, const char *pPathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, IKeyValuesErrorSpew *pErrorSpew = NULL, void *pUnk1 = NULL, const char *pUnk2 = NULL );
+	bool LoadFromBuffer( char const *resourceName, const char *pBuffer, IFileSystem *pFileSystem = NULL, const char *pPathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, IKeyValuesErrorSpew *pErrorSpew = NULL, void *pSymbolProcContext = NULL, const char *pszNameForEmptyKeys = NULL );
 
 	// Read from a utlbuffer...
-	bool LoadFromBuffer( char const *resourceName, CUtlBuffer &buf, IFileSystem *pFileSystem = NULL, const char *pPathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, IKeyValuesErrorSpew *pErrorSpew = NULL, void *pUnk1 = NULL, const char *pUnk2 = NULL );
+	bool LoadFromBuffer( char const *resourceName, CUtlBuffer &buf, IFileSystem *pFileSystem = NULL, const char *pPathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, IKeyValuesErrorSpew *pErrorSpew = NULL, void *pSymbolProcContext = NULL, const char *pszNameForEmptyKeys = NULL );
 
-	static CTemporaryKeyValues *LoadTemporaryFromBuffer( bool, char const *resourceName, const char *pBuffer, IFileSystem *pFileSystem = NULL, const char *pPathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, IKeyValuesErrorSpew *pErrorSpew = NULL, void *pUnk1 = NULL, const char *pUnk2 = NULL );
-	static CTemporaryKeyValues *LoadTemporaryFromBuffer( bool, char const *resourceName, CUtlBuffer &buf, IFileSystem *pFileSystem = NULL, const char *pPathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, void *pUnk1 = NULL, const char *pUnk2 = NULL );
+	static CTemporaryKeyValues *LoadTemporaryFromBuffer( bool bUsesEscapeSequences, char const *resourceName, const char *pBuffer, IFileSystem *pFileSystem = NULL, const char *pPathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, IKeyValuesErrorSpew *pErrorSpew = NULL, void *pSymbolProcContext = NULL, const char *pszNameForEmptyKeys = NULL );
+	static CTemporaryKeyValues *LoadTemporaryFromBuffer( bool bUsesEscapeSequences, char const *resourceName, CUtlBuffer &buf, IFileSystem *pFileSystem = NULL, const char *pPathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, void *pSymbolProcContext = NULL, const char *pszNameForEmptyKeys = NULL );
 
-	static CTemporaryKeyValues *LoadTemporaryFromFile( bool, IFileSystem *filesystem, const char *resourceName, const char *pathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, void *pUnk1 = NULL, const char *pUnk2 = NULL );
+	static CTemporaryKeyValues *LoadTemporaryFromFile( bool bUsesEscapeSequences, IFileSystem *filesystem, const char *resourceName, const char *pathID = NULL, GetSymbolProc_t pfnEvaluateSymbolProc = NULL, void *pSymbolProcContext = NULL, const char *pszNameForEmptyKeys = NULL );
 
 	// Find a keyValue, create it if it is not found.
 	// Set bCreate to true to create the key if it doesn't already exist (which ensures a valid pointer will be returned)
@@ -373,7 +379,7 @@ public:
 	bool WriteAsBinaryFiltered( CUtlBuffer &buffer );
 	bool ReadAsBinary( CUtlBuffer &buffer );
 	bool ReadAsBinaryFiltered( CUtlBuffer &buffer );
-	static CTemporaryKeyValues *ReadTemporaryAsBinary( bool, CUtlBuffer &buffer );
+	static CTemporaryKeyValues *ReadTemporaryAsBinary( bool bUsesEscapeSequences, CUtlBuffer &buffer );
 
 	// Allocate & create a new copy of the keys
 	KeyValues *MakeCopy( void ) const;

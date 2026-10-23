@@ -80,5 +80,7 @@ public:
 };
 
 PLATFORM_INTERFACE IKeyValuesSystem *KeyValuesSystem();
+// Allocates a system with its own string table; delete it, or pass it to a KeyValues constructed with bOwnsKeyValuesSystem
+PLATFORM_INTERFACE IKeyValuesSystem *CreateDisposableKeyValuesSystem();
 
 #endif // VSTDLIB_IKEYVALUESSYSTEM_H
