@@ -284,15 +284,15 @@ public:
 		m_nInteractsExclude = 0;
 		m_nInteractsAs = 0;
 		
-		m_nEntityIdsToIgnore[0] = -1;
-		m_nEntityIdsToIgnore[1] = -1;
+		m_nEntityIdsToIgnore[0] = INVALID_EHANDLE_INDEX;
+		m_nEntityIdsToIgnore[1] = INVALID_EHANDLE_INDEX;
 		
-		m_nOwnerIdsToIgnore[0] = -1;
-		m_nOwnerIdsToIgnore[1] = -1;
+		m_nOwnerIdsToIgnore[0] = INVALID_EHANDLE_INDEX;
+		m_nOwnerIdsToIgnore[1] = INVALID_EHANDLE_INDEX;
 		
 		m_nHierarchyIds[0] = 0;
 		m_nHierarchyIds[1] = 0;
-		m_nIncludedDetailLayers = -1;
+		m_nIncludedDetailLayers = (uint16)-1;
 		m_nTargetDetailLayer = 0;
 		m_nObjectSetMask = RNQUERY_OBJECTS_ALL;
 		m_nCollisionGroup = COLLISION_GROUP_ALWAYS;
@@ -401,11 +401,11 @@ public:
 		m_bIterateEntities = bIterateEntities;
 	}
 	
-	void SetPassEntity1( CEntityInstance* pEntity ) { m_nEntityIdsToIgnore[0] = pEntity ? pEntity->GetRefEHandle().ToInt() : -1; }
-	void SetPassEntity2( CEntityInstance* pEntity ) { m_nEntityIdsToIgnore[1] = pEntity ? pEntity->GetRefEHandle().ToInt() : -1; }
+	void SetPassEntity1( CEntityInstance* pEntity ) { m_nEntityIdsToIgnore[0] = pEntity ? pEntity->GetRefEHandle().ToInt() : INVALID_EHANDLE_INDEX; }
+	void SetPassEntity2( CEntityInstance* pEntity ) { m_nEntityIdsToIgnore[1] = pEntity ? pEntity->GetRefEHandle().ToInt() : INVALID_EHANDLE_INDEX; }
 	
-	void SetPassEntityOwner1( CEntityInstance* pOwner ) { m_nOwnerIdsToIgnore[0] = pOwner ? pOwner->GetRefEHandle().ToInt() : -1; }
-	void SetPassEntityOwner2( CEntityInstance* pOwner ) { m_nOwnerIdsToIgnore[1] = pOwner ? pOwner->GetRefEHandle().ToInt() : -1; }
+	void SetPassEntityOwner1( CEntityInstance* pOwner ) { m_nOwnerIdsToIgnore[0] = pOwner ? pOwner->GetRefEHandle().ToInt() : INVALID_EHANDLE_INDEX; }
+	void SetPassEntityOwner2( CEntityInstance* pOwner ) { m_nOwnerIdsToIgnore[1] = pOwner ? pOwner->GetRefEHandle().ToInt() : INVALID_EHANDLE_INDEX; }
 	
 	virtual ~CTraceFilter() {}
 	virtual bool ShouldHitEntity( CEntityInstance* pEntity ) { return true; }
@@ -423,7 +423,7 @@ public:
 		m_nInteractsWith = 0;
 		m_nInteractsExclude = 0;
 		m_nEntityId = 0;
-		m_nOwnerId = -1;
+		m_nOwnerId = INVALID_EHANDLE_INDEX;
 		m_nHierarchyId = 0;
 		m_nCollisionGroup = COLLISION_GROUP_ALWAYS;
 		m_nCollisionFunctionMask = FCOLLISION_FUNC_DEFAULT;
