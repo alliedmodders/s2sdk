@@ -2125,8 +2125,6 @@ void CKeyValues3Table::RenameMember( KeyValues3 *parent, KV3MemberId_t id, const
 void CKeyValues3Table::RemoveAll( KeyValues3 *parent, int new_size )
 {
 	Member_t *members_base = MembersBase();
-	Name_t *names_base = NamesBase();
-	Flags_t *flags_base = FlagsBase();
 
 	for(int i = 0; i < m_nCount; i++)
 	{
@@ -2162,8 +2160,6 @@ void CKeyValues3Table::PurgeFastSearch()
 void CKeyValues3Table::PurgeContent( KeyValues3 *parent, bool bClearingContext )
 {
 	Member_t *members_base = MembersBase();
-	Name_t *names_base = NamesBase();
-	Flags_t *flags_base = FlagsBase();
 
 	for ( int i = 0; i < m_nCount; ++i )
 	{
