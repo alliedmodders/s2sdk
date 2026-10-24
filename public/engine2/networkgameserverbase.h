@@ -12,16 +12,39 @@
 #endif
 
 #include "engine2/inetworkgameserver.h"
+#include "engine2/gamesessionconfiguration.h"
 #include <steam/steamclientpublic.h>
 #include "server_class.h"
 #include "networksystem/inetworksystem.h"
 #include "icvar.h"
 #include "playerslot.h"
+#include "tier0/bitbuf.h"
+#include "tier0/jobthread.h"
+#include "tier0/threadtools.h"
+#include "tier0/utlleanvector.h"
+#include "tier0/utllinkedlist.h"
+#include "tier0/utlmap.h"
+#include "tier0/utlstring.h"
+#include "tier0/utlstringtoken.h"
+#include "tier0/utlvector.h"
+#include "worldrenderer/world_defs.h"
 
+class KeyValues;
 class KeyValues3;
 class CServerSideClientBase;
 class CSVCMsg_ServerInfo_t;
 class C2S_CONNECT_Message;
+class CCompressedResourceManifestRefCounted;
+class CFrameSnapshotManager;
+class CNetworkServerSpawnGroup;
+class CNetworkServerSpawnGroupCreatePrerequisites;
+class CTvDirectDemoRecorder;
+class INetworkStringTable;
+class INetworkStringTableContainer;
+class ISource2WorldSession;
+
+template <class T>
+class CDelayedCallBase;
 
 typedef int ChallengeType_t;
 typedef int PauseGroup_t;
@@ -49,7 +72,6 @@ public:
 	// Returns hostname of this server instance
 	virtual const char *GetHostName() = 0;
 
-	// AMNOTE: arg names are speculative and might be incorrect!
 	// Sums up across all the connected players.
 	virtual void	GetNetStats( float &inflow, float &outflow ) = 0;
 
@@ -62,13 +84,14 @@ public:
 	// Returns sv_password cvar value, if it's set to "none" nullptr would be returned!
 	virtual const char *GetPassword() = 0;
 
-	virtual void	RemoveClientFromGame(CServerSideClientBase *, /*ENetworkDisconnectionReason*/ int ) = 0;
+	virtual void	RemoveClientFromGame( CServerSideClientBase *pClient, ENetworkDisconnectionReason reason ) = 0;
 
 	virtual void	FillServerInfo( CSVCMsg_ServerInfo_t *pServerInfo ) = 0;
 	virtual void	UserInfoChanged( CPlayerSlot slot ) = 0;
 
-	// 2nd arg is unused.
-	virtual void	GetClassBaseline( void *, ServerClass *pClass, intp *pOut ) = 0;
+	// The first argument is unused. ppBaseline gets nullptr when no baseline is stored for the class;
+	// a class without an instance baseline index is a fatal error.
+	virtual bool	GetClassBaseline( void *, ServerClass *pClass, void **ppBaseline ) = 0;
 
 	virtual void	StartHLTVMaster() = 0;
 
@@ -82,7 +105,202 @@ public:
 	virtual bool	CheckPassword( const ns_address &addr, const char *password ) = 0;
 
 	virtual void	CalculateCPUUsage() = 0;
+
+public:
+	struct WorldGroup_t
+	{
+		CUtlStringToken m_Token;
+		CUtlString m_Name;
+		int m_nRefCount;
+	};
+
+	// AMNOTE: Prefer IVEngineServer2's world group methods (FindWorldGroupByName, IsWorldGroupValid, ...) instead of direct access
+	struct WorldGroupList_t
+	{
+		// A world group's WorldGroupId_t is its index here, with bit 31 set when m_bClient is set
+		WorldGroupId_t GetWorldGroupId( int nIndex ) const { return WorldGroupId_t( (uint32)nIndex | ( m_bClient ? 0x80000000 : 0 ) ); }
+
+		// nullptr when hWorldGroup isn't one of this list's groups
+		const WorldGroup_t *GetWorldGroup( WorldGroupId_t hWorldGroup ) const;
+		WorldGroupId_t FindWorldGroupByName( const char *pszName ) const;
+
+		bool IsWorldGroupValid( WorldGroupId_t hWorldGroup ) const
+		{
+			const WorldGroup_t *pWorldGroup = GetWorldGroup( hWorldGroup );
+			return pWorldGroup && pWorldGroup->m_nRefCount > 0;
+		}
+
+		CUtlVector<WorldGroup_t> m_Groups;
+		bool m_bClient;
+	};
+
+	struct PendingSpawnGroupUnload_t
+	{
+		SpawnGroupHandle_t m_hSpawnGroup;
+		ESpawnGroupUnloadOption m_eUnloadOption;
+	};
+
+	struct PendingSplitScreenRemoval_t
+	{
+		CServerSideClientBase *m_pClient;
+		CServerSideClientBase *m_pSplitScreenClient;
+	};
+
+	WorldGroupList_t m_WorldGroups;
+	server_state_t m_nServerState;
+	int m_nRefCount;
+	int m_nSocket;
+	int m_nServerTick;
+	int m_nMinClientsLimit;
+	int m_nMaxClientsLimit;
+
+	// Bit 1 << PauseGroup_t for each group that paused the server; it is paused while any is set
+	int m_nPausedGroups;
+
+	CGlobalVars m_Globals;
+	GameSessionConfiguration_t m_GameSessionConfig;
+	CUtlString m_szMapName;
+	CUtlString m_szAddonName;
+	CUtlString m_szSkyName;
+
+	// AMNOTE: Nothing uses it
+	CUtlString m_unk101;
+
+	KeyValues *m_pLaunchOptions;
+	INetworkStringTableContainer *m_pServerStringTables;
+	INetworkStringTableContainer *m_pClientStringTables;
+	INetworkStringTable *m_pInstanceBaselineTable;
+	INetworkStringTable *m_pUserInfoTable;
+	INetworkStringTable *m_pServerQueryInfoTable;
+
+	CFrameSnapshotManager *m_pFrameSnapshotManager;
+
+	// AMNOTE: The instance baselines GetClassBaseline looks up: a hash table from the baseline index to the baseline
+	CThreadFastMutex m_InstanceBaselinesMutex;
+	uint64 m_InstanceBaselines[10];
+
+	bf_write m_Signon;
+	CUtlLeanVector<uint8> m_SignonBuffer;
+	bool m_bIsBackgroundMap;
+	CUtlVector<CServerSideClientBase *> m_Clients;
+	CCompressedResourceManifestRefCounted *m_pCompressedGameSessionManifest;
+
+	// AMNOTE: The instance baselines of entities with a baseline counter: a hash table from the ServerClass to
+	// its "instancebaseline" table index per counter ("<class id>:<counter>" entries)
+	CThreadFastMutex m_CounterInstanceBaselinesMutex;
+	uint64 m_CounterInstanceBaselines[4];
+
+	SpawnGroupHandle_t m_hActiveSpawnGroup;
+	int m_nMaxClients;
+	int m_nServerCount;
+	int m_nMaxClasses;
+	int m_nServerClassBits;
+	time_t m_nCreationTime;
+	bool m_bChangelevelPending;
+	// Set on the new server once it took over the previous level's clients; ActivateServer then keeps the Steam game
+	// server as it is, unless m_bPreserveSteamID is set
+	bool m_bChangelevelFinished;
+	bool m_bPreserveSteamID;
+	bool m_bHibernating;
+
+	CUtlVector<CDelayedCallBase<CNetworkGameServerBase> *> m_DelayedCalls;
+	CUtlLinkedList<CNetworkServerSpawnGroupCreatePrerequisites *, uint16> m_LoadingSpawnGroups;
+	CUtlOrderedMap<SpawnGroupHandle_t, CNetworkServerSpawnGroup *, CDefLess<SpawnGroupHandle_t>, uint16> m_SpawnGroups;
+	// Unloaded once m_nPendingSpawnGroupManifestUpdates is 0
+	CUtlVector<PendingSpawnGroupUnload_t> m_PendingSpawnGroupUnloads;
+	int m_nPendingSpawnGroupManifestUpdates;
+
+	// The spawn group that loads the resource system's just-in-time manifests, rebuilt when their count changes
+	SpawnGroupHandle_t m_hJustInTimeSpawnGroup;
+
+	// The Steam game server's game data and tags
+	CUtlVector<char> m_GameData;
+	CUtlString m_szGameTags;
+	int m_nDisconnectSequence;
+	CUtlVector<PendingSplitScreenRemoval_t> m_PendingSplitScreenRemovals;
+
+	// The client whose packet is being processed, from its ProcessPacketStart to its ProcessPacketEnd
+	CServerSideClientBase *m_pHostClient;
+	IGameSpawnGroupMgr *m_pSpawnGroupMgr;
+	ISource2WorldSession *m_pWorldSession;
+	HGameResourceManifest m_hGameSessionManifest;
+	SpawnGroupHandle_t m_hNextSpawnGroup;
+
+	// These point into the server reservation; IsReserved checks for a non-zero cookie
+	uint64 *m_pReservationCookie;
+	float *m_pflLastClientLeftTime;
+
+	// AMNOTE: Nothing uses the float it points to
+	float *m_unk201;
+
+	float *m_pflReservationExpireTime;
+
+	int m_nMaxSpawnGroupCreationSequence;
+	// The just-in-time manifest count m_hJustInTimeSpawnGroup was built for
+	int m_nJustInTimeManifestCount;
+	// The serial in each player slot's CPlayerUserId (slot | serial << 8), 0xFFFF while the slot was never used
+	uint16 m_PlayerUserIdSerials[64];
+	// Incremented each time UpdateGameData produces different game data
+	int m_nGameDataChangeCount;
+	// The game type config's "Members/numSlots"
+	int m_nNumSlots;
+
+	float m_flLastCPUUsageSampleTime;
+	float m_flCPUUsage;
+	float m_flTimescale;
+	// The peer list is resent to the clients
+	bool m_bUpdatePeerList;
+	bool m_bMultiplayer;
+
+	// AMNOTE: Nothing uses it
+	uint8 m_unk301;
+
+	// The "ticks_per_interval" and "framecomputetime_ms_per_interval" histograms of FillKV3ServerInfo
+	int m_nTicksPerIntervalBuckets;
+	uint64 m_TicksPerIntervalBuckets[11];
+	uint64 m_nTicksPerIntervalSum;
+	uint64 m_nTicksPerIntervalCount;
+	int m_nFrameComputeTimeBuckets;
+	uint64 m_FrameComputeTimeBuckets[61];
+	double m_flFrameComputeTimeSum;
+	uint64 m_nFrameComputeTimeCount;
+
+	// From the reservation ReserveServerForQueuedGame takes; SourceTV broadcasts send it as their match_id
+	uint64 m_nMatchID;
+	CTvDirectDemoRecorder *m_pDirectDemoRecorder;
+	uint64 m_nUserInfoCvarsTotalByteSize;
+	// The connected clients in this process (loopback address, or localhost passing the same-process check)
+	int m_nLoopbackClientCount;
+	// The job running ISource2Server::GameFrame on another thread ("ServerGameFrame"), queued by ServerBeginSimulate
+	CSmartPtr<CThreadedJob> m_pServerGameFrameJob;
 };
+
+inline const CNetworkGameServerBase::WorldGroup_t *CNetworkGameServerBase::WorldGroupList_t::GetWorldGroup( WorldGroupId_t hWorldGroup ) const
+{
+	if ( ( ( hWorldGroup.m_nId & 0x80000000 ) != 0 ) != m_bClient )
+		return nullptr;
+
+	int nIndex = (int)( hWorldGroup.m_nId & 0x7FFFFFFF );
+	if ( nIndex >= m_Groups.Count() )
+		return nullptr;
+
+	return &m_Groups[nIndex];
+}
+
+inline WorldGroupId_t CNetworkGameServerBase::WorldGroupList_t::FindWorldGroupByName( const char *pszName ) const
+{
+	if ( pszName && *pszName )
+	{
+		CUtlStringToken token( pszName );
+		FOR_EACH_VEC( m_Groups, i )
+		{
+			if ( m_Groups[i].m_Token == token )
+				return GetWorldGroupId( i );
+		}
+	}
+
+	return INVALID_WORLD_GROUP_ID;
+}
 
 typedef CNetworkGameServerBase IServer;
 
