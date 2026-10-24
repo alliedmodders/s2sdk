@@ -22,7 +22,6 @@ struct ChangeAccessorFieldPathIndexInfo_t;
 struct CPulseArgumentPack;
 struct CPulseInputParamMap;
 struct datamap_t;
-struct NetworkStateChangedRemove_t;
 struct ScriptClassDesc_t;
 
 abstract_class IEntityVisitor
@@ -87,6 +86,17 @@ struct NetworkStateChangedData
 	// CNetworkVarChainer drops such a change when no path index is known
 	bool m_bRequiresPathIndex;
 	bool m_unk101;
+};
+
+struct NetworkStateChangedRemove_t
+{
+	inline NetworkStateChangedRemove_t() : m_nFieldOffset(0) { }
+
+	// The changes under these paths, used when m_nFieldOffset is 0
+	CUtlVector<ChangeAccessorFieldPathIndex_t> m_PathIndices;
+	// Otherwise these elements of the networked vector at m_nFieldOffset
+	CUtlVector<int32> m_ElementIndices;
+	uint32 m_nFieldOffset;
 };
 
 class CEntityInstance
