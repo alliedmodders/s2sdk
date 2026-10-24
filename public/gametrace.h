@@ -75,6 +75,7 @@ enum RnQueryObjectSet
 	RNQUERY_OBJECTS_STATIC          = (1 << 0), // static body
 	RNQUERY_OBJECTS_KEYFRAMED       = (1 << 1), // keyframed body
 	RNQUERY_OBJECTS_DYNAMIC         = (1 << 2), // dynamic body
+	// AMNOTE: The physics world's casts ignore it and test only the three body bits
 	RNQUERY_OBJECTS_LOCATABLE       = (1 << 3),
 
 
@@ -303,7 +304,7 @@ public:
 		m_bShouldIgnoreDisabledPairs = true;
 		m_bIgnoreIfBothInteractWithHitboxes = false;
 		m_bForceHitEverything = false;
-		m_bUnknown = true;
+		m_unk101 = true;
 	}
 	
 	bool HasInteractsAsLayer( int nLayerIndex ) const		{ return ( m_nInteractsAs & ( 1ull << nLayerIndex ) ) != 0; }
@@ -342,7 +343,7 @@ public:
 	bool m_bShouldIgnoreDisabledPairs : 1; 			// if true, then ignores if the query and shape entity IDs are in collision pairs
 	bool m_bIgnoreIfBothInteractWithHitboxes : 1;	// if true, then ignores if both query and shape interact with LAYER_INDEX_CONTENTS_HITBOX
 	bool m_bForceHitEverything : 1;					// if true, will hit any objects without any conditions
-	bool m_bUnknown : 1;							// haven't found where this is used yet
+	bool m_unk101 : 1;								// AMNOTE: Set by default, the physics world's query filters never test it
 };
 
 struct RnQueryAttr_t : public RnQueryShapeAttr_t
@@ -489,7 +490,7 @@ public:
 		m_vHitPoint.Init();
 		m_flHitOffset = 0.0f;
 		m_flFraction = 1.0f;
-		m_unk001 = -1;
+		m_nCompoundId = -1;
 		m_nTriangle = -1;
 		m_nHitboxBoneIndex = -1;
 		m_eRayType = RAY_TYPE_LINE;
@@ -506,6 +507,8 @@ public:
 public:
 	const CPhysSurfaceProperties *m_pSurfaceProperties;
 	CEntityInstance *m_pEnt;
+	// AMNOTE: The game's trace setup points it at its default hitbox (named "invalid_hitbox") instead of null, so it is
+	// never null on traces the game fills
 	const CHitBox *m_pHitbox;
 	
 	HPhysicsBody m_hBody;
@@ -524,8 +527,7 @@ public:
 	float m_flHitOffset;				// surface normal hit offset
 	float m_flFraction;					// time completed, 1.0 = didn't hit anything
 	
-	int32 m_unk001;
-
+	int32 m_nCompoundId;				// the index of the primitive hit in a compound shape, -1 for other shapes
 	int32 m_nTriangle;					// the index of the triangle that was hit
 	int16 m_nHitboxBoneIndex; 			// the index of the hitbox bone that was hit
 	
