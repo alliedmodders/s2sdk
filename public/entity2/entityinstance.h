@@ -41,9 +41,9 @@ enum AcceptInputResult_t
 
 struct NetworkStateChangedData
 {
-	inline NetworkStateChangedData() : m_unk001(1), m_nLine(-1), m_nArrayIndex(-1), m_nPathIndex(ChangeAccessorFieldPathIndex_t()), m_bRequiresPathIndex(false), m_unk101(false) { }
+	inline NetworkStateChangedData() : m_bPartialChange(1), m_nLine(-1), m_nArrayIndex(-1), m_nPathIndex(ChangeAccessorFieldPathIndex_t()), m_bRequiresPathIndex(false), m_unk101(false) { }
 	inline explicit NetworkStateChangedData( bool bFullChanged ) :
-		m_unk001(static_cast<uint32>(!bFullChanged)), m_nLine(-1),
+		m_bPartialChange(static_cast<uint32>(!bFullChanged)), m_nLine(-1),
 		m_nArrayIndex(-1), m_nPathIndex(ChangeAccessorFieldPathIndex_t()),
 		m_bRequiresPathIndex(false), m_unk101(false)
 	{ }
@@ -57,13 +57,13 @@ struct NetworkStateChangedData
 	//		if the path to the field goes through one or more pointers, otherwise pass -1
 	// 		this value is usually a member of the CNetworkVarChainer and belongs to the last object in the chain
 	inline NetworkStateChangedData( uint32 nLocalOffset, int32 nArrayIndex = -1, ChangeAccessorFieldPathIndex_t nPathIndex = ChangeAccessorFieldPathIndex_t() ) :
-		m_unk001(1), m_LocalOffsets(0, 1), m_nLine(-1), m_nArrayIndex(nArrayIndex), m_nPathIndex(nPathIndex), m_bRequiresPathIndex(false), m_unk101(false)
+		m_bPartialChange(1), m_LocalOffsets(0, 1), m_nLine(-1), m_nArrayIndex(nArrayIndex), m_nPathIndex(nPathIndex), m_bRequiresPathIndex(false), m_unk101(false)
 	{
 		m_LocalOffsets.AddToHead(nLocalOffset);
 	}
 
 	inline NetworkStateChangedData(const std::initializer_list< uint32 > nLocalOffsets, int32 nArrayIndex = -1, ChangeAccessorFieldPathIndex_t nPathIndex = ChangeAccessorFieldPathIndex_t()) :
-		m_unk001(1), m_LocalOffsets(0, (int)nLocalOffsets.size()), m_nLine(-1), m_nArrayIndex(nArrayIndex), m_nPathIndex(nPathIndex), m_bRequiresPathIndex(true), m_unk101(false)
+		m_bPartialChange(1), m_LocalOffsets(0, (int)nLocalOffsets.size()), m_nLine(-1), m_nArrayIndex(nArrayIndex), m_nPathIndex(nPathIndex), m_bRequiresPathIndex(true), m_unk101(false)
 	{
 		for ( const uint32& nLocalOffset : nLocalOffsets )
 		{
@@ -71,14 +71,16 @@ struct NetworkStateChangedData
 		}
 	}
 
-	uint32 m_unk001; // Perhaps it is an enum, default 1, when 0 adds FL_FULL_EDICT_CHANGED
+	// AMNOTE: 1 when only the fields at m_LocalOffsets changed, 0 marks the whole entity changed (FL_FULL_EDICT_CHANGED)
+	uint32 m_bPartialChange;
 	CUtlVector<uint32> m_LocalOffsets;
 	
-	// AMNOTE: Mostly unused/debug
+	// AMNOTE: Where a whole entity change came from, for its debug log
 	CUtlString m_FieldName;
 	CUtlString m_FileName;
 	int32 m_nLine;
 	int32 m_nArrayIndex;
+	// AMNOTE: -2 for fields culled from the network, whose changes are dropped
 	ChangeAccessorFieldPathIndex_t m_nPathIndex;
 
 	// AMNOTE: Set for the field offsets a networked vector sends for one of its elements.
