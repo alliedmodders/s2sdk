@@ -36,6 +36,7 @@
 #include "scenesystem/iscenesystem.h"
 #include "const.h"
 #include "networksystem/networksystemtypes.h"
+#include "tier2/fieldpath.h"
 
 class KeyValues3;
 class CUtlBuffer;
@@ -59,34 +60,43 @@ struct NetMessageInfo_t;
 class CNetMessage;
 
 // Max # of variable changes we'll track in an entity before we treat it
-// like they all changed.
-#define MAX_CHANGE_OFFSETS	19
-#define MAX_EDICT_CHANGE_INFOS	100
+// like they all changed, unless CNetworkTransmitComponent::m_nMaxChangedOffsets sets another limit.
+#define MAX_CHANGE_OFFSETS	48
+#define MAX_EDICT_CHANGE_INFOS	3000
+
+// AMNOTE: The network state changes of one entity, as CEdictChangeInfo holds them; the server also builds one on its
+// own to resolve a single change
+struct VarChangeList_t
+{
+	// Edicts remember the offsets of properties that change
+	CUtlVectorFixedGrowable<VarChangeInfo_t, MAX_CHANGE_OFFSETS> m_ChangeOffsets;
+	// The changed element indices of networked vectors, up to 64 per list
+	CUtlVectorFixedGrowable<uint16 *, 16> m_ChangedElements;
+	// Changed fields under a branch, added only while they and m_ChangeOffsets stay under MAX_CHANGE_OFFSETS
+	CUtlVector<CFieldPath> m_ChangedFieldPaths;
+};
 
 class CEdictChangeInfo
 {
 public:
 	ChangeAccessorFieldPathIndexInfo_t *m_pChangeAccessorFieldPathInfo;
-	// Edicts remember the offsets of properties that change 
-	VarChangeInfo_t m_ChangeOffsets[MAX_CHANGE_OFFSETS];
-	uint32 m_nChangeOffsets;
+	VarChangeList_t m_Changes;
 };
 
 // Shared between engine and game DLL.
 class CSharedEdictChangeInfo
 {
 public:
-	CSharedEdictChangeInfo()
-	{
-		m_iSerialNumber = 1;
-	}
-
-	// Matched against edict_t::m_iChangeInfoSerialNumber to determine if its
-	// change info is valid.
-	unsigned short m_iSerialNumber;
+	CSharedEdictChangeInfo() : m_iSerialNumber( 1 ), m_nHighWaterMark( 0 ), m_nChangeInfos( 0 ) {}
 
 	CEdictChangeInfo m_ChangeInfos[MAX_EDICT_CHANGE_INFOS];
-	unsigned short m_nChangeInfos;	// How many are in use this frame.
+
+	// Matched against CChangeInfoAccessor::m_iChangeInfoSerialNumber to determine if its
+	// change info is valid.
+	uint16 m_iSerialNumber;
+
+	uint32 m_nHighWaterMark; // The most change infos any frame has used
+	uint32 m_nChangeInfos;	// How many are in use this frame.
 };
 extern CSharedEdictChangeInfo *g_pSharedChangeInfo;
 
