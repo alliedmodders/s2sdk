@@ -39,7 +39,7 @@ public:
 
 public:
 	// Allocated on first use
-	ChangeAccessorFieldPathIndexInfo_t* m_pChangeChangeAccessorFieldPathIndexInfo;
+	ChangeAccessorFieldPathIndexInfo_t* m_pChangeAccessorFieldPathIndexInfo;
 
 	// While it is registered, state changes are only marked pending until it fires
 	CEventRegister* m_pTimerEvent;
@@ -67,7 +67,7 @@ public:
 
 	bool m_bNetworkUpdatesDisabled;
 
-	// Changed offsets one shared change info holds, 48 when negative
+	// Changed offsets one shared change info holds, MAX_CHANGE_OFFSETS when negative
 	int m_nMaxChangedOffsets;
 
 	CEntityInstance* m_pOuter;
@@ -78,9 +78,10 @@ public:
 	// The spawn group whose bounds contain the entity, preferring the entity's own spawn group
 	SpawnGroupHandle_t m_PhysicalSpawnGroupHandle;
 
-	CAtomicMutex m_unk201;
+	// AMNOTE: Held while the transmit state is queried from m_pOuter, when no m_nTransmitStateOwnedCounter owner sets it
+	CAtomicMutex m_TransmitStateMutex;
 	// AMNOTE: Held while the PVS clusters are recomputed
-	CAtomicMutex m_unk202;
+	CAtomicMutex m_PVSClustersMutex;
 
 	CEntityInstancePolymorphicMetadataHelper* m_pPolymorphicMetadataHelper;
 	bool m_bPolymorphicMetadataHelperDirty;
