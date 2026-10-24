@@ -20,4 +20,6 @@ public:
 	uint32 m_nId;
 };
 
+#define INVALID_WORLD_GROUP_ID WorldGroupId_t( 0xFFFFFFFF )
+
 #endif // WORLD_DEFS_H
