@@ -51,12 +51,18 @@ struct ChangeAccessorFieldPathIndexInfo_t
 	IgnoreCache_t m_ShouldNotIgnore;
 };
 
+// AMNOTE: A changed field, or changed elements of a networked vector
 struct VarChangeInfo_t
 {
+	uint32 m_nFieldOffset;
 	ChangeAccessorFieldPathIndex_t m_nRootPathIndex;
-	int16 m_nArrayIndex;
-	uint32 m_nFieldOffset : 31;
-	uint32 m_bResolved : 1;
+
+	// All bits are set when only the whole field changed, and then these hold no element list.
+	// Otherwise the changed elements are in VarChangeList_t::m_ChangedElements[m_nElementListIndex]
+	uint16 m_nElementCount : 7;
+	uint16 m_bElementsSorted : 1;
+	uint16 m_nElementListIndex : 7;
+	uint16 m_bFieldChanged : 1; // The whole field changed too
 };
 
 enum NetworkSerializationMode_t
