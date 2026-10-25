@@ -76,7 +76,8 @@ private:
 	int m_nBits;
 	int m_nInSequenceNr;
 	float m_flMargin;
-	int64 m_unk101;
+	// NetPacket_t::m_nStreamPosition of the packet it was parsed from
+	int64 m_nStreamPosition;
 };
 
 // AMNOTE: This is a stub class over real CNetMessagePB!
