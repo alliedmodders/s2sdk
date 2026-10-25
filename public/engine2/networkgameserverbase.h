@@ -21,6 +21,9 @@
 #include "tier0/bitbuf.h"
 #include "tier0/jobthread.h"
 #include "tier0/threadtools.h"
+#include "tier0/utlhashmap.h"
+#include "tier0/utldict.h"
+#include "tier0/utlhashtable.h"
 #include "tier0/utlleanvector.h"
 #include "tier0/utllinkedlist.h"
 #include "tier0/utlmap.h"
@@ -38,6 +41,7 @@ class CCompressedResourceManifestRefCounted;
 class CFrameSnapshotManager;
 class CNetworkServerSpawnGroup;
 class CNetworkServerSpawnGroupCreatePrerequisites;
+class CSerializedEntity;
 class CTvDirectDemoRecorder;
 class INetworkStringTable;
 class INetworkStringTableContainer;
@@ -46,7 +50,23 @@ class ISource2WorldSession;
 template <class T>
 class CDelayedCallBase;
 
-typedef int ChallengeType_t;
+// The auth protocol GetChallengeType sends in S2C_CHALLENGE and clients send back as C2S_CONNECT's auth_protocol
+enum ChallengeType_t : int
+{
+	PROTOCOL_HASHEDCDKEY = 2,
+	PROTOCOL_STEAM = 3,
+};
+
+// The instance baselines of one ServerClass with a baseline counter
+struct CounterInstanceBaselines_t
+{
+	CThreadFastMutex m_Mutex;
+	// Counter name to its index in m_BaselineIndices
+	CUtlDict<int> m_CounterIndices;
+	// The "instancebaseline" table index per counter, -1 until its baseline is made
+	CUtlVector<int> m_BaselineIndices;
+};
+
 typedef int PauseGroup_t;
 
 abstract_class CNetworkGameServerBase : public INetworkGameServer, protected IConnectionlessPacketHandler, public IConVarListener
@@ -99,7 +119,8 @@ public:
 												  const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence ) = 0;
 	virtual CServerSideClientBase *CreateNewClient( CPlayerSlot slot ) = 0;
 	
-	virtual bool	FinishCertificateCheck( const ns_address *pAddr, int socket, byte ) = 0;
+	// PROTOCOL_HASHEDCDKEY is refused for remote clients while Steam authentication is up, other values than the two are refused
+	virtual bool	FinishCertificateCheck( const ns_address *pAddr, int socket, ChallengeType_t nAuthProtocol ) = 0;
 
 	virtual ChallengeType_t	GetChallengeType( const ns_address &addr ) = 0;
 	virtual bool	CheckPassword( const ns_address &addr, const char *password ) = 0;
@@ -175,9 +196,9 @@ public:
 
 	CFrameSnapshotManager *m_pFrameSnapshotManager;
 
-	// AMNOTE: The instance baselines GetClassBaseline looks up: a hash table from the baseline index to the baseline
+	// The instance baselines GetClassBaseline looks up, by the class's "instancebaseline" table index
 	CThreadFastMutex m_InstanceBaselinesMutex;
-	uint64 m_InstanceBaselines[10];
+	CUtlHashMap<int, CSerializedEntity *> m_InstanceBaselines;
 
 	bf_write m_Signon;
 	CUtlLeanVector<uint8> m_SignonBuffer;
@@ -185,10 +206,9 @@ public:
 	CUtlVector<CServerSideClientBase *> m_Clients;
 	CCompressedResourceManifestRefCounted *m_pCompressedGameSessionManifest;
 
-	// AMNOTE: The instance baselines of entities with a baseline counter: a hash table from the ServerClass to
-	// its "instancebaseline" table index per counter ("<class id>:<counter>" entries)
+	// The instance baselines of entities with a baseline counter, made on first use per ServerClass
 	CThreadFastMutex m_CounterInstanceBaselinesMutex;
-	uint64 m_CounterInstanceBaselines[4];
+	CUtlHashtable<ServerClass *, CounterInstanceBaselines_t *, PointerHashFunctor> m_CounterInstanceBaselines;
 
 	SpawnGroupHandle_t m_hActiveSpawnGroup;
 	int m_nMaxClients;
@@ -247,6 +267,7 @@ public:
 
 	float m_flLastCPUUsageSampleTime;
 	float m_flCPUUsage;
+	// Set by IVEngineServer2::SetTimescale, 1 by default
 	float m_flTimescale;
 	// The peer list is resent to the clients
 	bool m_bUpdatePeerList;
