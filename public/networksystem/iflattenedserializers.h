@@ -7,6 +7,7 @@
 
 #include "tier0/basetypes.h"
 #include "tier0/utldelegate.h"
+#include "tier0/utldict.h"
 #include "tier0/utlleanvector.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlsymbollarge.h"
@@ -21,6 +22,29 @@ struct FlattenedSerializerDesc_t
 {
 	CUtlSymbolLarge m_name;
 	FlattenedSerializerHandle_t m_handle;
+};
+
+class CSchemaClassInfo;
+
+// AMNOTE: One class to build a flattened serializer for, FindOrCreateCreateFlattenedSerializers fills
+// *m_pSerializer and m_bSerializerAlreadyExisted
+struct BuildFlattenedSerializerInfo_t
+{
+	FlattenedSerializerDesc_t *m_pSerializer;
+	CSchemaClassInfo *m_pClassIntrospection;
+	INetworkSerializerBindingBuildFilter *m_pFilter;
+
+	// Used for fields whose own and class settings are OOPVSUpdates_Default
+	OOPVSUpdates_t m_nDefaultOutOfPVSUpdates;
+	NetworkSerializationMode_t m_nMode;
+
+	// Shared by every entry of one call; the check for missing CNetworkVar declarations adds the fields of each struct
+	// that has MNetworkEnable but no CNetworkVar, by struct name
+	CUtlDict<CUtlString> *m_pMissingNetworkVars;
+
+	bool m_bUseNetworkVars;
+	bool m_bForceCannotBeNetworked;
+	bool m_bSerializerAlreadyExisted;
 };
 
 struct SerializerMatchInfo_t
@@ -87,7 +111,6 @@ struct PolymorphicMetadata_t
 	bool m_bNeedsSort; // Set once there are two entries; GatherPolymorphicMetadata sorts them and clears it
 };
 
-struct BuildFlattenedSerializerInfo_t;
 class bf_read;
 class bf_write;
 class CSerializedEntity;
@@ -108,7 +131,7 @@ abstract_class IFlattenedSerializers
 public:
 	virtual void FindOrCreateCreateFlattenedSerializers( BuildFlattenedSerializerInfo_t *pInfos, int nCount ) = 0;
 
-	virtual CUtlString GetFullFieldName( const FlattenedSerializerDesc_t &serializer, const CFieldPath &path, void *pObject, int nEntityIndex, NetworkSerializationMode_t nMode, bool ) = 0;
+	virtual CUtlString GetFullFieldName( const FlattenedSerializerDesc_t &serializer, const CFieldPath &path, void *pObject, int nEntityIndex, NetworkSerializationMode_t nMode, bool bIncludeClassNames ) = 0;
 	virtual const char *GetFieldName( const FlattenedSerializerDesc_t &serializer, const CFieldPath &path, IPolymorphicMetadataHelper *pMetadataHelper, NetworkSerializationMode_t nMode, CUtlString *pOut ) = 0;
 	virtual const char *GetFieldName( const FlattenedSerializerDesc_t &serializer, int nFieldPath, IPolymorphicMetadataHelper *pMetadataHelper, NetworkSerializationMode_t nMode, CUtlString *pOut ) = 0;
 
