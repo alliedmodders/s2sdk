@@ -344,6 +344,33 @@ enum EncryptedMessageKeyType_t
 	kEncryptedMessageKeyType_Public = 2, // tv_encryptdata_key_pub
 };
 
+enum ClientPutInServerType_t
+{
+	CLIENT_PUT_IN_SERVER_PLAYER = 0,
+	CLIENT_PUT_IN_SERVER_FAKE_PLAYER,
+	CLIENT_PUT_IN_SERVER_HLTV,
+};
+
+// The player's usercmd state that WriteDeltaEntities sends in CSVCMsg_PacketEntities
+struct PlayerCommandStatus_t
+{
+	int m_nLastCmdNumberExecuted;
+	int m_nLastCmdNumberReceived;
+	// In seconds, -1 before the first usercmd; m_CmdRecvStatus is only sent when it isn't negative
+	float m_flLastCmdRecvMargin;
+
+	// Sent as cmd_recv_status, a shorter list ends with 65599
+	int m_CmdRecvStatus[8];
+	int m_nStarvedCommandTicks;
+	int m_nDiscardedCommandTicks;
+
+	// AMNOTE: The server zeroes it, nothing else writes or reads it
+	int m_unk101;
+
+	// Set when the player's command queue filled m_nStarvedCommandTicks and m_nDiscardedCommandTicks
+	bool m_bHasCommandQueueStats;
+};
+
 //-----------------------------------------------------------------------------
 // Purpose: Player / Client related functions
 //-----------------------------------------------------------------------------
@@ -354,14 +381,10 @@ public:
 
 	// Called when the client attempts to connect (doesn't get called for bots)
 	// returning false would reject the connection with the pRejectReason message
-	virtual bool			ClientConnect( CPlayerSlot slot, const char *pszName, uint64 xuid, const char *pszNetworkID, bool unk1, CBufferString *pRejectReason ) = 0;
+	virtual bool			ClientConnect( CPlayerSlot slot, const char *pszName, uint64 xuid, const char *pszNetworkID, bool bLoadGame, CBufferString *pRejectReason ) = 0;
 
 	// Client is connected and should be put in the game
-	// type values could be:
-	// 0 - player
-	// 1 - fake player (bot)
-	// 2 - unknown
-	virtual void			ClientPutInServer( CPlayerSlot slot, char const *pszName, int type, uint64 xuid ) = 0;
+	virtual void			ClientPutInServer( CPlayerSlot slot, char const *pszName, ClientPutInServerType_t type, uint64 xuid ) = 0;
 
 	// Client is going active
 	// If bLoadGame is true, don't spawn the player because its state is already setup.
@@ -426,8 +449,7 @@ public:
 	virtual IHLTVDirector	*GetHLTVDirector( void ) = 0;
 
 	virtual uint32			GetPlayerTickBase( CPlayerSlot slot ) = 0;
-	// AMNOTE: Fills a 60-byte structure from the player's controller
-	virtual void			unk101( CPlayerSlot slot, void *pOut ) = 0;
+	virtual void			GetPlayerCommandStatus( CPlayerSlot slot, PlayerCommandStatus_t *pOut ) = 0;
 
 	// Handles incoming usermessages from the client
 	virtual void			ClientSvcUserMessage( CPlayerSlot slot, int um_type, uint32 size, const void *buf ) = 0;
