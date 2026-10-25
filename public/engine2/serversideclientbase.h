@@ -186,8 +186,7 @@ public:
 
 	virtual bool ShouldReceiveStringTableUserData( const INetworkStringTable *pTable, int nStringNumber ) = 0;
 
-	// AMNOTE: Forwards to ISource2GameClients::unk101 with the client's slot
-	virtual void unk201( void *pOut ) = 0;
+	virtual void GetPlayerCommandStatus( PlayerCommandStatus_t *pOut ) = 0;
 
 	virtual bool StartHltvReplay( const HltvReplayParams_t &params ) = 0;
 	// bForce runs the stop even when no replay is active
