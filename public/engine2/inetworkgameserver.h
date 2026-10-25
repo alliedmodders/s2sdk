@@ -144,7 +144,7 @@ public:
 	virtual bool	IsRecordingDemo() = 0;
 
 	virtual uint8	GetClientConnectionType( CPlayerSlot slot ) = 0;
-	virtual bool	HasReplayDirector() = 0;
+	virtual bool	HasPendingServerGameFrameJob() = 0;
 	virtual float	GetAverageFrameTime() = 0;
 
 	virtual void	PrepareSendClientUpdatesMainThread() = 0;
