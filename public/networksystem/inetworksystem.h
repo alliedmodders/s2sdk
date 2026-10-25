@@ -34,20 +34,32 @@ class CPeerToPeerAddress;
 class ISteamNetworkingUtils;
 class ISteamNetworkingSockets;
 class ISteamNetworkingMessages;
+struct SteamNetworkingMessage_t;
+class INetPacketMemoryCustomAlloc;
 
 #ifndef NET_PACKET_ST_DEFINED
 #define NET_PACKET_ST_DEFINED
 struct NetPacket_t
 {
-	netadr_t		from;		// sender IP
-	int				source;		// received source
-	double			received;	// received time
-	unsigned char	*data;		// pointer to raw packet data
-	bf_read			message;	// easy bitbuf data access
-	int				size;		// size in bytes
-	int				wiresize;   // size in bytes before decompression
-	bool			stream;		// was send as stream
-	struct NetPacket_t *pNext;	// for internal use, should be NULL in public
+	ns_address m_adrFrom;
+	bf_read m_ReadBuffer;
+	// The Steam networking message the packet came in, m_pPacketData is its data; released when the packet is reused
+	SteamNetworkingMessage_t *m_pSteamMessage;
+	uint8 *m_pPacketData;
+
+	// Owns m_pPacketData for demo and broadcast packets; released when the packet is reused
+	INetPacketMemoryCustomAlloc *m_pCustomAlloc;
+
+	// The Steam message's m_usecTimeReceived
+	int64 m_recvUSTime;
+
+	// Where the packet was read in its demo file or broadcast stream, 0 for network packets; copied into each message
+	// parsed from it
+	int64 m_nStreamPosition;
+
+	uint32 m_hConnection;
+	int m_nPacketSize;
+	int m_nSourceSocket;
 };
 #endif // NET_PACKET_ST_DEFINED
 
