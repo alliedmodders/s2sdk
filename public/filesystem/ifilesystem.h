@@ -512,7 +512,7 @@ public:
 	//  override is cleared and the current .bsp is searched for an embedded PAK file
 	//  and this file becomes the highest priority search path ( i.e., it's looked at first
 	//   even before the mod's file system path ).
-	virtual void			AddSearchPath( const char *pPath, const char *pathID, SearchPathAdd_t addType = PATH_ADD_TO_TAIL, SearchPathPriority_t priority = SEARCH_PATH_PRIORITY_DEFAULT, int unknown = 0 ) = 0;
+	virtual void			AddSearchPath( const char *pPath, const char *pathID, SearchPathAdd_t addType = PATH_ADD_TO_TAIL, SearchPathPriority_t priority = SEARCH_PATH_PRIORITY_DEFAULT, CUtlStringToken pathMergeToken = CUtlStringToken() ) = 0;
 	virtual bool			RemoveSearchPath( const char *pPath, const char *pathID = 0 ) = 0;
 	
 	virtual SearchPathStateHandle_t		*SaveSearchPathState( const char *pszName ) const = 0;
@@ -537,7 +537,7 @@ public:
 	// converts a partial path into a full path
 	virtual const char		*RelativePathToFullPath( const char *pFileName, const char *pPathID, CBufferString &pLocalPath, PathTypeFilter_t pathFilter = FILTER_NONE, PathTypeQuery_t *pPathType = NULL ) = 0;
 
-	virtual bool			GetWritePath(const char*, const char*, CBufferString &) = 0;
+	virtual bool			RelativePathToFullWritePath( const char *pRelativePath, const char *pWritePathID, CBufferString &pLocalPath ) = 0;
 
 	// Returns the nSearchPathsToGet amount of paths, each path is separated by ;s. Returns true if pathID has any paths
 	virtual bool			GetSearchPath( const char *pathID, GetSearchPathTypes_t pathType, CBufferString &pPath, int nSearchPathsToGet ) = 0;
@@ -552,14 +552,14 @@ public:
 	//--------------------------------------------------------
 
 	// Deletes a file (on the WritePath)
-	virtual void			RemoveFile( char const* pRelativePath, const char *pathID = 0 ) = 0;
+	virtual bool			RemoveFile( char const* pRelativePath, const char *pathID = 0 ) = 0;
 
 	// Renames a file (on the WritePath)
 	virtual bool			RenameFile( char const *pOldPath, char const *pNewPath, const char *pathID = 0 ) = 0;
 
 	// create a local directory structure
-	virtual void			CreateDirHierarchy( const char *path, const char *pathID = 0 ) = 0;
-	virtual void			CreateDirHierarchyForFile( const char *pFileName, const char *pathID ) = 0;
+	virtual bool			CreateDirHierarchy( const char *path, const char *pathID = 0 ) = 0;
+	virtual bool			CreateDirHierarchyForFile( const char *pFileName, const char *pathID ) = 0;
 
 	// File I/O and info
 	virtual bool			IsDirectory( const char *pFileName, const char *pathID = 0 ) = 0;
@@ -674,7 +674,7 @@ public:
 	virtual bool		GetOptimalIOConstraints( FileHandle_t hFile, unsigned *pOffsetAlign, unsigned *pSizeAlign, unsigned *pBufferAlign ) = 0;
 	inline unsigned		GetOptimalReadSize(FileHandle_t hFile, unsigned nLogicalSize);
 	virtual void		*AllocOptimalReadBuffer( FileHandle_t hFile, unsigned nSize = 0, unsigned nOffset = 0 ) = 0;
-	virtual void		FreeOptimalReadBuffer( void * ) = 0;
+	virtual void		FreeOptimalReadBuffer( void *p ) = 0;
 
 	//--------------------------------------------------------
 	//
@@ -689,7 +689,7 @@ public:
 	virtual void RemoveUGCVPKFile( const char *pszName ) = 0;
 	virtual bool IsUGCVPKFileLoaded( const char *pszName ) = 0;
 
-	virtual void EnableAutoVPKFileLoading( bool ) = 0;
+	virtual void EnableAutoVPKFileLoading( bool bEnable ) = 0;
 	virtual bool GetAutoVPKFileLoading( void ) = 0;
 	virtual bool ValidateLoadedVPKs( void ) = 0;
 
@@ -707,7 +707,7 @@ public:
 	virtual void            SetIODelayAlarm( float flThreshhold ) = 0;
 	
 	virtual bool			DeleteDirectory( const char *pFileName, const char *pathID = 0 ) = 0;
-	virtual bool			DeleteDirectoryAndContents_R( const char *pFileName, const char *pathID, bool ) = 0;
+	virtual bool			DeleteDirectoryAndContents_R( const char *pFileName, const char *pathID, bool bForce ) = 0;
 	
 	virtual bool			IsPathInvalidForFilesystem( const char *pFileName ) = 0;
 	
@@ -715,7 +715,7 @@ public:
 
 	virtual CUtlString		ReadLine( FileHandle_t file, bool bStripNewline = true ) = 0;
 
-	virtual void			GetSearchPathsForPathID( const char*, GetSearchPathTypes_t, CUtlVector<CUtlString> & ) = 0;
+	virtual void			GetSearchPathsForPathID( const char *pathID, GetSearchPathTypes_t nPathTypes, CUtlVector<CUtlString> &list ) = 0;
 
 	virtual bool			MarkContentCorrupt( bool bMissingFilesOnly, const char *pFile, const char *pReason ) = 0;
 	virtual void			SetContentCorruptionReportingEnabled( bool bEnabled ) = 0;
