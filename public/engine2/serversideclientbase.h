@@ -31,6 +31,7 @@ class CNetworkGameServerBase;
 class INetworkStringTable;
 class ITvStreamSink;
 struct HltvReplayParams_t;
+struct PlayerCommandStatus_t;
 
 class NetMessagePacketStart;
 class NetMessagePacketEnd;
@@ -49,6 +50,17 @@ enum ClientSendJobState_t : uint8
 	CLIENT_SEND_JOB_RUNNING,
 	// AMNOTE: The job is done, but its queued calls aren't flushed yet
 	CLIENT_SEND_JOB_FINISHED,
+};
+
+// m_nConnectionTypeFlags bits; 0 is a fake client too
+enum ConnectionTypeFlags_t : uint8
+{
+	// Counted in CNetworkGameServerBase::m_nLoopbackClientCount
+	CONNECTION_TYPE_LOOPBACK = (1 << 0),
+	CONNECTION_TYPE_LOCALHOST = (1 << 1),
+	CONNECTION_TYPE_REMOTE = (1 << 2),
+	// AMNOTE: Connect treats the client as fake; no engine caller found that passes it
+	CONNECTION_TYPE_FAKE = (1 << 3),
 };
 
 // AMNOTE: While it's not CLIENT_SLOT_RECYCLABLE, the slot shows as reserved and keeps its address on disconnect
@@ -235,6 +247,8 @@ public:
 	CEntityIndex m_nEntityIndex;
 	CNetworkGameServerBase *m_pServer;
 	INetChannel *m_pNetChannel;
+	// ConnectionTypeFlags_t; ConnectClient gives CONNECTION_TYPE_LOOPBACK | CONNECTION_TYPE_LOCALHOST for the loopback
+	// address or a client in the same process, CONNECTION_TYPE_LOCALHOST or CONNECTION_TYPE_REMOTE otherwise
 	uint8 m_nConnectionTypeFlags;
 
 	ClientSendJobState_t m_nSendJobState;
