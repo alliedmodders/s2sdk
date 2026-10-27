@@ -90,7 +90,9 @@ public:
 	virtual void InitGameServer() = 0;
 	virtual void ShutdownGameServer() = 0;
 
-	virtual int CreateSocket( int, int, int, int, int, const char * ) = 0;
+	// Returns the new socket. OpenSocket listens on nPort, else on nFallbackPort. nFlags: 0x8 makes it the default socket,
+	// 0x40 uses the user's Steam networking sockets, 0x80 the game server's; only 0x80 sockets are opened
+	virtual int CreateSocket( int nPort, int nFallbackPort, int, int, int nFlags, const char *pszName ) = 0;
 	virtual bool OpenSocket( int sock ) = 0;
 	virtual bool ConnectSocket( int sock, const ns_address &adr ) = 0;
 	virtual bool IsSocketOpen( int sock ) = 0;
@@ -146,15 +148,15 @@ public:
 	virtual ISteamNetworkingMessages *GetSteamNetworkingMessages() = 0;
 
 	virtual HSteamNetConnection GetSteamNetConnectionForSocket( int sock ) = 0;
-	// AMNOTE: Maps the connection's end reason to a disconnection reason: App/AppException codes minus 1000/2000, Local_*/Remote_* codes to LOCALPROBLEM_*/REMOTE_*, eOldState picks the *_CONNECTING variants
-	virtual ENetworkDisconnectionReason unk101( const SteamNetConnectionInfo_t *pInfo, ESteamNetworkingConnectionState eOldState ) = 0;
+	// Maps the connection's end reason to a disconnection reason: App/AppException codes minus 1000/2000, Local_*/Remote_* codes to LOCALPROBLEM_*/REMOTE_*, eOldState picks the *_CONNECTING variants
+	virtual ENetworkDisconnectionReason GetDisconnectionReason( const SteamNetConnectionInfo_t *pInfo, ESteamNetworkingConnectionState eOldState ) = 0;
 
 	// The connection is closed with k_ESteamNetConnectionEnd_AppException_Min + reason
 	virtual void RejectConnection( HSteamNetConnection hConn, ENetworkDisconnectionReason reason, const char *pszDebug = nullptr ) = 0;
 
 	virtual void RunCallbacks( bool bGameServer, void *pContext, void *pfnCallback ) = 0;
-	// AMNOTE: Calls RunCallbacks with the network system's own connection status handler
-	virtual void unk201( bool bGameServer ) = 0;
+	// RunCallbacks with the network system's own connection status handler, which accepts and closes the connections
+	virtual void RunDefaultCallbacks( bool bGameServer ) = 0;
 
 	virtual void InitSteamNetworking() = 0;
 
