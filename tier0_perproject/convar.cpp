@@ -352,9 +352,9 @@ CCommand &CCommand::operator=( const CCommand &other )
 	m_ArgSBuffer.SetCount( other.m_ArgvBuffer.Count() );
 	m_ArgvBuffer.SetCount( other.m_ArgvBuffer.Count() );
 	Tokenize( other.GetCommandString() );
-	m_unk101 = other.m_unk101;
+	m_bSequenceMarker = other.m_bSequenceMarker;
 	m_flInputTime = other.m_flInputTime;
-	m_unk201 = other.m_unk201;
+	m_nSDLTimestamp = other.m_nSDLTimestamp;
 	return *this;
 }
 
@@ -369,9 +369,9 @@ void CCommand::Reset()
 	m_nArgv0Size = 0;
 	m_ArgSBuffer.Base()[0] = '\0';
 	m_Args.RemoveAll();
-	m_unk101 = false;
+	m_bSequenceMarker = false;
 	m_flInputTime = std::numeric_limits<double>::quiet_NaN();
-	m_unk201 = 0;
+	m_nSDLTimestamp = 0;
 }
 
 characterset_t* CCommand::DefaultBreakSet()

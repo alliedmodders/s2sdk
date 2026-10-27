@@ -331,12 +331,12 @@ private:
     CUtlVectorFixedGrowable<char, COMMAND_MAX_LENGTH> m_ArgSBuffer;
     CUtlVectorFixedGrowable<char, COMMAND_MAX_LENGTH> m_ArgvBuffer;
     CUtlVectorFixedGrowable<char*, COMMAND_MAX_ARGC> m_Args;
-    // AMNOTE: Gates __beginseq/__endseq handling in the command buffer
-    bool m_unk101;
+    // Lets a __beginseq or __endseq command start or end a sequence, whose commands run as one batch
+    bool m_bSequenceMarker;
     // Time of the input event the command came from, NaN for other commands
     double m_flInputTime;
-    // AMNOTE: Also comes from the input event, 0 for other commands
-    uint64 m_unk201;
+    // SDL timestamp in nanoseconds of the input event the command came from, 0 for other commands
+    uint64 m_nSDLTimestamp;
 };
 
 inline int CCommand::MaxCommandLength()
