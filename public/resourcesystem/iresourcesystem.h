@@ -15,7 +15,6 @@
 #include <memory>
 
 class CBufferString;
-class IAsyncProcessedDataResult;
 class ICodeResourceManifestManager;
 class IFileSystem;
 class IRD_RegisterResourceDataUtils;
@@ -64,6 +63,12 @@ enum ResourceStreamingType_t : uint8
 	RESOURCE_STREAMING_TYPE_HAS_DATA,
 	RESOURCE_STREAMING_TYPE_HAS_DATA_ALWAYS_LOAD,
 	RESOURCE_STREAMING_TYPE_STREAM_DATA_FROM_ALLOCATE,
+};
+
+abstract_class IAsyncProcessedDataResult
+{
+public:
+	virtual ~IAsyncProcessedDataResult() {}
 };
 
 abstract_class IResourceTypeManager
