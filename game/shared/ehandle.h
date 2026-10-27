@@ -30,7 +30,7 @@ inline CEntityHandle CEntityHandle::FromPackedInt( uint32 packed_int_handle )
 		return CEntityHandle();
 
 	CEntityIndex index = packed_int_handle & 0x3FFF;
-	auto serial = (packed_int_handle >> 14) & 0x3FF;
+	int serial = (packed_int_handle >> 14) & 0x3FF;
 
 	auto entity = GameEntitySystem()->GetEntityInstance( index );
 	if(!entity)
