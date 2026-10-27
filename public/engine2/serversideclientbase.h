@@ -161,12 +161,12 @@ public:
 	// Registers the message handlers above on the channel
 	virtual void ConnectionStart( INetChannel *pNetChannel ) = 0;
 
-	// AMNOTE: The first collects the initial spawn groups to pass to SendInitialSpawnGroups and sets m_bInitialSpawnGroupsSent,
-	// the second sends the server info built by a BuildServerInfoMessageAsync_t delayed call. They share a name so that
-	// both compilers order the three slots like the engine
-	virtual void unk001( CUtlVector<void *> &spawnGroups ) = 0;
+	// AMNOTE: The first collects the initial spawn groups into the info and sets m_bInitialSpawnGroupsSent, the second runs as
+	// a delayed call, builds the server info from it and sends the spawn groups through SendInitialSpawnGroups. They
+	// share a name so that both compilers order the three slots like the engine
+	virtual void BuildServerInfoMessageAsync( CUtlVector<void *> &spawnGroups ) = 0;
 	virtual void SendInitialSpawnGroups( const CUtlVector<void *> &spawnGroups, bool bAsync ) = 0;
-	virtual void unk001( BuildServerInfoMessageAsync_t &info ) = 0;
+	virtual void BuildServerInfoMessageAsync( BuildServerInfoMessageAsync_t &info ) = 0;
 
 	virtual bool UpdateAcknowledgedFramecount( int nTick ) = 0;
 	virtual bool ShouldSendMessages() = 0;
@@ -314,7 +314,10 @@ public:
 	// snapshots delta from it as if the client acknowledged it
 	int m_nLastReliableDeltaTick;
 	int m_nStringTableAckTick;
-	int m_unk1103;
+	// AMNOTE: Tick the string tables flagged (1 << 2) were last sent at. Those tables go to the client as reliable messages of
+	// their own and, while m_nDeltaTick is above 0, as changes since this tick. 0 when no table has the flag, as with
+	// all of CS2's own tables
+	int m_nLastReliableStringTableTick;
 	CFrameSnapshot *m_pLastSnapshot;
 	CUtlVector<SpawnGroupHandle_t> m_LoadedSpawnGroups;
 	CMsgPlayerInfo m_PlayerInfo;

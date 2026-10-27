@@ -77,7 +77,7 @@ public:
 	int m_nHltvLastSendTick;
 	double m_flLastHltvReplayRequestTime;
 
-	// AMNOTE: Owns allocations of 4 bytes, Clear frees them
+	// AMNOTE: Clear frees each element, nothing adds any
 	CUtlVector<void *> m_unk311;
 
 	// AMNOTE: Formatted by GetHltvReplayStats
