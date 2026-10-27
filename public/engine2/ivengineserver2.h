@@ -58,8 +58,8 @@ struct HltvReplayParams_t
 	float m_flSlowdownRate = 1.0f;
 	bool m_bAbortCurrentReplay = false;
 	int m_nReason = 0;
-	// AMNOTE: Flags: 1 = replay the stash m_nStashId, 2 = replay all of the stash instead of its last m_flDelay seconds
-	uint32 m_unk101 = 0;
+	// 1 = replay the stash m_nStashId, 2 = replay all of the stash instead of its last m_flDelay seconds
+	uint32 m_nFlags = 0;
 	uint32 m_nStashId = 0;
 };
 
@@ -154,8 +154,7 @@ public:
 	virtual CPlayerSlot GetSplitScreenPlayerAttachToEdict( CPlayerSlot nSlot ) = 0;
 	virtual CPlayerSlot GetSplitScreenPlayerForEdict( CPlayerSlot nSlot, int nSplitScreenSlot ) = 0;
 
-	// Ret types might be all wrong for these. Haven't researched yet.
-	virtual void	UnloadSpawnGroup( SpawnGroupHandle_t spawnGroup, /*ESpawnGroupUnloadOption*/ int) = 0;
+	virtual void	UnloadSpawnGroup( SpawnGroupHandle_t spawnGroup, ESpawnGroupUnloadOption eUnloadOption ) = 0;
 	virtual SpawnGroupHandle_t LoadSpawnGroup( const SpawnGroupDesc_t & ) = 0;
 	virtual void	SetSpawnGroupDescription( SpawnGroupHandle_t spawnGroup, const char *pszDescription ) = 0;
 	virtual bool	IsSpawnGroupLoaded( SpawnGroupHandle_t spawnGroup ) const = 0;
@@ -249,8 +248,9 @@ public:
 	virtual bool StashHltvReplay( uint32 nStashId, float flSeconds ) = 0;
 	virtual void AddHltvRelayProxyWhitelist( uint32 a, uint32 b, uint32 c, uint32 d, uint32 numbits ) = 0;
 	virtual bool WasShutDownRequested() const = 0;
-	// AMNOTE: Extends the queued matchmaking reservation timeout and sends the data in a connectionless packet to every reservation entry, or only to the entry matching the int when it is non-zero
-	virtual void unk101( int, uint8, uint8, uint32 nDataSize, const void *pData ) = 0;
+	// Extends the matchmaking reservation timeout and sends the two bytes and the data in an S2A_RESERVE_CHECK_RESPONSE
+	// packet to every reserved client, or only to the one with nAccountID when it is non-zero
+	virtual void SendReserveCheckResponse( uint32 nAccountID, uint8 nUnk1, uint8 nUnk2, uint32 nDataSize, const void *pData ) = 0;
 	virtual bool IsTvRecording() = 0;
 	virtual void StartAutoRecording() = 0;
 	virtual void RecordDemo( const char *pszFilename ) = 0;
