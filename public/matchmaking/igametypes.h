@@ -132,8 +132,10 @@ public:
 
 	virtual bool GetGameTypeFromMode( const char *modeName, const char **pTypeName ) = 0;
 	virtual bool AddMapInfo( KeyValues *pMapInfo ) = 0;
-	virtual const char *GetMapNameID( const char *mapName, bool &bFound, bool bUnknown ) = 0;
-	virtual const char *GetMapGroupNameID( const char *mapGroup, bool &bFound, bool bUnknown ) = 0;
+	// AMNOTE: bCheckExtendedServerInfo first matches the map or map group SetAndParseExtendedServerInfo described,
+	// when the engine allows it
+	virtual const char *GetMapNameID( const char *mapName, bool &bFound, bool bCheckExtendedServerInfo ) = 0;
+	virtual const char *GetMapGroupNameID( const char *mapGroup, bool &bFound, bool bCheckExtendedServerInfo ) = 0;
 	virtual const char *GetGameModeNameID( const char *gameMode, bool &bFound ) = 0;
 };
 
