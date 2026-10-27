@@ -21,11 +21,10 @@ class CCallQueue
 {
 public:
 	CCallQueue()
-		: m_unk001( false ),
-		m_unk002( false ),
+		: m_nRefCount( 0 ),
 		m_bNoQueue( false ),
-		m_bSkipCalls( false ),
-		m_bRunningCalls( false )
+		m_bAbortProcessing( false ),
+		m_bProcessing( false )
 	{
 	}
 
@@ -41,7 +40,7 @@ public:
 
 	void CallQueued()
 	{
-		m_bRunningCalls = true;
+		m_bProcessing = true;
 
 		if ( m_queue.Count() )
 		{
@@ -51,7 +50,7 @@ public:
 
 			while ( m_queue.PopItem( &pFunctor ) && pFunctor != NULL )
 			{
-				if ( !m_bSkipCalls )
+				if ( !m_bAbortProcessing )
 				{
 					(*pFunctor)();
 				}
@@ -59,8 +58,8 @@ public:
 			}
 		}
 
-		m_bSkipCalls = false;
-		m_bRunningCalls = false;
+		m_bAbortProcessing = false;
+		m_bProcessing = false;
 	}
 
 	DLL_CLASS_IMPORT void ParallelCallQueued( const char *pszName, IThreadPool *pPool = NULL );
@@ -74,13 +73,13 @@ public:
 		}
 		else
 		{
-			m_bRunningCalls = true;
-			if ( !m_bSkipCalls )
+			m_bProcessing = true;
+			if ( !m_bAbortProcessing )
 			{
 				functor();
 			}
-			m_bSkipCalls = false;
-			m_bRunningCalls = false;
+			m_bAbortProcessing = false;
+			m_bProcessing = false;
 		}
 	}
 
@@ -95,16 +94,15 @@ public:
 			delete pFunctor;
 		}
 
-		m_bSkipCalls = false;
+		m_bAbortProcessing = false;
 	}
 
 private:
 	CTSQueue<std::function<void()> *> m_queue;
-	bool m_unk001;
-	bool m_unk002;
+	int16 m_nRefCount;
 	bool m_bNoQueue;
-	bool m_bSkipCalls;
-	bool m_bRunningCalls;
+	bool m_bAbortProcessing;
+	bool m_bProcessing;
 };
 
 #endif // CALLQUEUE_H
