@@ -12,6 +12,7 @@
 class CBufferString;
 class CKV3Arena;
 class CSchemaSystemTypeScope;
+struct ResourceFileHeader_t;
 
 enum SchemaHierarchyIteration_t
 {
@@ -38,7 +39,7 @@ public:
 	virtual SchemaMetaInfoHandle_t<CSchemaEnumInfo> FindEnumByScopedName( const char* pszScopedName ) = 0;
 	virtual void ScopedNameForEnum( const CSchemaEnumInfo* pEnumInfo, CBufferString& scopedName ) = 0;
 	
-	virtual void FindDescendentsOfClass( const CSchemaClassInfo* pClassInfo, int, CUtlVector<const CSchemaClassInfo*> *descendents, bool ) = 0;
+	virtual void FindDescendentsOfClass( const CSchemaClassInfo* pClassInfo, SchemaSubclassTraversalDepth_t nDepth, CUtlVector<const CSchemaClassInfo*> *descendents, bool ) = 0;
 	virtual void LoadSchemaDataForModules( const char** ppszModules, int nModules ) = 0;
 	
 	virtual const char* GetClassModuleName( const CSchemaClassInfo* pClassInfo ) = 0;
@@ -48,19 +49,19 @@ public:
 	virtual const char* GetEnumProjectName( const CSchemaEnumInfo* pEnumInfo ) = 0;
 	
 	virtual bool SchemaSystemIsReady() = 0;
-	virtual void VerifySchemaBindingConsistency( bool ) = 0;
+	virtual void VerifySchemaBindingConsistency( bool bIsConsoleModeApp ) = 0;
 	virtual void CompleteModuleRegistration( const char* pszModuleName ) = 0;
 	virtual void RegisterAtomicType( const SchemaAtomicTypeInfo_t* pAtomicType ) = 0;
 	
 	virtual void PrintSchemaStats( const char* pszOptions ) = 0;
 	virtual void PrintSchemaMetaStats( const char* pszOptions ) = 0;
 	
-	virtual void RegisterAtomics( const char* pszModuleName, const char* pszProjectName, CSchemaType** ppSchemaTypes, int, SchemaAtomicTypeInfo_t** ppAtomicTypes ) = 0;
-	virtual void RegisterEnums( const char* pszModuleName, const char* pszProjectName, CSchemaType** ppSchemaTypes, int, CSchemaEnumInfo** ppEnumInfos ) = 0;
-	virtual bool RegisterClasses( const char* pszModuleName, const char* pszProjectName, CSchemaType** ppSchemaTypes, int, CSchemaClassInfo** ppClassInfos, CBufferString* pErrorStr ) = 0;
+	virtual void RegisterAtomics( const char* pszModuleName, const char* pszProjectName, CSchemaType** ppSchemaTypes, int nTypeTableSize, SchemaAtomicTypeInfo_t** ppAtomicTypes ) = 0;
+	virtual void RegisterEnums( const char* pszModuleName, const char* pszProjectName, CSchemaType** ppSchemaTypes, int nTypeTableSize, CSchemaEnumInfo** ppEnumInfos ) = 0;
+	virtual bool RegisterClasses( const char* pszModuleName, const char* pszProjectName, CSchemaType** ppSchemaTypes, int nTypeTableSize, CSchemaClassInfo** ppClassInfos, CBufferString* pErrorStr ) = 0;
 	virtual void ValidateClasses( CSchemaClassInfo** ppClassInfos ) = 0;
 	
-	virtual bool ConvertOldIntrospectedResourceDataToKV3( void*, void*, void*, CKV3Arena*, const char* ) = 0;
+	virtual bool ConvertOldIntrospectedResourceDataToKV3( const void* pData, size_t nDataSize, const ResourceFileHeader_t* pHeader, CKV3Arena*, const char* pszOverrideRootStruct ) = 0;
 	virtual void FindClassesByMeta( const char* pszMetaName, SchemaHierarchyIteration_t iter_type, CUtlVector<const CSchemaClassInfo*> *classes ) = 0;
 	
 	virtual SchemaMetaInfoHandle_t<CSchemaType_Builtin> GetSchemaBuiltinType( SchemaBuiltinType_t eBuiltinType ) = 0;
