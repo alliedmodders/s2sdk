@@ -103,7 +103,8 @@ public:
 	virtual INetMessageDispatcher *GetNetMessageDispatcher( void ) const = 0;
 	
 	virtual void	StartRegisteringMessageHandlers( void ) = 0;
-	virtual void	FinishRegisteringMessageHandlers( bool ) = 0;
+	// bConfirmAllMessageHandlersInstalled reports the messages of the channel's categories that have no handler registered
+	virtual void	FinishRegisteringMessageHandlers( bool bConfirmAllMessageHandlersInstalled ) = 0;
 	
 	virtual void	RegisterNetMessageHandlerAbstract( CUtlSlot *nSlot, const CUtlAbstractDelegate &delegate, int nParamCount, NetMessageInfo_t *pNetMessage, int nPriority ) = 0;
 	virtual void	UnregisterNetMessageHandlerAbstract( CUtlSlot *nSlot, const CUtlAbstractDelegate &delegate, NetMessageInfo_t *pNetMessage ) = 0;
