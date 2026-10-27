@@ -10,115 +10,60 @@
 #pragma once
 #endif
 
-#include "utlhash.h"
+#include "tier0/utlhashtable.h"
 
 #include "tier0/memdbgon.h"
 
-// This is the hash key type, but it could just as easily be and int or void *
-class CBaseEntity;
+class CEntityInstance;
 
 //-----------------------------------------------------------------------------
-// Purpose: 
+// Purpose: Data objects kept per entity outside of it, created on demand
 //-----------------------------------------------------------------------------
 abstract_class IEntityDataInstantiator
 {
 public:
 	virtual ~IEntityDataInstantiator() {};
 
-	virtual void *GetDataObject( const CBaseEntity *instance ) = 0;
-	virtual void *CreateDataObject( const CBaseEntity *instance ) = 0;
-	virtual void DestroyDataObject( const CBaseEntity *instance ) = 0;
+	virtual void *GetDataObject( const CEntityInstance *pInstance ) = 0;
+	virtual void *CreateDataObject( const CEntityInstance *pInstance ) = 0;
+	virtual void DestroyDataObject( const CEntityInstance *pInstance ) = 0;
 };
 
 //-----------------------------------------------------------------------------
-// Purpose: 
+// Purpose: An IEntityDataInstantiator of T objects. Destroying it doesn't
+// destroy the objects it still holds
 //-----------------------------------------------------------------------------
 template <class T>
 class CEntityDataInstantiator : public IEntityDataInstantiator
 {
 public:
-	CEntityDataInstantiator() : 
-		m_HashTable( 64, 0, 0, CompareFunc, KeyFunc )
+	virtual void *GetDataObject( const CEntityInstance *pInstance )
 	{
+		UtlHashHandle_t handle = m_HashTable.Find( pInstance );
+		return m_HashTable.IsValidHandle( handle ) ? m_HashTable[ handle ] : NULL;
 	}
 
-	virtual void *GetDataObject( const CBaseEntity *instance )
+	virtual void *CreateDataObject( const CEntityInstance *pInstance )
 	{
-		UtlHashHandle_t handle; 
-		HashEntry entry;
-		entry.key = instance;
-		handle = m_HashTable.Find( entry );
+		UtlHashHandle_t handle = m_HashTable.Find( pInstance );
+		if ( !m_HashTable.IsValidHandle( handle ) )
+			handle = m_HashTable.Insert( pInstance, new T );
 
-		if ( handle != m_HashTable.InvalidHandle() )
-		{
-			return (void *)m_HashTable[ handle ].data;
-		}
-
-		return NULL;
+		return m_HashTable[ handle ];
 	}
 
-	virtual void *CreateDataObject( const CBaseEntity *instance )
+	virtual void DestroyDataObject( const CEntityInstance *pInstance )
 	{
-		UtlHashHandle_t handle; 
-		HashEntry entry;
-		entry.key = instance;
-		handle = m_HashTable.Find( entry );
-
-		// Create it if not already present
-		if ( handle == m_HashTable.InvalidHandle() )
+		UtlHashHandle_t handle = m_HashTable.Find( pInstance );
+		if ( m_HashTable.IsValidHandle( handle ) )
 		{
-			handle = m_HashTable.Insert( entry );
-			Assert( handle != m_HashTable.InvalidHandle() );
-			m_HashTable[ handle ].data = new T;
-	
-			// FIXME: We'll have to remove this if any objects we instance have vtables!!!
-			Q_memset( m_HashTable[ handle ].data, 0, sizeof( T ) );
-		}
-
-		return (void *)m_HashTable[ handle ].data;
-	}
-
-	virtual void DestroyDataObject( const CBaseEntity *instance )
-	{
-		UtlHashHandle_t handle; 
-		HashEntry entry;
-		entry.key = instance;
-		handle = m_HashTable.Find( entry );
-
-		if ( handle != m_HashTable.InvalidHandle() )
-		{
-			delete m_HashTable[ handle ].data;
-			m_HashTable.Remove( handle );
+			delete m_HashTable[ handle ];
+			m_HashTable.Remove( pInstance );
 		}
 	}
 
 private:
-
-	struct HashEntry
-	{
-		HashEntry()
-		{
-			key = NULL;
-			data = NULL;
-		}
-
-		const CBaseEntity *key;
-		T				*data;
-	};
-
-	static bool CompareFunc( const HashEntry &src1, const HashEntry &src2 )
-	{
-		return ( src1.key == src2.key );
-	}
-
-
-	static unsigned int KeyFunc( const HashEntry &src )
-	{
-		// Shift right to get rid of alignment bits and border the struct on a 16 byte boundary
-		return (unsigned int)src.key;
-	}
-
-	CUtlHash< HashEntry >	m_HashTable;
+	CUtlHashtable< const CEntityInstance *, T * > m_HashTable;
 };
 
 #include "tier0/memdbgoff.h"
