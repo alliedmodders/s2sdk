@@ -1247,17 +1247,17 @@ COMPILE_TIME_ASSERT(sizeof(CKV3Arena) == KV3_CONTEXT_SIZE);
 
 template < typename T > inline T KeyValues3::FromString( T defaultValue ) const { Assert( 0 ); return defaultValue; }
 template <> inline bool KeyValues3::FromString( bool defaultValue ) const		{ return V_StringToBool( GetString(), defaultValue ); }
-template <> inline char8 KeyValues3::FromString( char8 defaultValue ) const		{ return V_StringToInt8( GetString(), defaultValue ); }
-template <> inline int8 KeyValues3::FromString( int8 defaultValue ) const		{ return V_StringToInt8( GetString(), defaultValue ); }
-template <> inline uint8 KeyValues3::FromString( uint8 defaultValue ) const		{ return V_StringToUint8( GetString(), defaultValue ); }
-template <> inline int16 KeyValues3::FromString( int16 defaultValue ) const		{ return V_StringToInt16( GetString(), defaultValue ); }
-template <> inline uint16 KeyValues3::FromString( uint16 defaultValue ) const	{ return V_StringToUint16( GetString(), defaultValue ); }
-template <> inline int32 KeyValues3::FromString( int32 defaultValue ) const		{ return V_StringToInt32( GetString(), defaultValue ); }
-template <> inline uint32 KeyValues3::FromString( uint32 defaultValue ) const	{ return V_StringToUint32( GetString(), defaultValue ); }
-template <> inline int64 KeyValues3::FromString( int64 defaultValue ) const		{ return V_StringToInt64( GetString(), defaultValue ); }
-template <> inline uint64 KeyValues3::FromString( uint64 defaultValue ) const	{ return V_StringToUint64( GetString(), defaultValue ); }
-template <> inline float32 KeyValues3::FromString( float32 defaultValue ) const	{ return V_StringToFloat32( GetString(), defaultValue ); }
-template <> inline float64 KeyValues3::FromString( float64 defaultValue ) const	{ return V_StringToFloat64( GetString(), defaultValue ); }
+template <> inline char8 KeyValues3::FromString( char8 defaultValue ) const		{ return V_StringToInt8( GetString(), defaultValue, NULL, NULL, PARSING_FLAG_USE_PARTIAL_RESULT ); }
+template <> inline int8 KeyValues3::FromString( int8 defaultValue ) const		{ return V_StringToInt8( GetString(), defaultValue, NULL, NULL, PARSING_FLAG_USE_PARTIAL_RESULT ); }
+template <> inline uint8 KeyValues3::FromString( uint8 defaultValue ) const		{ return V_StringToUint8( GetString(), defaultValue, NULL, NULL, PARSING_FLAG_USE_PARTIAL_RESULT ); }
+template <> inline int16 KeyValues3::FromString( int16 defaultValue ) const		{ return V_StringToInt16( GetString(), defaultValue, NULL, NULL, PARSING_FLAG_USE_PARTIAL_RESULT ); }
+template <> inline uint16 KeyValues3::FromString( uint16 defaultValue ) const	{ return V_StringToUint16( GetString(), defaultValue, NULL, NULL, PARSING_FLAG_USE_PARTIAL_RESULT ); }
+template <> inline int32 KeyValues3::FromString( int32 defaultValue ) const		{ return V_StringToInt32( GetString(), defaultValue, NULL, NULL, PARSING_FLAG_USE_PARTIAL_RESULT ); }
+template <> inline uint32 KeyValues3::FromString( uint32 defaultValue ) const	{ return V_StringToUint32( GetString(), defaultValue, NULL, NULL, PARSING_FLAG_USE_PARTIAL_RESULT ); }
+template <> inline int64 KeyValues3::FromString( int64 defaultValue ) const		{ return V_StringToInt64( GetString(), defaultValue, NULL, NULL, PARSING_FLAG_USE_PARTIAL_RESULT ); }
+template <> inline uint64 KeyValues3::FromString( uint64 defaultValue ) const	{ return V_StringToUint64( GetString(), defaultValue, NULL, NULL, PARSING_FLAG_USE_PARTIAL_RESULT ); }
+template <> inline float32 KeyValues3::FromString( float32 defaultValue ) const	{ return V_StringToFloat32( GetString(), defaultValue, NULL, NULL, PARSING_FLAG_USE_PARTIAL_RESULT ); }
+template <> inline float64 KeyValues3::FromString( float64 defaultValue ) const	{ return V_StringToFloat64( GetString(), defaultValue, NULL, NULL, PARSING_FLAG_USE_PARTIAL_RESULT ); }
 
 template < typename T > inline void KeyValues3::SetDirect( T value ) { Assert( 0 ); }
 template <> inline void KeyValues3::SetDirect( bool value )		{ m_Data.m_Bool = value; }
