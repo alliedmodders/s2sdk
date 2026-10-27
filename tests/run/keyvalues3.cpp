@@ -780,6 +780,23 @@ static void TestUndersizedNodes()
 		free( malloc( 16 + i * 8 ) );
 }
 
+static void TestNumbersFromPartialStrings( KeyValues3 *root )
+{
+	// Signed integers take the number before the first invalid character, as tier0's getters do
+	root->SetString( "12abc" );
+	CHECK( root->GetInt( -1 ) == 12 );
+	CHECK( root->GetInt64( -1 ) == 12 );
+	CHECK( root->GetShort( -1 ) == 12 );
+
+	// Unsigned and floating point parsing return the default
+	CHECK( root->GetUInt( 7 ) == 7 );
+	CHECK( root->GetFloat( 0.5f ) == 0.5f );
+
+	// No number at all
+	root->SetString( "abc" );
+	CHECK( root->GetInt( -1 ) == -1 );
+}
+
 static void TestStringTypes( KeyValues3 *root )
 {
 	// A value constructed as a string holds an empty short string
@@ -948,6 +965,7 @@ int main()
 	RunTest( TestFindMemberHint );
 	TestMetaData();
 	TestUndersizedNodes();
+	RunTest( TestNumbersFromPartialStrings );
 	RunTest( TestStringTypes );
 	RunTest( TestEmptyMemberName );
 	RunTest( TestBoolFromDouble );
