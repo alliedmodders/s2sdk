@@ -24,6 +24,14 @@ enum SchemaBuiltinType_t
 	SCHEMA_BUILTIN_TYPE_COUNT,
 };
 
+enum SchemaSubclassTraversalDepth_t
+{
+	TRAVERSE_SHALLOW_NO_ABSTRACT = 0,
+	TRAVERSE_SHALLOW_WITH_ABSTRACT,
+	TRAVERSE_DEEP_NO_ABSTRACT,
+	TRAVERSE_DEEP_WITH_ABSTRACT,
+};
+
 // Works in combination with SchemaCollectionManipulatorFn_t
 enum SchemaCollectionManipulatorAction_t
 {
