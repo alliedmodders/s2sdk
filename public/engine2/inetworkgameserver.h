@@ -48,12 +48,12 @@ enum server_state_t : int
 abstract_class INetworkGameServer 
 {
 public:
-	virtual	void	Init( const GameSessionConfiguration_t &, const char * ) = 0;
+	virtual	void	Init( const GameSessionConfiguration_t &config, const char *pszMapName ) = 0;
 
-	virtual void	SetGameSpawnGroupMgr( IGameSpawnGroupMgr * ) = 0;
-	virtual void	SetGameSessionManifest( HGameResourceManifest ) = 0;
+	virtual void	SetGameSpawnGroupMgr( IGameSpawnGroupMgr *pSpawnGroupMgr ) = 0;
+	virtual void	SetGameSessionManifest( HGameResourceManifest hManifest ) = 0;
 
-	virtual void	RegisterLoadingSpawnGroups( CUtlVector<unsigned int> & ) = 0;
+	virtual void	RegisterLoadingSpawnGroups( CUtlVector<unsigned int> &loadingSpawnGroups ) = 0;
 
 	virtual void	Shutdown( void ) = 0;
 	virtual void	AddRef( void ) = 0;
@@ -72,16 +72,16 @@ public:
 	virtual int		GetMaxClients( void ) const = 0;
 	virtual float	GetTickInterval( void ) const = 0;
 
-	virtual void	ServerAdvanceTick( const EventServerAdvanceTick_t & ) = 0;
-	virtual void	ServerPollNetworking( const EventServerPollNetworking_t & ) = 0;
-	virtual void	ServerProcessNetworking( const EventServerProcessNetworking_t & ) = 0;
+	virtual void	ServerAdvanceTick( const EventServerAdvanceTick_t &event ) = 0;
+	virtual void	ServerPollNetworking( const EventServerPollNetworking_t &event ) = 0;
+	virtual void	ServerProcessNetworking( const EventServerProcessNetworking_t &event ) = 0;
 
-	virtual void	ServerBeginSimulate( const EventServerBeginSimulate_t & ) = 0;
-	virtual void	ServerEndSimulate( const EventServerEndSimulate_t & ) = 0;
-	virtual void	ServerPostSimulate( const EventServerPostSimulate_t & ) = 0;
+	virtual void	ServerBeginSimulate( const EventServerBeginSimulate_t &event ) = 0;
+	virtual void	ServerEndSimulate( const EventServerEndSimulate_t &event ) = 0;
+	virtual void	ServerPostSimulate( const EventServerPostSimulate_t &event ) = 0;
 
-	virtual SpawnGroupHandle_t LoadSpawnGroup( const SpawnGroupDesc_t & ) = 0;
-	virtual void	AsyncUnloadSpawnGroup( unsigned int, /*ESpawnGroupUnloadOption*/ int ) = 0;
+	virtual SpawnGroupHandle_t LoadSpawnGroup( const SpawnGroupDesc_t &desc ) = 0;
+	virtual void	AsyncUnloadSpawnGroup( SpawnGroupHandle_t spawnGroup, ESpawnGroupUnloadOption eUnloadOption ) = 0;
 	virtual void	PrintSpawnGroupStatus( void ) const = 0;
 
 	// returns the game time scale (multiplied in conjunction with host_timescale)
@@ -105,18 +105,18 @@ public:
 	virtual netadr_t GetServerNetworkAddress( void ) = 0;
 
 	virtual SpawnGroupHandle_t FindSpawnGroupByName( const char *pszName ) = 0;
-	virtual void	MakeSpawnGroupActive( SpawnGroupHandle_t ) = 0;
-	virtual void	SynchronouslySpawnGroup( SpawnGroupHandle_t ) = 0;
+	virtual void	MakeSpawnGroupActive( SpawnGroupHandle_t spawnGroup ) = 0;
+	virtual void	SynchronouslySpawnGroup( SpawnGroupHandle_t spawnGroup ) = 0;
 
 	virtual void	SetServerState( server_state_t eNewState ) = 0;
 	virtual server_state_t GetServerState( void ) = 0;
-	virtual bool	SpawnServer( const char * ) = 0;
+	virtual bool	SpawnServer( const char *pszStartSpot ) = 0;
 
-	virtual int 	GetSpawnGroupLoadingStatus( SpawnGroupHandle_t ) = 0;
-	virtual void	SetSpawnGroupDescription( SpawnGroupHandle_t, const char * ) = 0;
+	virtual int 	GetSpawnGroupLoadingStatus( SpawnGroupHandle_t spawnGroup ) = 0;
+	virtual void	SetSpawnGroupDescription( SpawnGroupHandle_t spawnGroup, const char *pszDescription ) = 0;
 
-	virtual CServerChangelevelState *StartChangeLevel( const char *pszMap, const char *pszLandmark, void * ) = 0;
-	virtual void	FinishChangeLevel( CServerChangelevelState * ) = 0;
+	virtual CServerChangelevelState *StartChangeLevel( const char *pszMap, const char *pszLandmark, const char *pszAddons ) = 0;
+	virtual void	FinishChangeLevel( CServerChangelevelState *pState ) = 0;
 	virtual bool	IsChangelevelPending( void ) const = 0;
 
 	virtual void	GetAllLoadingSpawnGroups( CUtlVector<SpawnGroupHandle_t> *pOut ) = 0;
