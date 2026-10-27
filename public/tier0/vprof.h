@@ -637,8 +637,8 @@ protected:
 	ThreadId_t m_TargetThreadId;
 	bool m_bProfileAllThreads;
 	CVProfNode *m_pBackgroundRoot;
-	// AMNOTE: Each element points at a background thread's root node
-	CUtlVector< CVProfNode ** > m_unk401;
+	// Each element points at the thread-local root node pointer of a thread that profiled in the background
+	CUtlVector< CVProfNode ** > m_BackgroundThreadRoots;
 	CAtomicMutex m_BackgroundRootMutex;
 	void (*m_pOutputStream)( const char *, ... );
 };
