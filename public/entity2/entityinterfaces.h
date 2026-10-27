@@ -29,10 +29,17 @@ struct EntityNotification_t
 struct EntitySpawnInfo_t : EntityNotification_t
 {
 	const CEntityKeyValues* m_pKeyValues;
-	int m_Unk1;
-	uint16 m_SpawnOrder;
+	// Index of the entity in the save file it is restored from, -1 for entities that don't come from a save
+	int m_nSaveFileEntityIndex;
+
+	// CEntitySystem::SortEntities orders by m_Depth, then m_ClassSpawnOrder from high to low, then m_CreationOrder
+
+	// The order the entities were queued for creation in, 0xFFFF in a loading spawn group
+	uint16 m_CreationOrder;
+	// Set by SortEntities: 1, or the depth of the entity its parentname names plus 1
 	uint8 m_Depth;
-	uint8 m_OriginalSpawnOrder;
+	// The low byte of its CEntityClass::m_SpawnOrder
+	uint8 m_ClassSpawnOrder;
 };
 
 // Keeps the member function pointers below as small as the engine's
