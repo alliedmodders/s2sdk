@@ -102,8 +102,11 @@ public:
 	// AMNOTE: Writes the jitter of up to nMaxEntries recent frames, newest first, in 0.1 ms units, or -1 dropped,
 	// -2 out of order, -3 unknown, and returns the count written
 	virtual int			GetFrameJitterHistory( int flow, int16 *pOut, int nMaxEntries ) const = 0;
-	// AMNOTE: Fills pMsg with the flow's quality stats
-	virtual void		unk101( int flow, CMsgSource2NetworkFlowQuality *pMsg, bool ) = 0;
+	// Fills pMsg with the flow's quality stats, except the tick and receive margin fields.
+	// AMNOTE: When the bool is set, the outgoing flow gets only the duration, byte and net frame totals and their
+	// percentiles, and the incoming flow only the rest (frame contents, message counts, jitter, ping, message processing
+	// and queue stats)
+	virtual void		GetNetworkFlowQuality( int flow, CMsgSource2NetworkFlowQuality *pMsg, bool ) = 0;
 };
 
 #endif // INETCHANNELINFO_H
