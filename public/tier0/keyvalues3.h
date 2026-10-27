@@ -834,9 +834,6 @@ private:
 	uint8 m_nInitialSize;
 	bool m_bIsDynamicallySized;
 
-	bool m_unk001;
-	bool m_unk002;
-
 	union
 	{
 		Element_t m_StaticElements[DATA_SIZE];
@@ -966,6 +963,7 @@ private:
 	bool m_bIsDynamicallySized;
 
 	bool m_bHasInvalidMemberNames;
+	// AMNOTE: Zeroed when the table is set up, nothing reads it
 	bool m_unk001;
 
 	union
