@@ -51,8 +51,8 @@ public:
 	DLL_CLASS_IMPORT ~CCommandBuffer();
 
 	// Inserts text into the command buffer
-	// AMNOTE: The last three are stored in the CCommand of each command added
-	DLL_CLASS_IMPORT bool AddText( const char *pText, int nTickDelay = 0, int nMaxCommands = 0, bool unk3 = false, double flInputTime = NAN, uint64 unk5 = 0 );
+	// The last three are stored in the CCommand of each command added
+	DLL_CLASS_IMPORT bool AddText( const char *pText, int nTickDelay = 0, int nMaxCommands = 0, bool bSequenceMarker = false, double flInputTime = NAN, uint64 nSDLTimestamp = 0 );
 
 	// Used to iterate over all commands appropriate for the current time
 	DLL_CLASS_IMPORT void BeginProcessingCommands( int nDeltaTicks );
