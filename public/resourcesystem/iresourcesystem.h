@@ -15,13 +15,13 @@
 #include <memory>
 
 class CBufferString;
+class IAsyncResourceDataRequest;
 class ICodeResourceManifestManager;
 class IFileSystem;
 class IRD_RegisterResourceDataUtils;
 class IResourceDeallocatorUtils;
 class IResourceSystemLeakTracker;
 class IResourceSystemProfiler;
-class IResourceSystemUtils;
 class IResourceUpdater;
 class IToolsResourceListener;
 class IToolsResourcePreReloadListener;
@@ -69,6 +69,22 @@ abstract_class IAsyncProcessedDataResult
 {
 public:
 	virtual ~IAsyncProcessedDataResult() {}
+};
+
+abstract_class IResourceSystemUtils
+{
+public:
+	virtual void MarkLoadingWorkPending( ResourceHandle_t hResource, bool bHasWork ) = 0;
+
+	// nQueuePosition 1 queues the read ahead of the others
+	virtual std::shared_ptr<IAsyncResourceDataRequest> CreateAsyncResourceDataRequest( ResourceHandle_t hResource, int64 nFileOffset, size_t nLoadSizeBytes, int nQueuePosition, const char *pFileNameOverride ) = 0;
+	virtual void SubmitAsyncResourceDataRequest( IAsyncResourceDataRequest *pRequest ) = 0;
+
+	virtual bool IsBlockingOnManifestLoad() = 0;
+
+	// Replaces the resource's references with every resource reachable from them, following the references of
+	// resources whose type is in pTypes
+	virtual void FlattenResourceReferences( ResourceHandle_t hResource, int nTypeCount, const ResourceType_t *pTypes ) = 0;
 };
 
 abstract_class IResourceTypeManager
