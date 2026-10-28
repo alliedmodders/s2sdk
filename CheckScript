@@ -203,3 +203,16 @@ for sdk_target in SdkHelpers.sdk_targets:
   binary.custom = [builder.tools.Protoc(protoc = sdk_target.protoc, sources = CheckProtos)]
 
 builder.Add(cmdkvtest)
+
+# Finds set bits in fixed and attached bit vectors that end at a no access page
+bvtest = builder.ProgramProject('bitvec_test')
+bvtest.sources = [
+  os.path.join('tests', 'run', 'bitvec.cpp'),
+  os.path.join('public', 'tier0', 'memoverride.cpp'),
+]
+
+for sdk_target in SdkHelpers.sdk_targets:
+  binary = bvtest.Configure(sdk_target.cxx, 'bitvec_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
+  SdkHelpers.configureCxx(builder, binary, sdk)
+
+builder.Add(bvtest)

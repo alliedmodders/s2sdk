@@ -253,8 +253,8 @@ public:
 	void	SetDWord(int i, uint32 val);
 
 	CBitVecT<BASE_OPS>&	operator=(const CBitVecT<BASE_OPS> &other)	{ other.CopyTo( this ); return *this; }
-	bool			operator==(const CBitVecT<BASE_OPS> &other)		{ return Compare( other ); }
-	bool			operator!=(const CBitVecT<BASE_OPS> &other)		{ return !operator==( other ); }
+	bool			operator==(const CBitVecT<BASE_OPS> &other) const	{ return Compare( other ); }
+	bool			operator!=(const CBitVecT<BASE_OPS> &other) const	{ return !operator==( other ); }
 
 	static void GetOffsetMaskForBit( uint32 bitNum, uint32 *pOffset, uint32 *pMask )	{ *pOffset = BitVec_Int( bitNum ); *pMask = BitVec_Bit( bitNum ); }
 };
@@ -946,120 +946,46 @@ inline unsigned GetStartBitMask( int startBit )
 	return g_StartMask[ startBit & 31 ];
 }
 
-inline int CVarBitVecBase::FindNextSetBit( int startBit ) const
+// The first set bit at or after startBit, or -1; nEndMask masks the last of the numDWords words
+inline int BitVec_FindNextSetBit( int startBit, int numBits, int numDWords, const uint32 *pBase, uint32 nEndMask )
 {
-	if ( startBit < GetNumBits() )
+	if ( startBit >= numBits )
+		return -1;
+
+	int wordIndex = BitVec_Int( startBit );
+	const int lastWord = numDWords - 1;
+	uint32 elem = pBase[wordIndex] & GetStartBitMask( startBit );
+	if ( wordIndex == lastWord )
 	{
-		int wordIndex = BitVec_Int(startBit);
-		unsigned int startMask = GetStartBitMask( startBit );
-		int lastWord = GetNumDWords()-1;
-
-		// handle non dword lengths
-		if ( (GetNumBits() % BITS_PER_INT) != 0 )
-		{
-			unsigned int elem = Base()[wordIndex];
-			elem &= startMask;
-			if ( wordIndex == lastWord)
-			{
-				elem &= (GetEndMask());
-				// there's a bit remaining in this word
-				if ( elem )
-					return FirstBitInWord(elem, wordIndex << 5);
-			}
-			else
-			{
-				// there's a bit remaining in this word
-				if ( elem )
-					return FirstBitInWord(elem, wordIndex << 5);
-
-				// iterate the words
-				for ( int i = wordIndex+1; i < lastWord; i++ )
-				{
-					elem = Base()[i];
-					if ( elem )
-						return FirstBitInWord(elem, i << 5);
-				}
-				elem = Base()[lastWord] & GetEndMask();
-				if ( elem )
-					return FirstBitInWord(elem, lastWord << 5);
-			}
-		}
-		else
-		{
-			const uint32 * RESTRICT pCurElem = Base() + wordIndex;
-			unsigned int elem = *pCurElem;
-			elem &= startMask;
-			do 
-			{
-				if ( elem )
-					return FirstBitInWord(elem, wordIndex << 5);
-				++pCurElem;
-				elem = *pCurElem;
-				++wordIndex;
-			} while( wordIndex <= lastWord );
-		}
-
+		elem &= nEndMask;
+		return elem ? FirstBitInWord( elem, wordIndex << 5 ) : -1;
 	}
 
-	return -1;
+	// there's a bit remaining in this word
+	if ( elem )
+		return FirstBitInWord( elem, wordIndex << 5 );
+
+	// iterate the words
+	for ( wordIndex++; wordIndex < lastWord; wordIndex++ )
+	{
+		elem = pBase[wordIndex];
+		if ( elem )
+			return FirstBitInWord( elem, wordIndex << 5 );
+	}
+
+	elem = pBase[lastWord] & nEndMask;
+	return elem ? FirstBitInWord( elem, lastWord << 5 ) : -1;
+}
+
+inline int CVarBitVecBase::FindNextSetBit( int startBit ) const
+{
+	return BitVec_FindNextSetBit( startBit, GetNumBits(), GetNumDWords(), Base(), GetEndMask() );
 }
 
 template <int NUM_BITS>
 inline int CFixedBitVecBase<NUM_BITS>::FindNextSetBit( int startBit ) const
 {
-	if ( startBit < NUM_BITS )
-	{
-		int wordIndex = BitVec_Int(startBit);
-		unsigned int startMask = GetStartBitMask( startBit );
-
-		// handle non dword lengths
-		if ( (NUM_BITS % BITS_PER_INT) != 0 )
-		{
-			unsigned int elem = Base()[wordIndex];
-			elem &= startMask;
-			if ( wordIndex == NUM_INTS-1)
-			{
-				elem &= (GetEndMask());
-				// there's a bit remaining in this word
-				if ( elem )
-					return FirstBitInWord(elem, wordIndex << 5);
-			}
-			else
-			{
-				// there's a bit remaining in this word
-				if ( elem )
-					return FirstBitInWord(elem, wordIndex << 5);
-
-				// iterate the words
-				for ( int i = wordIndex+1; i < NUM_INTS-1; i++ )
-				{
-					elem = Base()[i];
-					if ( elem )
-						return FirstBitInWord(elem, i << 5);
-				}
-				elem = Base()[NUM_INTS-1] & GetEndMask();
-				if ( elem )
-					return FirstBitInWord(elem, (NUM_INTS-1) << 5);
-			}
-		}
-		else
-		{
-			const uint32 * RESTRICT pCurElem = Base() + wordIndex;
-			unsigned int elem = *pCurElem;
-			elem &= startMask;
-			do 
-			{
-				if ( elem )
-					return FirstBitInWord(elem, wordIndex << 5);
-				++pCurElem;
-				elem = *pCurElem;
-				++wordIndex;
-			} while( wordIndex <= NUM_INTS-1);
-		}
-
-	}
-
-	return -1;
+	return BitVec_FindNextSetBit( startBit, NUM_BITS, NUM_INTS, Base(), GetEndMask() );
 }
 
 //-----------------------------------------------------------------------------
