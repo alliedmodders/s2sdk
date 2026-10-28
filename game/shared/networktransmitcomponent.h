@@ -50,11 +50,12 @@ public:
 	// A single { 1, 0, 1 } when the bounds touch more than 32 words
 	PVSClusterWord_t m_PVSClusterWords[32];
 
-	CThreadRWLock_FastRead m_unk101;
+	// AMNOTE: Constructed and destroyed with the component, never locked
+	CThreadRWLock_FastRead m_Lock;
 
-	// AMNOTE: Bounds that the transmit check can cull the entity by distance to
-	Vector m_unk102;
-	Vector m_unk103;
+	// AMNOTE: The constructor sets them to an empty box (FLT_MAX mins, -FLT_MAX maxs), nothing else uses them
+	Vector m_vMins;
+	Vector m_vMaxs;
 
 	// FL_EDICT_CHANGED, FL_FULL_EDICT_CHANGED and the FL_EDICT_ALWAYS, FL_EDICT_DONTSEND or FL_EDICT_PVSCHECK transmit state
 	uint32 m_nStateFlags;
