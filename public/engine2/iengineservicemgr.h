@@ -16,6 +16,7 @@
 #include <tier0/keyvalues.h>
 #include <tier0/eventdispatcher.h>
 #include <tier0/convar.h>
+#include <tier0/utlstring.h>
 #include <localize/ilocalize.h>
 #include <engine2/tier4.h>
 #include <engine2/iprerequisite_registry.h>
@@ -29,7 +30,15 @@ class ISceneView;
 class IPrerequisite;
 
 DECLARE_POINTER_HANDLE(HSceneViewRenderTarget);
-DECLARE_POINTER_HANDLE(ActiveLoop_t);
+
+struct ActiveLoop_t
+{
+	CUtlString m_sLoopName;
+	CUtlString m_sAddonName;
+	uint32 m_nId;
+	KeyValues *m_pLoopOptions;
+	bool m_bValid;
+};
 
 enum ClientServerMode_t : int32
 {
@@ -159,7 +168,7 @@ public:
 	virtual void		*GetDebugVisualizerMgr( void ) = 0;
 	virtual int			GetActiveLoopClientServerMode( void ) const = 0;
 	virtual void		PrintStatus( void ) = 0;
-	virtual ActiveLoop_t	GetActiveLoop( void ) = 0;
+	virtual void		GetActiveLoop( ActiveLoop_t *pActiveLoop ) = 0;
 	virtual bool		IsLoadingLevel( void ) const = 0;
 	virtual bool		IsInGameLoop( void ) const = 0;
 	virtual void		OnFrameRenderingFinished( bool, const EventClientOutput_t & ) = 0;
