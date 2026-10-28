@@ -272,13 +272,12 @@ public:
 
 	bool m_Initialized;
 	bool m_NetworkVarsAtomic;
-	// AMNOTE: Never set, would skip the MNetworkEnable without CNetworkVar warning
-	bool m_unk301;
+	bool m_NetworkAssumeNotNetworkable;
 	bool m_NetworkNoBase;
 	bool m_NetworkStructNotInNetworkUtlVectorEmbedded;
 	bool m_NetworkVarEmbeddedNotFlattened;
 	// AMNOTE: Only the constructor writes it
-	bool m_unk401;
+	bool m_unk101;
 };
 
 class CNetworkSerializerCodeGenDatabase
@@ -286,8 +285,9 @@ class CNetworkSerializerCodeGenDatabase
 public:
 	struct EnumInfo_t
 	{
-		int32_t m_nValue;
-		int8_t m_nFlags;
+		// AMNOTE: The field's size in bytes, the whole array's for a fixed array field (MedalRank_t[6] = 24 bytes)
+		int32 m_nSize;
+		bool m_bSigned;
 	};
 
 	CUtlString m_ModuleName;
