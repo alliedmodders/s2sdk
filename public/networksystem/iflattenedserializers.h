@@ -157,7 +157,9 @@ public:
 	// are resolved into pOutFieldPaths, and m_ChangedFieldPaths entries that were already there are removed from it.
 	// pUnresolvedChanges, if set, gets the indices of the change offsets that resolve to no field
 	virtual void ResolveChanges( const FlattenedSerializerDesc_t &serializer, IPolymorphicMetadataHelper *pMetadataHelper, NetworkSerializationMode_t nMode, const CUtlLeanVectorFixedGrowable<uint32> *pFieldPaths, VarChangeList_t *pChanges, CUtlLeanVectorFixedGrowable<uint32> *pOutFieldPaths, CUtlVector<int> *pUnresolvedChanges ) = 0;
-	virtual CFieldPath FindFieldPathByAddress( const FlattenedSerializerDesc_t &serializer, const void *pObject, const void *pField, bool *pbFound ) = 0;
+	// The path of the networked field at pField, in pObject or a component or element it reaches; an empty path when
+	// there is none. *pbOffsetIgnored is set when pField is an offset the serializer ignores
+	virtual CFieldPath FindFieldPathByAddress( const FlattenedSerializerDesc_t &serializer, const void *pObject, const void *pField, bool *pbOffsetIgnored ) = 0;
 	virtual bool GetFieldPathChildIndices( const FlattenedSerializerDesc_t &serializer, IPolymorphicMetadataHelper *pMetadataHelper, NetworkSerializationMode_t nMode, const CFieldPath &path, CUtlVector<int> *pChildIndices ) = 0;
 	virtual bool GatherSendProxyResultsForPath( const FlattenedSerializerDesc_t &serializer, void *pObject, IPolymorphicMetadataHelper *pMetadataHelper, int nEntityIndex, NetworkSerializationMode_t nMode, const CFieldPath &path, CUtlVector<CFieldPath> *pOutFieldPaths ) = 0;
 	virtual const OffsetIgnore_t *LookupOffsetsToIgnoreForPath( const FlattenedSerializerDesc_t &serializer, const CFieldPath &path, IPolymorphicMetadataHelper *pMetadataHelper, NetworkSerializationMode_t nMode ) = 0;
