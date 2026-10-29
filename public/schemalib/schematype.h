@@ -132,9 +132,27 @@ public:
 class CSchemaType_Atomic_CollectionOfT : public CSchemaType_Atomic_T
 {
 public:
+	// AMNOTE: The game's own operations on a collection field of this type. On a networked one (CNetworkUtlVectorBase,
+	// CUtlVectorEmbeddedNetworkVar) the modifying ones report what they change to the owning entity, so a change to its
+	// elements through GetElementForModify, will get it networked.
+	int GetCount( const void *pCollection ) const { return (int)(intp)Manipulate( SCHEMA_COLLECTION_MANIPULATOR_ACTION_GET_COUNT, pCollection ); }
+	const void *GetElement( const void *pCollection, int nIndex ) const { return Manipulate( SCHEMA_COLLECTION_MANIPULATOR_ACTION_GET_ELEMENT_CONST, pCollection, nIndex ); }
+	void *GetElementForModify( void *pCollection, int nIndex ) const { return Manipulate( SCHEMA_COLLECTION_MANIPULATOR_ACTION_GET_ELEMENT, pCollection, nIndex ); }
+	void SwapElements( void *pCollection, int nIndex1, int nIndex2 ) const { Manipulate( SCHEMA_COLLECTION_MANIPULATOR_ACTION_SWAP_ELEMENTS, pCollection, nIndex1, nIndex2 ); }
+	// Inserts nCount default elements before nIndex (nIndex == count appends)
+	void InsertBefore( void *pCollection, int nIndex, int nCount = 1 ) const { Manipulate( SCHEMA_COLLECTION_MANIPULATOR_ACTION_INSERT_BEFORE, pCollection, nIndex, nCount ); }
+	void RemoveMultiple( void *pCollection, int nIndex, int nCount = 1 ) const { Manipulate( SCHEMA_COLLECTION_MANIPULATOR_ACTION_REMOVE_MULTIPLE, pCollection, nIndex, nCount ); }
+	void SetCount( void *pCollection, int nCount ) const { Manipulate( SCHEMA_COLLECTION_MANIPULATOR_ACTION_SET_COUNT, pCollection, nCount ); }
+
 	SchemaCollectionManipulatorFn_t m_pfnManipulator;
 	uint16 m_nElementSize;
 	uint64 m_nFixedBufferCount;
+
+private:
+	void *Manipulate( SchemaCollectionManipulatorAction_t eAction, const void *pCollection, int nIndex1 = 0, int nIndex2 = 0 ) const
+	{
+		return m_pfnManipulator( eAction, const_cast<void *>( pCollection ), nIndex1, nIndex2 );
+	}
 };
 
 class CSchemaType_Atomic_TT : public CSchemaType_Atomic_T
