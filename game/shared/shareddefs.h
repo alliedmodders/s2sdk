@@ -398,16 +398,15 @@ enum
 };
 
 // These are the types of data that hang off of CBaseEntities and the flag bits used to mark their presence
-enum
+// (CEntityIdentity::m_fDataObjectTypes)
+enum DataObjectType_t
 {
 	GROUNDLINK = 0,
-	TOUCHLINK,
-	STEPSIMULATION,
-	MODELSCALE,
+	TOUCHLINK,				// Unused, nothing registers it
 	POSITIONWATCHER,
 	PHYSICSPUSHLIST,
-	VPHYSICSUPDATEAI,
 	VPHYSICSWATCHER,
+	ENTITYDELETEDWATCHER,
 
 	// Must be last and <= 32
 	NUM_DATAOBJECT_TYPES,
