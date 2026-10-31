@@ -8,6 +8,7 @@
 #include "tier0/keyvalues.h"
 #include "appframework/iappsystem.h"
 #include "engine2/tier4.h"
+#include "engine2/isource2serverconfig.h"
 
 struct ResourceManifestDesc_t;
 
@@ -76,20 +77,21 @@ public:
 class CHostStateMgr : public CTier4AppSystem<IHostStateMgr>, public ISwitchLoopModeStatusNotify
 {
 public:
-	CHostStateRequest *m_PendingRequest;              // 0x30
-	CHostStateRequest *m_CurrentRequest;              // 0x38
-	CUtlString m_LoopModeType;                        // 0x40 console/game
-	KeyValues *m_pGameConfigurationKV;                // 0x48
-	CUtlString m_LoopMode;                            // 0x50
-	KeyValues *m_pConnectKV;                          // 0x58
-	CUtlString m_LoopModeName;                        // 0x60
-	KeyValues *m_pSourceTVRelayKV;                    // 0x68
-	CUtlString m_SaveGame;                            // 0x70
-	CUtlString m_LevelName;                           // 0x78
-	CUtlString m_Addons;                              // 0x80
-	KeyValues *m_pKV;                                 // 0x88
-	int m_ID;                                         // 0x90
-	CUtlVector<CHostStateRequest *> m_QueuedRequests; // 0x98
+	struct LoopModeInfo_t
+	{
+		CUtlString m_LoopModeName;
+		KeyValues *m_pLoopModeOptions;
+	};
+
+	CHostStateRequest *m_PendingRequest;
+	CHostStateRequest *m_CurrentRequest;
+	LoopModeInfo_t m_LoopModes[HOST_STATE_LOOP_MODE_COUNT];
+	CUtlString m_SaveGame;
+	CUtlString m_LevelName;
+	CUtlString m_Addons;
+	KeyValues *m_pKV;
+	int m_ID;
+	CUtlVector<CHostStateRequest *> m_QueuedRequests;
 };
 
 #endif // HOSTSTATE_H
