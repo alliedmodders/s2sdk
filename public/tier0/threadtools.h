@@ -78,7 +78,13 @@ const unsigned TT_INFINITE = 0xffffffff;
 FORWARD_DECLARE_HANDLE( ThreadHandle_t );
 typedef uintp (*ThreadFunc_t)( void *pParam );
 
-PLATFORM_INTERFACE ThreadHandle_t CreateSimpleThread( ThreadFunc_t, void *pParam, unsigned stackSize = 0 );
+// nDuplicateParamSize, if set, copies that many bytes of pParam and passes the copy to pfnThread instead
+PLATFORM_INTERFACE ThreadHandle_t CreateSimpleThread( ThreadFunc_t pfnThread, void *pParam, ThreadId_t *pID, unsigned stackSize, bool bCreateSuspended, const char *szName, size_t nDuplicateParamSize );
+inline ThreadHandle_t CreateSimpleThread( ThreadFunc_t pfnThread, void *pParam, unsigned stackSize = 0, const char *szName = NULL, size_t nDuplicateParamSize = 0 )
+{
+	return CreateSimpleThread( pfnThread, pParam, NULL, stackSize, false, szName, nDuplicateParamSize );
+}
+
 PLATFORM_INTERFACE bool ReleaseThreadHandle( ThreadHandle_t );
 
 
