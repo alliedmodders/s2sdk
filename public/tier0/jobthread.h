@@ -59,9 +59,24 @@ enum JobPriority_t
 	JP_NUM_PRIORITIES
 };
 
+// How a thread pool counts its threads when ThreadPoolStartParams_t::nThreads is negative, within nMaxThreads.
+enum ThreadPoolCoreTypeRequest_t
+{
+	TP_CORE_TYPE_PERFORMANCE,				// "performance": the P-cores minus one
+	TP_CORE_TYPE_EFFICIENCY,				// "efficiency": the E-cores
+	TP_CORE_TYPE_SPLIT,						// "split": the P-cores minus one, then the E-cores
+	TP_CORE_TYPE_UNDIFFERENTIATED,			// "undifferentiated": the physical cores minus one
+	TP_CORE_TYPE_AUTO_THREADS,				// "auto_threads": tier0's own count minus one, can be 0
+	TP_CORE_TYPE_AUTO_THREADS_AT_LEAST_ONE,
+	TP_CORE_TYPE_MAX_THREADS,				// "max_threads": the logical processors minus one, can be 0
+	TP_CORE_TYPE_MAX_THREADS_AT_LEAST_ONE,
+
+	TP_CORE_TYPE_DEFAULT = TP_CORE_TYPE_SPLIT
+};
+
 struct ThreadPoolStartParams_t
 {
-	int		nCoreTypeRequest;	// AMNOTE: 0 performance, 1 efficiency, 2 split, 3 undifferentiated, 4 auto_threads, 6 max_threads
+	ThreadPoolCoreTypeRequest_t nCoreTypeRequest;
 	int		nThreads;			// AMNOTE: negative to count the cores nCoreTypeRequest picks
 	int		nMaxThreads;
 	int		iThreadPriority;
