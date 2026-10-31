@@ -98,10 +98,12 @@ struct SendProxyRecipientsDelta_t
 struct PolymorphicMetadataEntry_t
 {
 	uint32 m_nFieldPath;
-	int32 m_nVariant; // 1-based index of the variant the field holds
 
-	// AMNOTE: Always set when recorded, never read
-	bool m_unk101;
+	// The array's count for array count entries, the 1-based index of the variant the field holds for polymorphic id ones
+	int32 m_nValue;
+
+	// 0 array count, 1 polymorphic id
+	uint8 m_nType;
 };
 
 struct PolymorphicMetadata_t
