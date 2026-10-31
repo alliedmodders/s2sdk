@@ -96,7 +96,8 @@ private:
 	
 	MemAllocAttribute_t m_AllocAttribute;
 	
-	bool 			m_Unk1;
+	// AMNOTE: Only the constructor writes it; nothing reads it
+	bool 			m_unk101;
 	CAtomicMutex	m_Mutex;
 	CBlob*			m_pBlobHead;
 	int				m_TotalSize;
