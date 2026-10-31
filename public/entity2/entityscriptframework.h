@@ -6,6 +6,8 @@
 #endif
 
 #include "entity2/entitycomponent.h"
+#include "entity2/ientity2_entityio.h"
+#include "tier0/utlvectorultraconservative.h"
 
 class CScriptComponent : public CEntityComponent
 {
@@ -14,16 +16,13 @@ public:
 
 public:
 	HSCRIPT m_hScope;
+	CUtlVectorUltraConservative<HSCRIPT *> m_FuncHandles;
 
-	// AMNOTE: The storage of a CUtlVectorUltraConservative<HSCRIPT*>, an int count followed by the elements,
-	// but null rather than CUtlVectorUltraConservative's static block when empty
-	void* m_FuncHandles;
-
+	// CScriptScope::Flags_t: m_hScope, m_FuncHandles and m_flags are the component's CScriptScopeT members
 	int m_flags;
-	CEntityInstance* m_pOwner;
+	CEntityOwnerPtr m_pOwner;
 
-	// AMNOTE: The storage of a CUtlVectorUltraConservative<CEntityIOOutput>, null when empty like m_FuncHandles
-	void* m_Outputs;
+	CUtlVectorUltraConservative<CEntityIOOutput> m_Outputs;
 
 	CUtlSymbolLarge m_scriptClassName;
 };
