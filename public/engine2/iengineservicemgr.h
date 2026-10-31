@@ -25,6 +25,7 @@
 
 class IAddonListChangeNotify;
 struct RenderDeviceInfo_t;
+struct VideoModeChange_t;
 class ISource2WorldSession;
 class ISceneView;
 class IPrerequisite;
@@ -149,21 +150,20 @@ public:
 	virtual void		UnregisterEngineService( const char *pszServiceName, IEngineService *pService ) = 0;
 	virtual void		RegisterLoopMode( const char *pLoopModeName, ILoopModeFactory *pLoopModeFactory, void **ppGlobalPointer ) = 0;
 	virtual void		UnregisterLoopMode( const char *pLoopModeName, ILoopModeFactory *pLoopModeFactory, void **ppGlobalPointer ) = 0;
-	virtual void		SwitchToLoop( const char *pszLoopModeName, KeyValues *pkvLoopOptions, uint32 nId, const char *pszAddonName, bool ) = 0;
+	virtual void		SwitchToLoop( const char *pszLoopModeName, KeyValues *pkvLoopOptions, uint32 nId, const char *pszAddonName, bool bIdle ) = 0;
 	virtual const char		*GetActiveLoopName( void ) const = 0;
 	virtual IEngineService	*FindService( const char * ) = 0;
 	virtual PlatWindow_t	GetEngineWindow( void ) const = 0;
 	virtual SwapChainHandle_t	GetEngineSwapChain( void ) const = 0;
 	virtual InputContextHandle_t GetEngineInputContext( void ) const = 0;
-	virtual void		*GetEngineDeviceInfo( void ) const = 0;
+	virtual const RenderDeviceInfo_t &GetEngineDeviceInfo( void ) const = 0;
 	virtual int			GetEngineDeviceWidth( void ) const = 0;
 	virtual int			GetEngineDeviceHeight( void ) const = 0;
 	virtual void		GetEngineSwapChainSize(int* w, int* h) const = 0;
 	virtual bool		IsLoopSwitchQueued(void) const = 0;
 	virtual bool		IsLoopSwitchRequested(void) const = 0;
-
-	virtual bool		unk101(void) const = 0;
-
+	// True once ExitMainLoop was called
+	virtual bool		IsExitQueued(void) const = 0;
 	virtual CEventDispatcher<CEventIDManager_Default>* GetEventDispatcher(void) = 0;
 	virtual void		*GetDebugVisualizerMgr( void ) = 0;
 	virtual int			GetActiveLoopClientServerMode( void ) const = 0;
@@ -173,17 +173,17 @@ public:
 	virtual bool		IsInGameLoop( void ) const = 0;
 	virtual void		OnFrameRenderingFinished( bool, const EventClientOutput_t & ) = 0;
 	virtual void		ChangeVideoMode( RenderDeviceInfo_t & ) = 0;
-	virtual void		GetVideoModeChange( void ) = 0;
+	// Null unless a ChangeVideoMode is pending
+	virtual VideoModeChange_t *GetVideoModeChange( void ) = 0;
 	virtual int			GetAddonCount( void ) const = 0;
 	virtual const char	*GetAddon( int ) const = 0;
 	virtual bool		IsAddonMounted( const char * ) const = 0;
 	virtual const char	*GetAddonsString( void ) const = 0;
-	// AMNOTE: Adds the name to a list kept apart from the mounted addons
-	virtual void		unk201( const char * ) = 0;
-	// AMNOTE: True if unk201 added the name, compared case-insensitively
-	virtual bool		unk202( const char * ) = 0;
-	// AMNOTE: True if a mounted addon (GetAddon) is missing from the unk201 list
-	virtual bool		unk203( void ) = 0;
+	// A list of addon names kept apart from the mounted ones, matched case-insensitively
+	virtual void		AddKnownAddon( const char *pszAddon ) = 0;
+	virtual bool		IsKnownAddon( const char *pszAddon ) = 0;
+	// True if a mounted addon (GetAddon) isn't in the known list
+	virtual bool		HasUnknownMountedAddons( void ) = 0;
 	virtual void		InstallSwitchLoopModeStatusNotify( ISwitchLoopModeStatusNotify * ) = 0;
 	virtual void		UninstallSwitchLoopModeStatusNotify( ISwitchLoopModeStatusNotify * ) = 0;
 	virtual void		InstallAddonListChangeNotify( IAddonListChangeNotify * ) = 0;
@@ -192,8 +192,8 @@ public:
 	virtual void		AddLogCaptureString( const char * ) = 0;
 	virtual void		AddLogCaptureStringV( const char *pFormat, va_list args ) = 0;
 	virtual void		AddLogCaptureStringF( const char *pFormat, ... ) = 0;
-	// AMNOTE: The number of prerequisites (RegisterPrerequisite) the queued loop switch still waits for
-	virtual int			unk301( void ) = 0;
+	// The number of prerequisites (RegisterPrerequisite) the queued loop switch still waits for
+	virtual int			GetUnsatisfiedPrerequisiteCount( void ) = 0;
 	virtual void		ExitMainLoop( void ) = 0;
 	virtual void		RegisterPrerequisite( IPrerequisite * ) = 0;
 	
