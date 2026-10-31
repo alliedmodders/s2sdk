@@ -529,7 +529,7 @@ public:
 	int GetArrayElementCount() const;
 	void SetArrayElementCount( int count, KV3TypeEx_t type = KV3_TYPEEX_NULL, KV3SubType_t subtype = KV3_SUBTYPE_UNSPECIFIED );
 
-	void SetToEmptyArray() { PrepareForType( KV3_TYPEEX_ARRAY, KV3_SUBTYPE_ARRAY ); }
+	void SetToEmptyArray() { PrepareForType( KV3_TYPEEX_ARRAY, KV3_SUBTYPE_ARRAY ); SetArrayElementCount( 0 ); }
 	KeyValues3** GetArrayBase();
 
 	KeyValues3* GetArrayElement( int elem );
@@ -818,8 +818,6 @@ public:
 	static constexpr size_t TotalSizeOfData( int size ) { return MAX( (KV3Helpers::PackSizeOf<DATA_ALIGNMENT, Element_t>( size )), sizeof( m_pDynamicElements ) ); }
 	static constexpr size_t TotalSizeWithoutStaticData() { return sizeof( CKeyValues3Array ) - sizeof( m_StaticElements ); }
 
-	size_t GetAllocatedSize() const { return TotalSizeOf( m_nInitialSize ); }
-
 private:
 	int GetAllocatedChunks() const { return m_nAllocatedChunks; }
 	bool IsBaseStatic() { return !m_bIsDynamicallySized; }
@@ -833,6 +831,9 @@ private:
 	int m_nCount;
 	uint8 m_nInitialSize;
 	bool m_bIsDynamicallySized;
+	// AMNOTE: Zeroed by the constructors and otherwise unused
+	uint8 m_unk101;
+	uint8 m_unk102;
 
 	union
 	{
@@ -896,15 +897,13 @@ public:
 	void RenameMember( KeyValues3 *parent, KV3MemberId_t id, const CKV3MemberName &newName );
 	void RemoveAll( KeyValues3 *parent, int new_size = 0 );
 
-	void Free( bool clearing_context = false ) { PurgeBuffers(); }
+	void Free( bool clearing_context = false ) { PurgeFastSearch(); PurgeBuffers(); }
 	void PurgeContent( KeyValues3 *parent, bool bClearingContext = false );
 	void PurgeBuffers();
 
 	static constexpr size_t TotalSizeOf( int initial_size ) { return ALIGN_VALUE( TotalSizeWithoutStaticData() + TotalSizeOfData( MAX( initial_size, 0 ) ), 8 ); }
 	static constexpr size_t TotalSizeOfData( int size ) { return MAX( (KV3Helpers::PackSizeOf<DATA_ALIGNMENT, Hash_t, Member_t, Name_t, Flags_t>( size )), sizeof(m_pDynamicBuffer) ); }
 	static constexpr size_t TotalSizeWithoutStaticData() { return sizeof(CKeyValues3Table) - sizeof(m_StaticBuffer); }
-
-	size_t GetAllocatedSize() const { return TotalSizeOf( m_nInitialSize ); }
 
 private:
 	void PurgeNameBuffer( KeyValues3 *parent, KV3MemberId_t id );
@@ -1131,6 +1130,8 @@ protected:
 		int UsedBytes() const { return m_nUsedBytes; }
 		int AllocatedBytes() const { return m_nAllocatedBytes; }
 		int FreeBytes() const { return m_nAllocatedBytes - m_nUsedBytes; }
+		// The bytes an entry for a node of this initial size takes: its link, then the node
+		static int EntryBytes( int initial_size ) { return (int)( sizeof( ListEntry * ) + NODE::TotalSizeOf( initial_size ) ); }
 
 		bool IsFull() const { return m_nUsedBytes >= m_nAllocatedBytes; }
 
@@ -1349,7 +1350,7 @@ inline T *KeyValues3::AllocateOnHeap( int initial_size )
 template<typename T>
 inline void KeyValues3::FreeOnHeap( T *element )
 {
-	Destruct( element, element->GetAllocatedSize() );
+	element->Free();
 
 	g_pMemAlloc->RegionFree( MEMALLOC_REGION_FREE_KV3, element );
 }
@@ -1658,7 +1659,7 @@ inline void CKV3ArenaBase::NodeList<NODE>::EnsureByteSize( int bytes_needed )
 template<typename NODE>
 inline NODE *CKV3ArenaBase::NodeList<NODE>::Alloc( int initial_size )
 {
-	int byte_size_needed = m_nUsedBytes + (int)NODE::TotalSizeOf( initial_size ) + 8;
+	int byte_size_needed = m_nUsedBytes + EntryBytes( initial_size );
 	EnsureByteSize( byte_size_needed );
 	
 	auto entry = Tail();
@@ -1678,7 +1679,7 @@ inline void CKV3ArenaBase::NodeList<NODE>::Clear()
 		for(auto iter = Head(); iter != Tail(); )
 		{
 			auto next = iter->m_pNext;
-			Destruct( &iter->m_Value, iter->m_Value.GetAllocatedSize() );
+			iter->m_Value.Free();
 			iter = next;
 		}
 	}
@@ -1693,6 +1694,7 @@ inline void CKV3ArenaBase::NodeList<NODE>::Purge()
 
 	free( m_pData );
 	m_pData = nullptr;
+	m_nAllocatedBytes = 0;
 }
 
 template<typename CLUSTER>
@@ -1777,9 +1779,9 @@ auto CKV3Arena::Alloc( ClusterNodeChain<CLUSTER> &partial_clusters,
 template<typename CLUSTER, typename NODE, typename ...Args, typename>
 inline NODE *CKV3Arena::RawAlloc( NodeList<NODE> &raw_array, ClusterNodeChain<CLUSTER> &partial_clusters, ClusterNodeChain<CLUSTER> &full_clusters, int initial_size, Args && ...args )
 {
-	int needed_byte_size = MAX( (int)NODE::TotalSizeOf( initial_size ), 32 );
-
-	if(raw_array.IsFull() || needed_byte_size > raw_array.FreeBytes())
+	// The entry's link counts too: a node that only fits without it would make Alloc reallocate the list, moving the
+	// nodes it holds
+	if(raw_array.IsFull() || NodeList<NODE>::EntryBytes( initial_size ) > raw_array.FreeBytes())
 	{
 		if(initial_size <= (int)NODE::DATA_SIZE)
 			return Alloc( partial_clusters, full_clusters, CLUSTER::CLUSTER_SIZE );

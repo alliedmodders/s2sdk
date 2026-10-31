@@ -171,9 +171,10 @@ void KeyValues3::FreeArray( CKeyValues3Array *element, bool clearing_context )
 
 	element->PurgeContent( this, clearing_context );
 
+	// Memory the value doesn't own stays the node: purged, not destroyed
 	if(!m_bFreeArrayMemory)
 	{
-		Destruct( element, element->GetAllocatedSize() );
+		element->Free();
 	}
 	else
 	{
@@ -189,7 +190,7 @@ void KeyValues3::FreeArray( CKeyValues3Array *element, bool clearing_context )
 			if(!raw_allocated)
 				context->FreeArray( element );
 			else
-				Destruct( element, element->GetAllocatedSize() );
+				element->Free();
 		}
 	}
 }
@@ -201,9 +202,10 @@ void KeyValues3::FreeTable( CKeyValues3Table *element, bool clearing_context )
 
 	element->PurgeContent( this, clearing_context );
 
+	// Memory the value doesn't own stays the node: purged, not destroyed
 	if(!m_bFreeArrayMemory)
 	{
-		Destruct( element, element->GetAllocatedSize() );
+		element->Free();
 	}
 	else
 	{
@@ -219,7 +221,7 @@ void KeyValues3::FreeTable( CKeyValues3Table *element, bool clearing_context )
 			if(!raw_allocated)
 				context->FreeTable( element );
 			else
-				Destruct( element, element->GetAllocatedSize() );
+				element->Free();
 		}
 	}
 }
@@ -610,6 +612,8 @@ KeyValues3* KeyValues3::ArrayAddElementToTail()
 
 void KeyValues3::ArraySwapItems( int idx1, int idx2 )
 {
+	NormalizeArray();
+
 	if(GetTypeEx() != KV3_TYPEEX_ARRAY)
 		return;
 
@@ -1072,8 +1076,12 @@ KeyValues3* KeyValues3::RenameMember( const CKV3MemberName &name, const CKV3Memb
 
 void KeyValues3::OverlayKeysFrom( const KeyValues3 *src, bool bRecursive )
 {
+	// A value that isn't a table becomes one only once a member is added to it
 	if ( GetType() != KV3_TYPE_TABLE )
-		PrepareForType( KV3_TYPEEX_TABLE, KV3_SUBTYPE_TABLE );
+		SetToNull();
+
+	if ( !src->IsTable() )
+		return;
 
 	for ( int i = 0; i < src->GetMemberCount(); ++i )
 	{
@@ -1087,6 +1095,13 @@ void KeyValues3::OverlayKeysFrom( const KeyValues3 *src, bool bRecursive )
 		else
 			member->CopyFrom( src_member );
 	}
+
+	CKV3Arena *context;
+	KV3MetaData_t *dest_metadata = GetMetaData( &context );
+	const KV3MetaData_t *src_metadata = src->GetMetaData();
+
+	if ( dest_metadata && src_metadata )
+		context->CopyMetaData( dest_metadata, src_metadata );
 }
 
 const char* KeyValues3::GetTypeAsString() const
@@ -1247,45 +1262,6 @@ const char* KeyValues3::ToString( CBufferString& buff, uint flags ) const
 			{
 				switch ( GetTypeEx() )
 				{
-					case KV3_TYPEEX_ARRAY:
-					{
-						bool unprintable = false;
-						CBufferStringN<128> temp;
-
-						CKeyValues3Array::Element_t* arr = m_Data.m_pArray->Base();
-						for ( int i = 0; i < elements; ++i )
-						{
-							switch ( arr[i]->GetType() )
-							{
-								case KV3_TYPE_INT:
-									temp.AppendFormat( "%lld", arr[i]->m_Data.m_Int );
-									break;
-								case KV3_TYPE_UINT:
-									if ( arr[i]->GetSubType() == KV3_SUBTYPE_POINTER )
-										unprintable = true;
-									else
-										temp.AppendFormat( "%llu", arr[i]->m_Data.m_UInt );
-									break;
-								case KV3_TYPE_DOUBLE:
-									temp.AppendFormat( "%g", arr[i]->m_Data.m_Double );
-									break;
-								default:
-									unprintable = true;
-									break;
-							}
-
-							if ( unprintable )
-								break;
-
-							if ( i != elements - 1 ) temp.Insert( temp.Length(), " " );
-						}
-
-						if ( unprintable )
-							break;
-
-						buff.Insert( buff.Length(), temp.Get() );
-						return buff.Get();
-					}
 					case KV3_TYPEEX_ARRAY_FLOAT32:
 					{
 						for ( int i = 0; i < elements; ++i )
@@ -1486,7 +1462,6 @@ void KeyValues3::CopyFrom( const KeyValues3* pSrc )
 	}
 
 	m_SubType = eSrcSubType;
-	m_nFlags = pSrc->m_nFlags;
 }
 
 KeyValues3& KeyValues3::operator=( const KeyValues3& src )
@@ -1553,6 +1528,8 @@ CKeyValues3Array::CKeyValues3Array( int cluster_elem, int alloc_size ) :
 	m_nCount( 0 ),
 	m_nInitialSize( MIN( alloc_size, 255 ) ),
 	m_bIsDynamicallySized( false ),
+	m_unk101( 0 ),
+	m_unk102( 0 ),
 	m_pDynamicElements( nullptr )
 {
 }
@@ -1842,7 +1819,7 @@ void CKeyValues3Table::EnsureMemberCapacity( int count, bool force, bool dont_mo
 
 	if(count > ALLOC_KV3TABLE_MAX)
 	{
-		Plat_FatalError( "%s member count overflow (%u)\n", __FUNCTION__, count );
+		Plat_FatalError( "%s: member count overflow (%u)\n", __FUNCTION__, count );
 		DebuggerBreak();
 	}
 
@@ -2199,7 +2176,9 @@ CKV3ArenaBase::CKV3ArenaBase( CKV3Arena* context ) :
 
 void CKV3ArenaBase::Clear()
 {
-	m_BinaryData.Clear();
+	// Clearing would allocate the buffer for its null terminator
+	if ( m_BinaryData.Size() > 0 )
+		m_BinaryData.Clear();
 	m_KV3BaseCluster.Clear();
 	m_Symbols.RemoveAll();
 	
@@ -2278,7 +2257,7 @@ KeyValues3* CKV3Arena::Root()
 {
 	if ( !m_bRootAvailabe )
 	{
-		Plat_FatalError( "FATAL: %s called on a pool context (no root available)\n", __FUNCTION__ );
+		Plat_FatalError( "%s called on a pool arena (no root available)\n", __FUNCTION__ );
 		DebuggerBreak();
 	}
 
