@@ -19,6 +19,7 @@
 #include "tier0/smartptr.h"
 #include "tier0/tier0_strtools.h"
 #include "tier0/utlvector.h"
+#include "tier0/utlstringtoken.h"
 
 #ifdef AddJob  // windows.h print function collisions
 #undef AddJob
@@ -365,8 +366,8 @@ public:
 	DLL_CLASS_IMPORT void ReleaseUpstreamDependency();
 	DLL_CLASS_IMPORT void Wait();
 
-	// AMNOTE: Looks like a job type check
-	virtual bool unk001( uint32 ) { return false; }
+	// Whether the job is of the class with this name token (CUtlStringToken of the class name)
+	virtual bool IsJobClass( CUtlStringToken classNameToken ) { return false; }
 
 protected:
 	CUtlVectorFixedGrowable<CThreadedJobWithDependencies *, 4> m_UpstreamJobs;
