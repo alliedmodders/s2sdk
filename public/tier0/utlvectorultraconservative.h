@@ -12,11 +12,11 @@
 // A array class with a very conservative allocation scheme, with customizable allocator
 // Especialy useful if you have a lot of vectors that are sparse, or if you're
 // carefully packing holders of vectors
+// An empty vector holds a null m_pData, as the engine's do; the first element allocates it
 //-----------------------------------------------------------------------------
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4200) // warning C4200: nonstandard extension used : zero-sized array in struct/union
-#pragma warning(disable : 4815 ) // warning C4815: 'staticData' : zero-sized array in stack object will have no elements
 #endif
 
 class CUtlVectorUltraConservativeAllocator
@@ -50,7 +50,7 @@ class CUtlVectorUltraConservative : private A
 public:
 	CUtlVectorUltraConservative()
 	{
-		m_pData = StaticData();
+		m_pData = nullptr;
 	}
 
 	~CUtlVectorUltraConservative()
@@ -60,7 +60,7 @@ public:
 
 	int Count() const
 	{
-		return m_pData->m_Size;
+		return m_pData ? m_pData->m_Size : 0;
 	}
 
 	static int InvalidIndex()
@@ -76,26 +76,29 @@ public:
 	T& operator[]( int i )
 	{
 		Assert( IsValidIndex( i ) );
-		return m_pData->m_Elements[i];
+		return Base()[i];
 	}
 
 	const T& operator[]( int i ) const
 	{
 		Assert( IsValidIndex( i ) );
-		return m_pData->m_Elements[i];
+		return Base()[i];
 	}
 
 	T& Element( int i )
 	{
 		Assert( IsValidIndex( i ) );
-		return m_pData->m_Elements[i];
+		return Base()[i];
 	}
 
 	const T& Element( int i ) const
 	{
 		Assert( IsValidIndex( i ) );
-		return m_pData->m_Elements[i];
+		return Base()[i];
 	}
+
+	T* Base() { return m_pData ? reinterpret_cast<T *>( m_pData->m_Elements ) : nullptr; }
+	const T* Base() const { return m_pData ? reinterpret_cast<const T *>( m_pData->m_Elements ) : nullptr; }
 
 	void EnsureCapacity( int num )
 	{
@@ -104,15 +107,15 @@ public:
 		{
 			return;
 		}
-		if ( m_pData == StaticData() )
+		if ( !m_pData )
 		{
 			m_pData = (Data_t *)A::Alloc( sizeof(Data_t) + ( num * sizeof(T) ) );
 			m_pData->m_Size = 0;
 		}
 		else
 		{
-			int nNeeded = sizeof(Data_t) + ( num * sizeof(T) );
-			int nHave = A::GetSize( m_pData );
+			size_t nNeeded = sizeof(Data_t) + ( num * sizeof(T) );
+			size_t nHave = A::GetSize( m_pData );
 			if ( nNeeded > nHave )
 			{
 				m_pData = (Data_t *)A::Realloc( m_pData, nNeeded );
@@ -124,31 +127,28 @@ public:
 	{
 		int iNew = Count();
 		EnsureCapacity( Count() + 1 );
-		m_pData->m_Elements[iNew] = src;
+		CopyConstruct( &Base()[iNew], src );
 		m_pData->m_Size++;
 		return iNew;
 	}
 
 	void RemoveAll()
 	{
-		if ( Count() )
-		{
-			for (int i = m_pData->m_Size; --i >= 0; )
-			{
-				Destruct(&m_pData->m_Elements[i]);
-			}
-		}
-		if ( m_pData != StaticData() )
-		{
-			A::Free( m_pData );
-			m_pData = StaticData();
+		if ( !m_pData )
+			return;
 
+		for (int i = m_pData->m_Size; --i >= 0; )
+		{
+			Destruct( &Base()[i] );
 		}
+
+		A::Free( m_pData );
+		m_pData = nullptr;
 	}
 
 	void PurgeAndDeleteElements()
 	{
-		if ( m_pData != StaticData() )
+		if ( m_pData )
 		{
 			if constexpr ( std::is_pointer_v<T> )
 			{
@@ -175,7 +175,7 @@ public:
 		if ( !m_pData->m_Size )
 		{
 			A::Free( m_pData );
-			m_pData = StaticData();
+			m_pData = nullptr;
 		}
 	}
 
@@ -187,7 +187,7 @@ public:
 		if ( !m_pData->m_Size )
 		{
 			A::Free( m_pData );
-			m_pData = StaticData();
+			m_pData = nullptr;
 		}
 	}
 
@@ -225,10 +225,12 @@ public:
 		return false;
 	}
 
+	// The elements follow the count at T's alignment; they're raw storage, constructed in place, so T can have a
+	// destructor
 	struct Data_t
 	{
 		int m_Size;
-		T m_Elements[];
+		alignas( T ) uint8 m_Elements[];
 	};
 
 	Data_t *m_pData;
@@ -246,15 +248,6 @@ private:
 			Q_memset( &Element(Size-num), 0xDD, num * sizeof(T) );
 #endif
 		}
-	}
-
-
-
-	static Data_t *StaticData()
-	{
-		static Data_t staticData;
-		Assert( staticData.m_Size == 0 );
-		return &staticData;
 	}
 };
 
