@@ -60,7 +60,8 @@ public:
 	virtual int	GetFirstTick( void ) = 0;
 	virtual void	StartAutoRecording( void ) = 0;
 	virtual void	StopRecording( const CGameInfo *pGameInfo ) = 0;
-	virtual void	AddSaveGame( CSteamID steamID, uint64, int, const CUtlBuffer &buf ) = 0;
+	// Written to the demo as CDemoSaveGame
+	virtual void	AddSaveGame( CSteamID steamID, uint64 nSignature, int nVersion, const CUtlBuffer &buf ) = 0;
 };
 
 #endif
