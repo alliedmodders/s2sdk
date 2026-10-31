@@ -84,6 +84,7 @@ private:
 	SpawnGroupHandle_t m_hSpawnGroup;
 public:
 	WorldGroupId_t m_worldGroupId;
+	// One bit per DataObjectType_t, set while the entity has that data object
 	uint32 m_fDataObjectTypes;
 	ChangeAccessorFieldPathIndex_t m_PathIndex;
 private:
