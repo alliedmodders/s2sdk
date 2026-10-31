@@ -468,7 +468,8 @@ static void TestInt16Arrays()
 
 	copy->ArrayAddElementToTail()->SetInt( 40 );
 	CHECK( copy->GetTypeEx() == KV3_TYPEEX_ARRAY && copy->GetArrayElementCount() == 4 );
-	CHECK( !strcmp( copy->ToString( buff ), "10 -20 300 40" ) );
+	// Only typed arrays print their elements
+	CHECK( copy->ToString( buff ) == nullptr && !strcmp( buff.Get(), "<array: 4 elements>" ) );
 
 	b->SetArrayElementCount( 2 );
 	CHECK( b->GetTypeEx() == KV3_TYPEEX_ARRAY && b->GetArrayElementCount() == 2 );
@@ -780,6 +781,141 @@ static void TestUndersizedNodes()
 		free( malloc( 16 + i * 8 ) );
 }
 
+// The raw entry lists are protected; only the arena's loaders fill them
+class CRawListArena : public CKV3Arena
+{
+public:
+	int ArrayFreeBytes() const { return m_RawArrayEntries.FreeBytes(); }
+	int ArrayAllocatedBytes() const { return m_RawArrayEntries.AllocatedBytes(); }
+};
+
+// A raw entry list is never grown while it holds nodes: a node that only fits without its entry's link goes to a
+// cluster. A binary load leaves the allocator's rounding free in the list, so look for a load that leaves exactly the
+// node size of a clustered array (2 to 6 elements) free
+static void TestRawListFit()
+{
+	bool bTested = false;
+	for ( int nArrays = 1; nArrays <= 12 && !bTested; ++nArrays )
+	{
+		CKV3Arena src;
+		src.Root()->SetToEmptyTable();
+		for ( int i = 0; i < nArrays; ++i )
+		{
+			char name[ 16 ];
+			V_snprintf( name, sizeof( name ), "a%d", i );
+			KeyValues3 *pArray = src.Root()->FindOrCreateMember( name );
+			pArray->SetArrayElementCount( 3 + i );
+			for ( int j = 0; j < 3 + i; ++j )
+				pArray->GetArrayElement( j )->SetToEmptyTable();
+		}
+
+		CUtlBuffer buf;
+		CUtlString error;
+		CHECK( SaveKV3( g_KV3Encoding_Binary, g_KV3Format_Generic, src.Root(), &error, &buf ) );
+
+		CUtlBuffer in( buf.Base(), buf.TellPut(), CUtlBuffer::READ_ONLY );
+		CRawListArena arena;
+		CHECK( LoadKV3( arena.Root(), &error, &in, g_KV3Format_Generic, "test" ) );
+
+		int nCount = -1;
+		for ( int n = 2; n <= KV3_ARRAY_MAX_FIXED_MEMBERS; ++n )
+		{
+			if ( (int)CKeyValues3Array::TotalSizeOf( n ) == arena.ArrayFreeBytes() )
+				nCount = n;
+		}
+		if ( nCount < 0 )
+			continue;
+
+		bTested = true;
+		int nAllocated = arena.ArrayAllocatedBytes();
+		arena.Root()->FindOrCreateMember( "new" )->SetArrayElementCount( nCount );
+		CHECK( arena.ArrayAllocatedBytes() == nAllocated );
+		CHECK( arena.Root()->FindMember( "new" )->GetArrayElementCount() == nCount );
+
+		for ( int i = 0; i < nArrays; ++i )
+		{
+			char name[ 16 ];
+			V_snprintf( name, sizeof( name ), "a%d", i );
+			KeyValues3 *pArray = arena.Root()->FindMember( name );
+			CHECK( pArray && pArray->GetArrayElementCount() == 3 + i );
+		}
+	}
+	CHECK( bTested );
+}
+
+// A raw-list array that grew onto the heap is released once: removing it leaves its node purged, so clearing the
+// arena doesn't free its elements again
+static void TestRawArrayReleasedOnce()
+{
+	CKV3Arena src;
+	src.Root()->SetToEmptyTable();
+	for ( int i = 0; i < 4; ++i )
+	{
+		char name[ 16 ];
+		V_snprintf( name, sizeof( name ), "a%d", i );
+		src.Root()->FindOrCreateMember( name )->SetArrayElementCount( 3 );
+	}
+
+	CUtlBuffer buf;
+	CUtlString error;
+	CHECK( SaveKV3( g_KV3Encoding_Binary, g_KV3Format_Generic, src.Root(), &error, &buf ) );
+
+	for ( int round = 0; round < 2; ++round )
+	{
+		CUtlBuffer in( buf.Base(), buf.TellPut(), CUtlBuffer::READ_ONLY );
+		CRawListArena arena;
+		CHECK( LoadKV3( arena.Root(), &error, &in, g_KV3Format_Generic, "test" ) );
+
+		// The array's node is the value's data
+		KeyValues3 *grown = arena.Root()->FindMember( "a1" );
+		CKeyValues3Array *node = grown ? *(CKeyValues3Array **)( (uint8 *)grown + 8 ) : nullptr;
+		CHECK( node && arena.IsArrayRawAllocated( node ) );
+		if ( !node )
+			continue;
+		grown->SetArrayElementCount( 40 );
+		CHECK( ( (const uint8 *)node )[13] != 0 );
+		CHECK( arena.Root()->RemoveMember( CKV3MemberName( "a1" ) ) );
+
+		// The node stays in the raw list, purged back to its inline elements (no longer dynamic, no elements)
+		CHECK( ( (const uint8 *)node )[13] == 0 && node->Count() == 0 );
+		if ( round == 0 )
+			arena.Clear();
+		else
+			arena.Purge();
+	}
+}
+
+// A purged arena has no raw entry lists left: arrays allocated in it afterwards go to clusters again
+static void TestPurgeRawLists()
+{
+	CKV3Arena src;
+	src.Root()->SetToEmptyTable();
+	for ( int i = 0; i < 4; ++i )
+	{
+		char name[ 16 ];
+		V_snprintf( name, sizeof( name ), "a%d", i );
+		src.Root()->FindOrCreateMember( name )->SetArrayElementCount( 3 );
+	}
+
+	CUtlBuffer buf;
+	CUtlString error;
+	CHECK( SaveKV3( g_KV3Encoding_Binary, g_KV3Format_Generic, src.Root(), &error, &buf ) );
+
+	CUtlBuffer in( buf.Base(), buf.TellPut(), CUtlBuffer::READ_ONLY );
+	CRawListArena arena;
+	CHECK( LoadKV3( arena.Root(), &error, &in, g_KV3Format_Generic, "test" ) );
+	CHECK( arena.ArrayAllocatedBytes() > 0 );
+
+	arena.Purge();
+	CHECK( arena.ArrayAllocatedBytes() == 0 );
+	if ( arena.ArrayAllocatedBytes() != 0 )
+		return;
+
+	arena.Root()->SetToEmptyTable();
+	arena.Root()->FindOrCreateMember( "new" )->SetArrayElementCount( 2 );
+	CHECK( arena.Root()->FindMember( "new" )->GetArrayElementCount() == 2 );
+}
+
 static void TestNumbersFromPartialStrings( KeyValues3 *root )
 {
 	// Signed integers take the number before the first invalid character, as tier0's getters do
@@ -928,6 +1064,81 @@ static void TestMemberNameWithStorage( KeyValues3 *root )
 	CHECK( member && member->GetInt() == 5 );
 }
 
+// The value and its subtype are copied, the flags stay the destination's own
+static void TestCopyFromFlags( KeyValues3 *root )
+{
+	KeyValues3 src;
+	src.SetInt( 7 );
+	src.SetFlag( KEYVALUES3_FLAG_RESOURCE_REFERENCE, true );
+
+	root->SetFlag( KEYVALUES3_FLAG_MULTILINE_STRING, true );
+	*root = src;
+	CHECK( root->GetInt() == 7 && root->GetSubType() == KV3_SUBTYPE_INT32 );
+	CHECK( root->GetAllFlags() == KEYVALUES3_FLAG_MULTILINE_STRING );
+}
+
+// A typed array is turned into a regular one to swap its items, as the other element accessors do
+static void TestArraySwapTyped( KeyValues3 *root )
+{
+	root->SetVector( Vector( 1.0f, 2.0f, 3.0f ) );
+	CHECK( root->GetTypeEx() == KV3_TYPEEX_ARRAY_FLOAT32 );
+	root->ArraySwapItems( 0, 2 );
+	CHECK( root->GetTypeEx() == KV3_TYPEEX_ARRAY );
+	CHECK( root->GetVector() == Vector( 3.0f, 2.0f, 1.0f ) );
+}
+
+// Clearing an arena leaves binary data that was never allocated unallocated
+static void TestArenaClearBinaryData()
+{
+	CKV3Arena arena;
+	arena.Root()->SetInt( 1 );
+	arena.Clear();
+	CHECK( arena.GetBinaryData().Size() == 0 );
+	CHECK( arena.Root()->IsNull() );
+}
+
+// An array that already has elements is emptied too
+static void TestSetToEmptyArray( KeyValues3 *root )
+{
+	root->SetArrayElementCount( 3 );
+	root->SetToEmptyArray();
+	CHECK( root->GetTypeEx() == KV3_TYPEEX_ARRAY && root->GetSubType() == KV3_SUBTYPE_ARRAY );
+	CHECK( root->GetArrayElementCount() == 0 );
+}
+
+static void TestOverlayKeysFromNonTables()
+{
+	CKV3Arena arena;
+	arena.EnableMetaData( true );
+
+	KeyValues3 *root = arena.Root();
+	root->SetToEmptyTable();
+	KeyValues3 *src = root->FindOrCreateMember( "src" );
+	src->SetToEmptyTable();
+	src->GetMetaData()->m_nLine = 12;
+
+	// A value that isn't a table is cleared and only becomes one when a member is added
+	KeyValues3 *dest = root->FindOrCreateMember( "dest" );
+	dest->SetInt( 1 );
+	dest->OverlayKeysFrom( src, true );
+	CHECK( dest->IsNull() );
+
+	// The source table's metadata comes along
+	CHECK( dest->GetMetaData() && dest->GetMetaData()->m_nLine == 12 );
+
+	// Only a table has members to overlay
+	KeyValues3 notTable;
+	notTable.SetInt( 5 );
+	dest->SetInt( 1 );
+	dest->OverlayKeysFrom( &notTable, true );
+	CHECK( dest->IsNull() );
+
+	dest->SetToEmptyTable();
+	dest->SetMemberInt( "kept", 1 );
+	dest->OverlayKeysFrom( &notTable, true );
+	CHECK( dest->IsTable() && dest->GetMemberInt( "kept" ) == 1 );
+}
+
 // Runs a test on an arena's root and on a KeyValues3 without an arena, whose members are allocated on the heap
 static void RunTest( void ( *pfnTest )( KeyValues3 * ) )
 {
@@ -965,6 +1176,9 @@ int main()
 	RunTest( TestFindMemberHint );
 	TestMetaData();
 	TestUndersizedNodes();
+	TestRawListFit();
+	TestPurgeRawLists();
+	TestRawArrayReleasedOnce();
 	RunTest( TestNumbersFromPartialStrings );
 	RunTest( TestStringTypes );
 	RunTest( TestEmptyMemberName );
@@ -972,6 +1186,11 @@ int main()
 	RunTest( TestArrayInsertNonArray );
 	RunTest( TestReadTypedArrays );
 	RunTest( TestMemberNameWithStorage );
+	RunTest( TestCopyFromFlags );
+	TestOverlayKeysFromNonTables();
+	RunTest( TestSetToEmptyArray );
+	RunTest( TestArraySwapTyped );
+	TestArenaClearBinaryData();
 
 	if ( g_nFailures )
 	{
