@@ -62,7 +62,9 @@ public:
 
 	virtual bool		AllowSaveRestore() = 0;
 
-	virtual bool		unk101() = 0;
+	// When true, the engine fills CSVCMsg_PacketEntities::serialized_entities with the bit count of each entity's data in
+	// entity_data, as varints in write order
+	virtual bool		ShouldSendSerializedEntities() = 0;
 
 	virtual bool		IsCommandQueueEnabled() = 0;
 	virtual float		GetCommandQueueDilationPercentage() = 0;
