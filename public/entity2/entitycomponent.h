@@ -79,6 +79,16 @@ struct ComponentUnserializerClassInfo_t
 	uint16 m_nClassInfoPtrCount;
 };
 
+enum EntComponentFlags_t
+{
+	ECF_NONE = 0,
+	ECF_CONTAINED = (1 << 0), // Stored inside the entity
+	ECF_REFERENCED = (1 << 1), // Allocated separately
+	ECF_UNK2 = (1 << 2), // Unused
+	ECF_UNK3 = (1 << 3), // Unused
+	ECF_SCRIPTING = (1 << 4), // Has a script description
+};
+
 struct EntComponentInfo_t
 {
 	const char* m_pName;
@@ -86,7 +96,7 @@ struct EntComponentInfo_t
 	const char* m_pNetworkDataReferencedDescription;
 	const char* m_pNetworkDataReferencedPtrPropDescription;
 	int m_nRuntimeIndex;
-	uint m_nFlags;
+	uint32 m_nFlags; // EntComponentFlags_t
 	ComponentUnserializerClassInfo_t m_componentUnserializerClassInfo;
 	void* m_pScriptDesc;
 	CEntityComponentHelper* m_pBaseClassComponentHelper;
@@ -106,6 +116,34 @@ struct EntOutput_t
 	uint32 m_nOutputOffset;
 };
 
+enum EntityHelperFlags_t
+{
+	EHF_None = 0,
+	EHF_Allocate = (1 << 0),
+	EHF_Free = (1 << 1),
+
+	// AMNOTE: Unused flags, mostly remnants which recorded CEnttiyComponent callbacks the component's class override
+	// <============================
+	EHF_ConnectComponents = (1 << 2),
+	EHF_Spawn = (1 << 3),
+	EHF_BatchSpawn = (1 << 4),
+	EHF_BatchSpawnDependencyIsland = (1 << 5),
+	EHF_Activate = (1 << 6),
+	EHF_BatchActivate = (1 << 7),
+	EHF_PostDataUpdate = (1 << 8),
+	EHF_BatchPostDataUpdate = (1 << 9),
+	EHF_UpdateOnRemove = (1 << 10),
+	EHF_BatchUpdateOnRemove = (1 << 11),
+	EHF_OnSetDormant = (1 << 12),
+	EHF_BatchOnSetDormant = (1 << 13),
+	EHF_SaveEntity = (1 << 14),
+	EHF_RestoreEntity = (1 << 15),
+	EHF_UNK16 = (1 << 16),
+	// ============================>
+
+	EHF_Contained = (1 << 17), // The component info has ECF_CONTAINED
+};
+
 class CEntityComponentHelper
 {
 public:
@@ -117,7 +155,7 @@ public:
 	virtual void Free( CEntityIdentity* pEntity, void* pComponent ) = 0;
 
 public:
-	uint m_flags;
+	uint32 m_flags; // EntityHelperFlags_t
 	EntComponentInfo_t* m_pInfo;
 	int m_nPriority;
 	CEntityComponentHelper* m_pNext;
