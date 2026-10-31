@@ -23,8 +23,8 @@ template class CUtlVectorMemory_Aligned<CUtlString, 16>;
 template class CUtlVectorBase<CUtlString, int, CUtlVectorMemory_Aligned<CUtlString, 16>>;
 template class CUtlVectorAutoPurge<CUtlString *>;
 
-// Clang rejects its flexible array member for types with a destructor
 template class CUtlVectorUltraConservative<CUtlString *>;
+template class CUtlVectorUltraConservative<CUtlString>;
 
 // CUtlVectorBase can only be instantiated whole with the allocators above, the others lack members it forwards to like SetGrowSize and Detach
 template class CUtlVectorMemory_Fixed<CUtlString, 4>;
