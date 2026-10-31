@@ -36,8 +36,9 @@ PLATFORM_INTERFACE void CatchAndWriteMiniDumpExForVoidPtrFn( FnVoidPtrFn pfn, vo
 // Let's not include this.  We'll use forwards instead.
 //#include <dbghelp.h>
 struct _EXCEPTION_POINTERS;
+struct MiniDumpExceptionHandler_InternalData_t;
 
-// AMNOTE: Incomplete, only its start is known
+// AMNOTE: Incomplete, only its start is known; 128 bytes, the rest holds the optional data passed to MiniDumpExceptionHandler
 struct MiniDumpStandardData_t
 {
 	DLL_CLASS_IMPORT void HandlerQueueHeartBeat() const;
@@ -47,6 +48,7 @@ struct MiniDumpStandardData_t
 	int32 m_unk101;
 	// Null on Linux
 	_EXCEPTION_POINTERS *m_pExceptionInfo;
+	MiniDumpExceptionHandler_InternalData_t *m_pTier0InternalData;
 };
 
 typedef int (*FnMiniDumpHandler)( MiniDumpStandardData_t *pData );
