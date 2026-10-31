@@ -386,7 +386,7 @@ PLATFORM_INTERFACE struct tm*		Plat_gmtime64( const time_t *nTime, struct tm *pT
 PLATFORM_INTERFACE time_t			Plat_timegm64( struct tm *timeptr );
 PLATFORM_INTERFACE struct tm *		Plat_localtime64( const time_t *timep, struct tm *result );
 
-PLATFORM_INTERFACE const char *		Plat_GetGameDirectory( int unknown=0 );
+PLATFORM_INTERFACE const char *		Plat_GetGameDirectory( int nLayer = 0 );
 
 PLATFORM_INTERFACE bool				Plat_FileExists( const char *pFileName, int flags );
 PLATFORM_INTERFACE bool				Plat_FileIsReadOnly( const char *pFileName );
