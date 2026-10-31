@@ -99,6 +99,7 @@
 #include "datamap.h"
 #include "appframework/iappsystem.h"
 #include "tier0/functors.h"
+#include "tier0/utlvectorultraconservative.h"
 #include "tier0/memdbgon.h"
 
 #if defined( _WIN32 )
@@ -168,7 +169,7 @@ public:
 class IScriptManager : public IAppSystem
 {
 public:
-	virtual IScriptVM *CreateVM( ScriptLanguage_t language = SL_DEFAULT ) = 0;
+	virtual IScriptVM *CreateVM( ScriptLanguage_t language = SL_DEFAULT, bool bEnableDebugLibrary = false ) = 0;
 	virtual void DestroyVM( IScriptVM * ) = 0;
 	virtual IScriptDebugger *GetDebugger() = 0;
 };
@@ -436,7 +437,8 @@ class IScriptVM
 public:
 	virtual ~IScriptVM() {}
 
-	virtual bool Init() = 0;
+	// bEnableDebugLibrary loads the language's debug library (Lua's debug, whose traceback the error handler uses)
+	virtual bool Init( bool bEnableDebugLibrary = false ) = 0;
 	virtual void Shutdown() = 0;
 
 	// AMNOTE: Makes ExecuteFunction fail with SCRIPT_ERROR from then on, Run is unaffected
@@ -715,25 +717,28 @@ public:
 		Term();
 	}
 
+	// A copy would release the same scope and cached functions twice
+	CScriptScopeT( const CScriptScopeT & ) = delete;
+	CScriptScopeT &operator=( const CScriptScopeT & ) = delete;
+
 	bool IsInitialized()
 	{
 		return m_hScope != INVALID_HSCRIPT;
 	}
 
-	bool Init( const char *pszName )
+	bool Init( const char *pszName, HSCRIPT hParent = NULL )
 	{
-		m_hScope = GetVM()->CreateScope( pszName );
+		m_hScope = GetVM()->CreateScope( pszName, hParent );
 		return ( m_hScope != NULL );
 	}
 
-	bool Init( HSCRIPT hScope, bool bExternal = true )
+	// Uses an existing scope: takes a reference on it unless flags has DONT_ADDREF, and Term releases one unless it has
+	// DONT_RELEASE (both to borrow a scope someone else keeps alive)
+	bool Init( HSCRIPT hScope, int flags = 0 )
 	{
-		if ( bExternal )
-		{
-			m_flags |= EXTERNAL;
-		}
-		m_hScope = hScope;
-		return ( m_hScope != NULL );
+		m_flags = flags;
+		m_hScope = ( hScope && hScope != INVALID_HSCRIPT && !( flags & DONT_ADDREF ) ) ? GetVM()->ReferenceScope( hScope ) : hScope;
+		return ( m_hScope != NULL && m_hScope != INVALID_HSCRIPT );
 	}
 
 	bool InitGlobal()
@@ -750,13 +755,11 @@ public:
 			IScriptVM *pVM = GetVM();
 			if ( pVM )
 			{
-				for ( int i = 0; i < m_FuncHandles.Count(); i++ )
-				{
-					pVM->ReleaseFunction( *m_FuncHandles[i] );
-				}
+				// Also resets each cached handle, so its holder looks the function up again
+				InvalidateCachedValues();
 			}
-			m_FuncHandles.Purge();
-			if ( m_hScope && pVM && !(m_flags & EXTERNAL) )
+			m_FuncHandles.RemoveAll();
+			if ( m_hScope && pVM && !(m_flags & DONT_RELEASE) )
 			{
 				pVM->ReleaseScope( m_hScope );
 			}
@@ -833,7 +836,8 @@ public:
 
 	enum Flags_t
 	{
-		EXTERNAL = 0x01,
+		DONT_RELEASE = 0x01,
+		DONT_ADDREF = 0x02,
 	};
 
 	//-----------------------------------------------------
@@ -1083,8 +1087,8 @@ public:
 
 protected:
 	HSCRIPT m_hScope;
-	int m_flags;
-	CUtlVectorConservative<HSCRIPT *> m_FuncHandles;
+	CUtlVectorUltraConservative<HSCRIPT *> m_FuncHandles;
+	int m_flags; // Flags_t
 };
 
 typedef CScriptScopeT<> CScriptScope;
