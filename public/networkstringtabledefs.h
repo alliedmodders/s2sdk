@@ -64,7 +64,8 @@ public:
 	virtual int				GetNumStrings( void ) const = 0;
 
 	// Networking
-	virtual void			SetStringChangeTick( int tick_count, void *unknown ) = 0;
+	// pChangeTicks, if given, replaces the ticks of the table's last change and the one before (ChangedBetweenTicks)
+	virtual void			SetStringChangeTick( int tick_count, const int *pChangeTicks ) = 0;
 	virtual int				GetTick( void ) = 0;
 	virtual bool			ChangedBetweenTicks(int tickA, int tickB ) const = 0;
 
