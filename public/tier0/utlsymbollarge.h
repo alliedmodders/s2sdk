@@ -47,6 +47,17 @@ public:
 		m_pString = pString;
 	}
 
+	CUtlSymbolLarge( CUtlSymbolLarge const& sym )
+	{
+		m_pString = sym.m_pString;
+	}
+
+	CUtlSymbolLarge& operator=( CUtlSymbolLarge const& src )
+	{
+		m_pString = src.m_pString;
+		return *this;
+	}
+
 	// operator==
 	bool operator==( CUtlSymbolLarge const& src ) const 
 	{ 
