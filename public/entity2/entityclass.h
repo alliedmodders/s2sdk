@@ -91,7 +91,6 @@ public:
 	datamap_t* m_pDataDescMap;
 };
 
-// Size: 0x128
 class CEntityClass
 {
 	struct ComponentOffsets_t
@@ -161,11 +160,12 @@ public:
 	CUtlSymbolLarge m_designerName;
 
 	// Uses EntityClassFlags_t flags
-	uint m_flags;
+	uint32 m_flags;
 
 	int m_SpawnOrder;
 	
-	uint m_nAllHelpersFlags;
+	// The EntityHelperFlags_t of all its component helpers
+	uint32 m_nAllHelpersFlags;
 
 	CUtlVector<ComponentOffsets_t> m_ComponentOffsets;
 	CUtlVector<ComponentHelper_t> m_AllHelpers;
