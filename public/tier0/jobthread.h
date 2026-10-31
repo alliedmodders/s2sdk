@@ -109,7 +109,8 @@ public:
 	//-----------------------------------------------------
 	virtual bool Start( const ThreadPoolStartParams_t &startParams, const char *pszNameOverride = NULL ) = 0;
 	virtual bool Stop() = 0;
-	virtual void unk001( const ThreadPoolStartParams_t &startParams ) = 0;
+	// Stops the threads and starts them again with startParams, under the name Start was given
+	virtual void Restart( const ThreadPoolStartParams_t &startParams ) = 0;
 
 	//-----------------------------------------------------
 	// Functions for any thread
@@ -118,7 +119,10 @@ public:
 	virtual int NumThreads() = 0;
 	virtual int NumIdleThreads() = 0;
 	virtual int GetCurrentThreadIndex() = 0;
-	virtual int unk101( int, int ) = 0;
+	// The current thread's slot for per-thread data: GetCurrentThreadIndex() + 1 on the pool's threads,
+	// 0 on the main thread, else nOtherThreadSlot.
+	// AMNOTE: bUnk is unused
+	virtual int GetCurrentThreadSlot( bool bUnk, int nOtherThreadSlot ) = 0;
 
 	//-----------------------------------------------------
 	// Pause/resume processing jobs
