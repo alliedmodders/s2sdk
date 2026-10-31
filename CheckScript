@@ -216,3 +216,16 @@ for sdk_target in SdkHelpers.sdk_targets:
   SdkHelpers.configureCxx(builder, binary, sdk)
 
 builder.Add(bvtest)
+
+# Takes CThreadRWLock_FastRead's inline read and write locks from several threads through tier0
+rwlocktest = builder.ProgramProject('threadrwlock_test')
+rwlocktest.sources = [
+  os.path.join('tests', 'run', 'threadrwlock.cpp'),
+  os.path.join('public', 'tier0', 'memoverride.cpp'),
+]
+
+for sdk_target in SdkHelpers.sdk_targets:
+  binary = rwlocktest.Configure(sdk_target.cxx, 'threadrwlock_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
+  SdkHelpers.configureCxx(builder, binary, sdk)
+
+builder.Add(rwlocktest)
