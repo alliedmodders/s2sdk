@@ -152,8 +152,7 @@ public:
 	// Called to apply lobby settings to a dedicated server
 	virtual void			ApplyGameSettings( KeyValues *pKV ) = 0;
 
-	// The server should run physics/think on all edicts
-	// One of these bools is 'simulating'... probably
+	// The server should run physics/think on all edicts. bFirstTick and bLastTick are the frame's EventSimulate_t ones
 	virtual void			GameFrame( bool simulating, bool bFirstTick, bool bLastTick ) = 0;
 
 	// Returns true if the game DLL wants the server not to be made public.
@@ -218,7 +217,7 @@ public:
 
 	virtual bool			SaveGame_CalcFileName( const char *pszSaveName, CUtlString &fileName ) = 0;
 	virtual bool			GetRequiredAddonsFromSaveFile( const char *pszSaveName, CUtlString &requiredAddons ) = 0;
-	virtual void			GetLevelsFromSaveFile( const char *pszSaveName, CUtlVector<CCreateGameServerLoadInfo> &levels, bool bWipeAndExtract, int, CUtlString *pComment ) = 0;
+	virtual void			GetLevelsFromSaveFile( const char *pszSaveName, CUtlVector<CCreateGameServerLoadInfo> &levels, bool bWipeAndExtract, int saveFileLevelsType, CUtlString *pComment ) = 0;
 	virtual void			ClearSaveDirectory( void ) = 0;
 	virtual void			PreSaveGameLoaded( const char *pszSaveName ) = 0;
 	virtual void			AppendSaveGameResources( HGameResourceManifest hManifest, ILoadingSpawnGroup *pLoadingSpawnGroup, SpawnGroupHandle_t hSpawnGroup, const void * ) = 0;
