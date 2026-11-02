@@ -183,7 +183,7 @@ public:
 
 public:
 	virtual bool DontSpawnEntities() const = 0;
-	virtual uint8 GetUnk2AndLastFlagBits() const = 0;
+	virtual bool ShouldSuppressMapEntities() const = 0;
 	virtual SpawnGroupHandle_t GetParentSpawnGroup() const = 0;
 	virtual uint32 GetChildSpawnGroupCount() const = 0;
 	virtual void GetSpawnGroupDesc(SpawnGroupDesc_t *pDesc) const = 0;
@@ -194,9 +194,10 @@ public:
 	virtual void LoadAllGameResourceManifests(void *) = 0;
 	virtual void AddSpawnGroupChild(SpawnGroupHandle_t hSpawnGroup) = 0;
 	virtual bool HasSetActivePostLoad() const = 0;
-	virtual bool HasUnk2() const = 0;
-	virtual bool HasUnk() const = 0;
-	virtual void UnkSetter(uint32 n) = 0;
+	// Set once it and all its child spawn groups are ready to spawn their entities
+	virtual bool AreChildSpawnGroupsReady() const = 0;
+	virtual bool ShouldIncludeInSaveGame() const = 0;
+	virtual void SetDestructionTick(uint32 nTick) = 0;
 	virtual bool HasLevelTransition() const = 0;
 	virtual WorldGroupId_t GetWorldGroupId() const = 0;
 };
