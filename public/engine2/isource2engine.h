@@ -96,10 +96,10 @@ public:
 		m_bCreateNewSceneWorld(false),
 		m_bManualCompletion(false),
 		m_bSetActivePostLoad(false),
-		m_unk101(true),
+		m_bIncludeInSaveGame(true),
 		m_bLevelTransition(false),
-		m_unk201(false),
-		m_unk202(false)
+		m_bSuppressMapEntities(false),
+		m_bDisableBaseWorldLayer(false)
 	{
 		SetIdentityMatrix(m_vecWorldOffset);
 	}
@@ -127,10 +127,10 @@ public:
 	bool m_bCreateNewSceneWorld;
 	bool m_bManualCompletion;
 	bool m_bSetActivePostLoad;
-	bool m_unk101; // AMNOTE: Spawn groups created by point_prefab clear it
+	bool m_bIncludeInSaveGame; // Its entities are streamed into save games; point_prefab spawn groups clear it
 	bool m_bLevelTransition;
-	bool m_unk201;
-	bool m_unk202;
+	bool m_bSuppressMapEntities; // Loads no entities from the map's entity lump
+	bool m_bDisableBaseWorldLayer; // The world starts with its world_layer_base layer disabled
 };
 
 struct SpawnGroupDescReceive_t
