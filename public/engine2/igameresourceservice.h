@@ -7,6 +7,7 @@
 
 #include "engine2/iengineservicemgr.h"
 #include "entity2/entitysystem.h"
+#include "iprerequisite.h"
 #include "resourcefile/resourcetype.h"
 #include "resourcesystem/iresourcesystem.h"
 #include "tier0/utlstring.h"
@@ -52,6 +53,23 @@ public:
 	virtual void BuildCompressedManifest( HGameResourceManifest hManifest, CCompressedResourceManifest *pCompressedManifest, bool bOnlyUnloadedResources ) = 0;
 	virtual void LockGameResourceManifest( bool bLock, CGameResourceManifestLock &manifestLock ) = 0;
 	virtual bool AppendToAndCreateGameResourceManifest( HGameResourceManifest hManifest, SpawnGroupHandle_t hSpawnGroup, int nCount, const EntitySpawnInfo_t *pEntities, const matrix3x4a_t *pWorldOffset ) = 0;
+};
+
+// Satisfied once all of its game resource manifests are loaded.
+// AMNOTE: The virtuals are stubs to make CBaseSpawnGroup member compile
+class CGameResourceManifestPrerequisite : public IPrerequisite
+{
+public:
+	virtual ~CGameResourceManifestPrerequisite() {}
+	virtual void AddRef() override {}
+	virtual void Release() override {}
+	virtual PrerequisiteStatus_t GetPrerequisiteStatus( double flTimeoutTime ) override { return PS_NOT_SATISFIED; }
+	virtual const char *GetName() const override { return "CGameResourceManifestPrerequisite"; }
+	virtual void Describe( int nDepth, CPrerequisiteDescriptionHelper *pHelper ) const override {}
+	virtual void OnStatusFinished( PrerequisiteStatus_t eStatus ) {}
+
+	IGameResourceService *m_pGameResourceService;
+	CUtlVector<HGameResourceManifest> m_hResourceManifests;
 };
 
 class CGameResourceService : public CBaseEngineService<IGameResourceService>
