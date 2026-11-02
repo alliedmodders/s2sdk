@@ -5,10 +5,32 @@
 #pragma once
 #endif
 
+#include "bitvec.h"
+#include "entityhandle.h"
 #include "igamesystem.h"
 #include "engine2/isource2engine.h"
+#include "scenesystem/iscenesystem.h"
+#include "tier0/utlstring.h"
+#include "tier0/utlstringtoken.h"
 
 class IPVS;
+class CMapSpawnGroup;
+
+// A level transition link from a map spawn group to another, through a landmark
+struct SpawnGroupConnectionInfo_t
+{
+	CMapSpawnGroup *m_pSpawnGroup;
+	int m_nSpawnGroupCacheMarker;
+	CUtlString m_SpawnGroupName;
+	CEntityHandle m_hLandMark; // info_spawngroup_landmark
+	CEntityHandle m_hSpawnGroupLoad; // info_spawngroup_load_unload
+	vis_info_t m_LandmarkPVS;
+	CUtlString m_LandmarkName;
+	CUtlStringToken m_LandmarkStringToken;
+	int m_nClusterForLandmark;
+	CBitVec<16> m_unConnectionBits;
+	bool m_bForwardLink;
+};
 
 class CMapSpawnGroup
 {
@@ -89,7 +111,7 @@ private:
 	bool m_bSpawnGroupPrecacheDispatched;
 	bool m_bSpawnGroupLoadDispatched;
 	IPVS *m_pPVS;
-	// CUtlVector<SpawnGroupConnectionInfo_t> m_Connections;
+	CUtlVector<SpawnGroupConnectionInfo_t> m_Connections;
 };
 
 // AMNOTE: Short stubs representing game class hierarchy
