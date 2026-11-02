@@ -32,7 +32,8 @@ class IResourceManifestRegistry;
 class IEntityResourceManifest;
 class IEntityPrecacheConfiguration;
 class ISpawnGroupPrerequisiteRegistry;
-class CUtlBuffer;
+class ISaveRestoreFileData;
+class IStreamEntitiesFromFileCompletion;
 class CKV3Arena;
 class CEntityInstance;
 class CEntityKeyValues;
@@ -202,25 +203,41 @@ public:
 	virtual WorldGroupId_t GetWorldGroupId() const = 0;
 };
 
+// AMNOTE: Spawns entities into a loaded spawn group, usage:
+// IGameSpawnGroupMgr::CreateLoadingSpawnGroup() with bSynchronouslySpawnEntities, precaches their resources needed
+// and until SpawnEntities they are isolated allocations (EF_IS_ISOLATED_ALLOCATION) without an entity index.
+// Entities added later with CreateEntityToSpawn() aren't precached: pass them to
+// IGameResourceService::PrecacheEntitiesAndConfirmResourcesAreLoaded() before calling SpawnEntities().
+// 
+// CreateEntityToSpawn ends the server with a fatal error for key values without a classname, so ensure it's set beforehand!!
+// 
+// For point_prefab and skybox_reference it loads the map in targetMapName as a new spawn group, and a point_prefab gets no entity;
+// with CREATE_SPAWN_GROUP_IMMEDIATELY it does neither and returns null for both.
 abstract_class ILoadingSpawnGroup
 {
 public:
 	virtual int EntityCount() const = 0;
 	virtual const EntitySpawnInfo_t *GetEntities() const = 0;
 	virtual bool ShouldLoadEntitiesFromSave() const = 0;
-	virtual const CUtlBuffer *GetSaveRestoreFileData() const = 0;
+	virtual const ISaveRestoreFileData *GetSaveRestoreFileData() const = 0;
 	virtual void SetLevelTransitionPreviousMap(const char *pLevelTransitionMap, const char *pLandmarkName) = 0;
 	virtual bool IsLevelTransition() const = 0;
 	virtual const char *GetLevelTransitionPreviousMap() const = 0;
 	virtual const char *GetLevelTransitionLandmarkName() const = 0;
 	virtual CKV3Arena *GetEntityKeyValuesAllocator() = 0;
-	virtual CEntityInstance *CreateEntityToSpawn(SpawnGroupHandle_t hSpawnGroup, const matrix3x4a_t &vecSpawnOffset, CreateSpawnGroupType_t createType, const CEntityKeyValues *pEntityKeyValues, uint32) = 0;
+	virtual CEntityInstance *CreateEntityToSpawn(SpawnGroupHandle_t hSpawnGroup, const matrix3x4a_t &vecSpawnOffset, CreateSpawnGroupType_t createType, const CEntityKeyValues *pEntityKeyValues, int nSaveFileEntityIndex) = 0;
 	virtual void SpawnEntities() = 0;
-	// AMNOTE: Destroys and clears the entities after passing them to the entity save/restore system
-	virtual void RestoreEntities(uint32, const char *, int, void *, int *) = 0;
-	// AMNOTE: Asks the entity save/restore system about the save file named pszSaveName
-	virtual bool unk101(void *, const char *pszSaveName) = 0;
+	// AMNOTE: Destroys and clears the entities after passing them to the entity save/restore system, which restores
+	// the entities in save/<base name of pszWorldName>.hl1 of GetSaveRestoreFileData into hSpawnGroup, appends their
+	// handles to pRestoredEntities and hands its own list of them to pCompletion; vecOffset isn't read
+	virtual void RestoreEntities(SpawnGroupHandle_t hSpawnGroup, const char *pszWorldName, IStreamEntitiesFromFileCompletion *pCompletion, const Vector &vecOffset, CUtlVector<CEntityHandle> *pRestoredEntities) = 0;
+	// Whether GetSaveRestoreFileData has save/<base name of pszWorldName>.hl1, the file RestoreEntities restores from
+	virtual bool HasSaveFile(SpawnGroupHandle_t hSpawnGroup, const char *pszWorldName) = 0;
 	virtual void Release() = 0;
+	virtual void SetSuppressMapEntities(bool bSuppress) = 0;
+	virtual bool ShouldSuppressMapEntities() const = 0;
+	// AMNOTE: The same array as GetEntities, but writable
+	virtual EntitySpawnInfo_t *GetEntitiesForModify() = 0;
 };
 
 abstract_class IGameSpawnGroupMgr
@@ -245,7 +262,7 @@ public:
 	virtual void DumpSpawnGroups() = 0;
 	virtual LoggingChannelID_t GetSaveRestoreLogChannel() = 0;
 	virtual CUtlString GetSaveRestoreContextString() const = 0;
-	// AMNOTE: Dispatch the IGameSystem WorldGroupCreated and WorldGroupDestroyed events
+	// AMNOTE: Dispatches the IGameSystem WorldGroupCreated and WorldGroupDestroyed events
 	virtual void OnWorldGroupCreated(WorldGroupId_t hWorldGroup) = 0;
 	virtual void OnWorldGroupDestroyed(WorldGroupId_t hWorldGroup) = 0;
 	virtual CUtlString GetName() const = 0;
