@@ -87,6 +87,22 @@ public:
 	// AMNOTE: Requires g_pNetworkServerService to be available during the call, otherwise nothing will be spawned and null is returned!
 	CEntityInstance* SpawnEntityByClassname(const char* pszClassName, CEntityKeyValues* pKeyValues = nullptr, SpawnGroupHandle_t hSpawnGroup = SPAWN_GROUP_HANDLE_DEFAULT);
 
+	// AMNOTE: Wrapper over non templated SpawnEntityByClassname with a recast to your wanted entity type.
+	// Target type is unchecked.
+	template <typename DESIRED_CLASS>
+	inline DESIRED_CLASS *SpawnEntity(CEntityKeyValues *pKeyValues, SpawnGroupHandle_t hSpawnGroup = SPAWN_GROUP_HANDLE_DEFAULT)
+	{
+		return (DESIRED_CLASS *)SpawnEntity( pKeyValues, hSpawnGroup );
+	}
+
+	// AMNOTE: Wrapper over non templated SpawnEntityByClassname with a recast to your wanted entity type.
+	// Target type is unchecked.
+	template <typename DESIRED_CLASS>
+	inline DESIRED_CLASS *SpawnEntityByClassname(const char* pszClassName, CEntityKeyValues* pKeyValues = nullptr, SpawnGroupHandle_t hSpawnGroup = SPAWN_GROUP_HANDLE_DEFAULT)
+	{
+		return (DESIRED_CLASS *)SpawnEntityByClassname( pszClassName, pKeyValues, hSpawnGroup );
+	}
+
 public:
 	int m_iNetworkedEntCount;
 	int m_iNonNetworkedSavedEntCount;
