@@ -330,6 +330,9 @@ enum RenderFx_t : unsigned char
 
 typedef uint32 SpawnGroupHandle_t;
 
+// Stands for the active spawn group when creating entities
+#define SPAWN_GROUP_HANDLE_DEFAULT ((SpawnGroupHandle_t)-1)
+
 enum ESpawnGroupUnloadOption
 {
 	kSGUO_None = 0,
