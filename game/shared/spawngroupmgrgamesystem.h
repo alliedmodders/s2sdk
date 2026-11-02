@@ -10,8 +10,12 @@
 #include "igamesystem.h"
 #include "engine2/isource2engine.h"
 #include "scenesystem/iscenesystem.h"
+#include "tier0/convar.h"
+#include "tier0/threadtools.h"
+#include "tier0/utlmap.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlstringtoken.h"
+#include "tier0/utlvector.h"
 
 class IPVS;
 class CMapSpawnGroup;
@@ -114,13 +118,31 @@ private:
 	CUtlVector<SpawnGroupConnectionInfo_t> m_Connections;
 };
 
-// AMNOTE: Short stubs representing game class hierarchy
+// AMNOTE: Short stub representing game class hierarchy
 class CLoadingSpawnGroup : public ILoadingSpawnGroup
 {
 };
 
-class CSpawnGroupMgrGameSystem : public IGameSpawnGroupMgr, public IGameSystem
+class CSpawnGroupMgrGameSystem : public IGameSpawnGroupMgr, public CAutoGameSystem
 {
+public:
+	DECLARE_GAME_SYSTEM();
+
+	CConCommandMemberAccessor<CSpawnGroupMgrGameSystem> m_SpawnGroupActivateCmd;
+	CConCommandMemberAccessor<CSpawnGroupMgrGameSystem> m_SpawnGroupLoadCmd;
+	CConCommandMemberAccessor<CSpawnGroupMgrGameSystem> m_SpawnGroupUnloadCmd;
+
+	// SpawnGroupSpawnEntities calls queued from GameInit until they are executed
+	CUtlVector<SpawnGroupHandle_t> m_SpawnEntitiesCallQueue;
+	bool m_bQueueSpawnEntitiesCalls;
+
+	CUtlOrderedMap<SpawnGroupHandle_t, CMapSpawnGroup *, CDefLess<SpawnGroupHandle_t>, unsigned short> m_SpawnGroups;
+	CThreadRWLock_FastRead m_hHandleMutex;
+
+	// UnloadSpawnGroup requests, carried out at the next frame boundary
+	CUtlVector<SpawnGroupHandle_t> m_QueuedUnloadRequests;
+
+	CUtlString m_Name;
 };
 
 #endif // SPAWNGROUPMGRGAMESYSTEM_H
