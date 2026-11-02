@@ -4,6 +4,9 @@
 #include "entity2/entityinstance.h"
 #include "entity2/entitykeyvalues.h"
 #include "engine2/igameresourceservice.h"
+#include "engine2/inetworkserverservice.h"
+#include "engine2/isource2engine.h"
+#include "entity2/entityidentity.h"
 #include "interfaces/interfaces.h"
 
 CGameEntitySystem* GameEntitySystem()
@@ -129,6 +132,77 @@ void CGameEntitySystem::AddListenerEntity(IEntityListener* pListener)
 void CGameEntitySystem::RemoveListenerEntity(IEntityListener* pListener)
 {
 	m_entityListeners.FindAndRemove(pListener);
+}
+
+int CGameEntitySystem::SpawnEntities(CEntityKeyValues* const* ppKeyValues, int nCount, CEntityInstance** ppEntities, SpawnGroupHandle_t hSpawnGroup)
+{
+	if (ppEntities)
+	{
+		for (int i = 0; i < nCount; i++)
+			ppEntities[i] = nullptr;
+	}
+
+	if (nCount <= 0)
+		return 0;
+
+	if (hSpawnGroup == SPAWN_GROUP_HANDLE_DEFAULT)
+		hSpawnGroup = m_hActiveSpawnGroup;
+
+	for (int i = 0; i < nCount; i++)
+		ppKeyValues[i]->AddRef();
+
+	// Creates the entities of the key values and precaches them. It takes a CUtlVector, here a view of the array, which
+	// it only reads
+	const CUtlVector<const CEntityKeyValues*> keyValues(const_cast<const CEntityKeyValues**>(ppKeyValues), nCount, nCount);
+	IGameSpawnGroupMgr* pSpawnGroupMgr = g_pNetworkServerService ? g_pNetworkServerService->GetGameSpawnGroupMgr() : nullptr;
+	ILoadingSpawnGroup* pLoading = pSpawnGroupMgr ? pSpawnGroupMgr->CreateLoadingSpawnGroup(hSpawnGroup, true, false, &keyValues) : nullptr;
+	if (!pLoading)
+	{
+		// No g_pNetworkServerService or no such spawn group: the game never got the key values
+		for (int i = 0; i < nCount; i++)
+			ppKeyValues[i]->Release();
+
+		return 0;
+	}
+
+	const int nCreated = pLoading->EntityCount();
+	if (ppEntities)
+	{
+		// The game creates at most one entity per key values, in their order, but none for some (no spawnable class), so
+		// each entity's key values is searched for after the previous one's. One the game spawned from a copy (values
+		// with name fixups) isn't found and keeps a null entity
+		const EntitySpawnInfo_t* pInfos = pLoading->GetEntities();
+		int nNext = 0;
+		for (int i = 0; i < nCreated; i++)
+		{
+			for (int j = nNext; j < nCount; j++)
+			{
+				if (ppKeyValues[j] == pInfos[i].m_pKeyValues)
+				{
+					ppEntities[j] = pInfos[i].m_pEntity->m_pInstance;
+					nNext = j + 1;
+					break;
+				}
+			}
+		}
+	}
+
+	pLoading->SpawnEntities();
+	pLoading->Release();
+
+	for (int i = 0; i < nCount; i++)
+		ppKeyValues[i]->Release();
+
+	return nCreated;
+}
+
+CEntityInstance* CGameEntitySystem::SpawnEntityByClassname(const char* pszClassName, CEntityKeyValues* pKeyValues, SpawnGroupHandle_t hSpawnGroup)
+{
+	if (!pKeyValues)
+		pKeyValues = CreateEntityKeyValues();
+
+	pKeyValues->SetString("classname", pszClassName);
+	return SpawnEntity(pKeyValues, hSpawnGroup);
 }
 
 EntityInstanceIter_t::EntityInstanceIter_t(IEntityFindFilter* pFilter, EntityIterType_t eIterType)
