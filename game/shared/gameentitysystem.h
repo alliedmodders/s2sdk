@@ -57,6 +57,7 @@ public:
 	//   - skybox_reference: the entity is created, and the map in its targetMapName starts loading the same way.
 	//
 	// AMNOTE: Requires g_pNetworkServerService to be available during the call, otherwise nothing will be spawned and null is returned!
+	// Releases all entity keyvalues that were passed, if you want to keep them alive call AddRef() before doing any spawn call!
 	int SpawnEntities(std::initializer_list<CEntityKeyValues*> keyValues, CEntityInstance** ppEntities = nullptr, SpawnGroupHandle_t hSpawnGroup = SPAWN_GROUP_HANDLE_DEFAULT)
 	{
 		return SpawnEntities(keyValues.begin(), (int)keyValues.size(), ppEntities, hSpawnGroup);
@@ -70,11 +71,13 @@ public:
 	// Returns how many were created.
 	//
 	// AMNOTE: Requires g_pNetworkServerService to be available during the call, otherwise nothing will be spawned and null is returned!
+	// Releases all entity keyvalues that were passed, if you want to keep them alive call AddRef() before doing any spawn call!
 	int SpawnEntities(CEntityKeyValues* const* ppKeyValues, int nCount, CEntityInstance** ppEntities = nullptr, SpawnGroupHandle_t hSpawnGroup = SPAWN_GROUP_HANDLE_DEFAULT);
 
 	// Spawns one entity of a given ekv, expects classname to be set on it!
 	//
 	// AMNOTE: Requires g_pNetworkServerService to be available during the call, otherwise nothing will be spawned and null is returned!
+	// Releases entity keyvalue that was passed, if you want to keep it alive call AddRef() before doing any spawn call!
 	CEntityInstance* SpawnEntity(CEntityKeyValues* pKeyValues, SpawnGroupHandle_t hSpawnGroup = SPAWN_GROUP_HANDLE_DEFAULT)
 	{
 		CEntityInstance* pEntity = nullptr;
@@ -85,6 +88,7 @@ public:
 	// Spawns one entity of a given classname, allocates ekv itself if no supplied
 	//
 	// AMNOTE: Requires g_pNetworkServerService to be available during the call, otherwise nothing will be spawned and null is returned!
+	// Releases entity keyvalue that was passed, if you want to keep it alive call AddRef() before doing any spawn call!
 	CEntityInstance* SpawnEntityByClassname(const char* pszClassName, CEntityKeyValues* pKeyValues = nullptr, SpawnGroupHandle_t hSpawnGroup = SPAWN_GROUP_HANDLE_DEFAULT);
 
 	// AMNOTE: Wrapper over non templated SpawnEntityByClassname with a recast to your wanted entity type.
