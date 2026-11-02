@@ -116,9 +116,20 @@ CUtlSymbolLarge CEntitySystem::FindPooledString(const char* pString)
 	return m_Symbols.Find(pString);
 }
 
-CEntityKeyValues* CEntitySystem::CreateEntityKeyValues()
+CEntityKeyValues* CEntitySystem::CreateEntityKeyValues(const char* pszClassName, const Vector* pOrigin, const QAngle* pAngles)
 {
-	return new CEntityKeyValues(GetEntityKeyValuesAllocator(), EKV_ALLOCATOR_EXTERNAL);
+	CEntityKeyValues* pKeyValues = new CEntityKeyValues(GetEntityKeyValuesAllocator(), EKV_ALLOCATOR_EXTERNAL);
+
+	if (pszClassName && pszClassName[0])
+		pKeyValues->SetString("classname", pszClassName);
+
+	if (pOrigin)
+		pKeyValues->SetVector("origin", *pOrigin);
+
+	if (pAngles)
+		pKeyValues->SetQAngle("angles", *pAngles);
+
+	return pKeyValues;
 }
 
 void CGameEntitySystem::AddListenerEntity(IEntityListener* pListener)
@@ -198,11 +209,11 @@ int CGameEntitySystem::SpawnEntities(CEntityKeyValues* const* ppKeyValues, int n
 
 CEntityInstance* CGameEntitySystem::SpawnEntityByClassname(const char* pszClassName, CEntityKeyValues* pKeyValues, SpawnGroupHandle_t hSpawnGroup)
 {
-	if (!pKeyValues)
-		pKeyValues = CreateEntityKeyValues();
-
-	pKeyValues->SetString("classname", pszClassName);
-	return SpawnEntity(pKeyValues, hSpawnGroup);
+	if(!pKeyValues)
+		pKeyValues = CreateEntityKeyValues( pszClassName );
+	else
+		pKeyValues->SetString( "classname", pszClassName );
+	return SpawnEntity( pKeyValues, hSpawnGroup );
 }
 
 EntityInstanceIter_t::EntityInstanceIter_t(IEntityFindFilter* pFilter, EntityIterType_t eIterType)
