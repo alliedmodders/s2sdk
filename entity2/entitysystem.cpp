@@ -2,6 +2,7 @@
 #include "gameentitysystem.h"
 #include "entity2/entityclass.h"
 #include "entity2/entityinstance.h"
+#include "entity2/entitykeyvalues.h"
 #include "engine2/igameresourceservice.h"
 #include "interfaces/interfaces.h"
 
@@ -110,6 +111,11 @@ CUtlSymbolLarge CEntitySystem::FindPooledString(const char* pString)
 		return CUtlSymbolLarge();
 
 	return m_Symbols.Find(pString);
+}
+
+CEntityKeyValues* CEntitySystem::CreateEntityKeyValues()
+{
+	return new CEntityKeyValues(GetEntityKeyValuesAllocator(), EKV_ALLOCATOR_EXTERNAL);
 }
 
 void CGameEntitySystem::AddListenerEntity(IEntityListener* pListener)

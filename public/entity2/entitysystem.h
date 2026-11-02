@@ -229,6 +229,9 @@ public:
 
 	inline CKV3Arena* GetEntityKeyValuesAllocator() { return &m_EntityKeyValuesAllocator; }
 
+	// Allocates new entitykv, release it with CEntityKeyValues::Release
+	CEntityKeyValues* CreateEntityKeyValues();
+
 	// Search for an entity class by its C++ name, case-insensitive
 	CEntityClass* FindClassByName(const char* szClassName);
 	
