@@ -16,9 +16,9 @@
 #include "tier0/platform.h"
 #include "tier0/basetypes.h"
 
-enum RenderMultisampleType_t : uint8
+enum RenderMultisampleType_t : int8
 {
-	RENDER_MULTISAMPLE_INVALID = 0xFF,
+	RENDER_MULTISAMPLE_INVALID = -1,
 	RENDER_MULTISAMPLE_NONE = 0,
 	RENDER_MULTISAMPLE_2X,
 	RENDER_MULTISAMPLE_4X,
