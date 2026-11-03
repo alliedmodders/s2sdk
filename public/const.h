@@ -117,12 +117,12 @@ enum Flags_t : uint32
 	FL_FLY 						= (1u << 10), // Changes the SV_Movestep() behavior to not need to be on ground
 	FL_SUPPRESS_SAVE 			= (1u << 11),
 	FL_IN_VEHICLE 				= (1u << 12),
-	FL_IN_VEHICLE_TRANSPORT 	= (1u << 13),
+	// FL_EMPTY 				= (1u << 13),
 	FL_GODMODE 					= (1u << 14),
 	FL_NOTARGET 				= (1u << 15),
 	FL_AIMTARGET 				= (1u << 16), // set if the crosshair needs to aim onto the entity
 	// FL_EMPTY 				= (1u << 17),
-	FL_STATICPROP 				= (1u << 18), // Eetsa static prop!
+	// FL_EMPTY 				= (1u << 18),
 	// FL_EMPTY 				= (1u << 19),
 	FL_GRENADE 					= (1u << 20),
 	// FL_EMPTY					= (1u << 21),
