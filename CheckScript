@@ -180,6 +180,20 @@ for sdk_target in check_targets:
 
 builder.Add(cmdtest)
 
+# Registers convars and commands with tier0's cvar system, sets and formats the convars and dispatches each kind of command callback
+cvartest = builder.ProgramProject('convar_test')
+cvartest.sources = [
+  os.path.join('tests', 'run', 'convar.cpp'),
+  os.path.join('tier0_perproject', 'convar.cpp'),
+  os.path.join('public', 'tier0', 'memoverride.cpp'),
+]
+
+for sdk_target in SdkHelpers.sdk_targets:
+  binary = cvartest.Configure(sdk_target.cxx, 'convar_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
+  SdkHelpers.configureCxx(builder, binary, sdk)
+
+builder.Add(cvartest)
+
 # Inserts dupes and non copyable elements into a CUtlRBTree and a CUtlOrderedMap
 maptest = builder.ProgramProject('utlrbtree_test')
 maptest.sources = [
