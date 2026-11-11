@@ -45,7 +45,7 @@ public:
 	virtual void Dump() const = 0;
 	// AMNOTE: Returns the vecIndices entry of the object in vecObjects whose key equals this one's, or -1
 	virtual int FindKeyIndex( const CUtlVector<CSharedObject *> &vecObjects, const CUtlVector<int> &vecIndices ) const = 0;
-	// AMNOTE: bUnk is only read by some of the game's subclasses, which pass it on to their protobuf serialization
+	// AMNOTE: The game's implementations ignore bUnk
 	virtual bool BAddToMessage( std::string *pBuffer, bool bUnk ) const = 0;
 	virtual bool BAddDestroyToMessage( std::string *pBuffer ) const = 0;
 
