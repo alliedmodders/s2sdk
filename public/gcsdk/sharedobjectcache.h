@@ -12,6 +12,7 @@
 #endif
 
 #include "gcsdk/sharedobject.h"
+#include "tier0/utlhashmap.h"
 
 namespace GCSDK
 {
@@ -38,9 +39,17 @@ public:
 	virtual void Dump() const;
 
 private:
+	// AMNOTE: The objects of one type ID sorted by CSharedObject::BIsKeyLess, each with its index in m_vecObjects;
+	// CSharedObject::FindKeyIndex searches it
+	struct KeyIndex_t
+	{
+		CUtlVector<int> m_vecIndices;
+		CUtlVector<CSharedObject *> m_vecObjects;
+	};
+
 	CSharedObjectVec m_vecObjects;
-	// AMNOTE: Hash map of the key lookup tables CSharedObject::FindKeyIndex searches
-	uint8 m_KeyIndices[80];
+	// AMNOTE: Keyed by CSharedObject::GetTypeID
+	CUtlHashMap<int, KeyIndex_t> m_KeyIndices;
 	int m_nTypeID;
 };
 
