@@ -19,6 +19,7 @@
 #include "mathlib/mathlib.h"
 #include "mathlib/vector.h"
 #include "basetypes.h"
+#include "tier0/buffer_string.h"
 #include "tier0/dbg.h"
 
 
@@ -231,7 +232,7 @@ public:
 	void			WriteByte(int val);
 	void			WriteShort(int val);
 	void			WriteWord(int val);
-	void			WriteLong(long val);
+	void			WriteLong(int32 val);
 	void			WriteLongLong(int64 val);
 	void			WriteFloat(float val);
 	bool			WriteBytes( const void *pBuf, int nBytes );
@@ -423,7 +424,7 @@ BITBUF_INLINE void bf_write::WriteUBitLong( unsigned int curData, int numbits, b
 	uint32 * RESTRICT pOut = &m_pData[iDWord];
 
 	// Rotate data into dword alignment
-	curData = (curData << iCurBitMasked) | (curData >> (32 - iCurBitMasked));
+	curData = (curData << iCurBitMasked) | (curData >> ((32 - iCurBitMasked) & 31));
 
 	// Calculate bitmasks for first and second word
 	unsigned int temp = 1 << (numbits-1);
@@ -560,6 +561,9 @@ public:
 	float			ReadBitAngle( int numbits );
 
 	unsigned int	ReadUBitLong( int numbits ) RESTRICT;
+	// Reads N bits one at a time; without N bits left it sets the overflow flag and keeps the position
+	template < unsigned int N >
+	int				ReadNBits();
 	unsigned int	ReadUBitLongNoInline( int numbits ) RESTRICT;
 	unsigned int	PeekUBitLong( int numbits );
 	int				ReadSBitLong( int numbits );
@@ -596,7 +600,7 @@ public:
 	BITBUF_INLINE int	ReadByte() { return ReadUBitLong(8); }
 	BITBUF_INLINE int	ReadShort() { return (short)ReadUBitLong(16); }
 	BITBUF_INLINE int	ReadWord() { return ReadUBitLong(16); }
-	BITBUF_INLINE long ReadLong() { return ReadUBitLong(32); }
+	BITBUF_INLINE int32 ReadLong() { return (int32)ReadUBitLong(32); }
 	int64			ReadLongLong();
 	float			ReadFloat();
 	bool			ReadBytes(void *pOut, int nBytes);
@@ -615,6 +619,9 @@ public:
 	// complete (this will never exceed bufLen-1).
 	//
 	bool			ReadString( char *pStr, int bufLen, bool bLine=false, int *pOutNumChars=NULL );
+
+	// Same as above, into pStr. Returns false if pStr can't grow to hold the whole string; the rest is still read.
+	bool			ReadString( CBufferString *pStr, bool bLine=false, int *pOutNumChars=NULL );
 
 	// Reads a string and allocates memory for it. If the string in the buffer
 	// is > 2048 bytes, then pOverflow is set to true (if it's not NULL).
@@ -732,6 +739,25 @@ inline int bf_read::ReadOneBitNoCheck()
 	return value & 1;
 }
 
+template < unsigned int N >
+inline int bf_read::ReadNBits()
+{
+	static_assert( N <= 32, "ReadNBits reads at most 32 bits" );
+
+	if ( (unsigned int)GetNumBitsLeft() < N )
+	{
+		SetOverflowFlag();
+		CallErrorHandler( BITBUFERROR_BUFFER_OVERRUN, GetDebugName() );
+		return 0;
+	}
+
+	int nValue = 0;
+	for ( unsigned int i = 0; i < N; i++ )
+		nValue |= ReadOneBitNoCheck() << i;
+
+	return nValue;
+}
+
 inline int bf_read::ReadOneBit()
 {
 	if( GetNumBitsLeft() <= 0 )
@@ -815,7 +841,7 @@ BITBUF_INLINE unsigned int bf_read::ReadUBitLong( int numbits ) RESTRICT
 #endif
 
 	unsigned int dw1 = LoadLittleDWord( (uint32* RESTRICT)m_pData, iWordOffset1 ) >> iStartBit;
-	unsigned int dw2 = LoadLittleDWord( (uint32* RESTRICT)m_pData, iWordOffset2 ) << (32 - iStartBit);
+	unsigned int dw2 = LoadLittleDWord( (uint32* RESTRICT)m_pData, iWordOffset2 ) << ((32 - iStartBit) & 31);
 
 	return (dw1 | dw2) & bitmask;
 }
