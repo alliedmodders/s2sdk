@@ -143,8 +143,9 @@ public:
 	DLL_CLASS_IMPORT void Swap( CUtlBuffer &other );
 	DLL_CLASS_IMPORT void Swap( CUtlLeanVector<unsigned char> &other );
 
-	DLL_CLASS_IMPORT bool WriteToFile( const char *, bool );
-	DLL_CLASS_IMPORT bool WriteToFileIfDifferent( const char * );
+	// Without bOverwrite an existing file is left alone and false returned
+	DLL_CLASS_IMPORT bool WriteToFile( const char *pFileName, bool bOverwrite );
+	DLL_CLASS_IMPORT bool WriteToFileIfDifferent( const char *pFileName );
 
 	// Read stuff out.
 	// Binary mode: it'll just read the bits directly in, and characters will be
@@ -162,10 +163,11 @@ public:
 	float			GetFloat( );
 	double			GetDouble( );
 	void *			GetPtr();
-	DLL_CLASS_IMPORT void	GetString( char* pString, int nMaxChars = 0 );
+	// nMaxChars is the size of pString, terminator included; a string that doesn't fit is cut
+	DLL_CLASS_IMPORT void	GetString( char* pString, int nMaxChars );
 	DLL_CLASS_IMPORT void	GetString( CBufferString *pString );
 	DLL_CLASS_IMPORT bool	Get( void* pMem, int size );
-	DLL_CLASS_IMPORT void	GetLine( char* pLine, int nMaxChars = 0 );
+	DLL_CLASS_IMPORT void	GetLine( char* pLine, int nMaxChars );
 	DLL_CLASS_IMPORT void	GetLine( CBufferString *pLine );
 
 	// This will get at least 1 byte and up to nSize bytes. 
@@ -174,7 +176,7 @@ public:
 
 	// This version of GetString converts \" to \\ and " to \, etc.
 	// It also reads a " at the beginning and end of the string
-	DLL_CLASS_IMPORT void	GetDelimitedString( CUtlCharConversion *pConv, char *pString, int nMaxChars = 0 );
+	DLL_CLASS_IMPORT void	GetDelimitedString( CUtlCharConversion *pConv, char *pString, int nMaxChars );
 	DLL_CLASS_IMPORT void	GetDelimitedString( CUtlCharConversion *pConv, CBufferString *pString );
 	DLL_CLASS_IMPORT char	GetDelimitedChar( CUtlCharConversion *pConv );
 
@@ -203,7 +205,7 @@ public:
 
 	// Eats C++ style comments
 	DLL_CLASS_IMPORT bool	EatCPPComment();
-	DLL_CLASS_IMPORT bool	EatCComment( int * );
+	DLL_CLASS_IMPORT bool	EatCComment( int *pOutSkippedNewlineCount );
 
 	// (For text buffers only)
 	// Parse a token from the buffer:
@@ -338,7 +340,7 @@ protected:
 
 	// Help with delimited stuff
 	DLL_CLASS_IMPORT char GetDelimitedCharInternal( CUtlCharConversion *pConv );
-	DLL_CLASS_IMPORT void PutDelimitedCharInternal( CUtlCharConversion *pConv, char c );
+	void PutDelimitedCharInternal( CUtlCharConversion *pConv, char c );
 
 	// Default overflow funcs
 	DLL_CLASS_IMPORT bool PutOverflow( int nSize );
@@ -619,67 +621,66 @@ inline void CUtlBuffer::GetTypeBin< double >( double &dest )
 }
 
 template < class T >
-inline T StringToNumber( char *pString, char **ppEnd, int nRadix )
+inline T StringToNumber( char *pString, char **ppEnd, uint32 nFlags, bool *pSuccess )
 {
 	Assert( 0 );
 	*ppEnd = pString;
+	*pSuccess = false;
 	return 0;
 }
 
 template <>
-inline int8 StringToNumber( char *pString, char **ppEnd, int nRadix )
+inline int8 StringToNumber( char *pString, char **ppEnd, uint32 nFlags, bool *pSuccess )
 {
-	return ( int8 )strtol( pString, ppEnd, nRadix );
+	return V_StringToInt8( pString, 0, pSuccess, ppEnd, nFlags );
 }
 
 template <>
-inline uint8 StringToNumber( char *pString, char **ppEnd, int nRadix )
+inline uint8 StringToNumber( char *pString, char **ppEnd, uint32 nFlags, bool *pSuccess )
 {
-	return ( uint8 )strtoul( pString, ppEnd, nRadix );
+	return V_StringToUint8( pString, 0, pSuccess, ppEnd, nFlags );
 }
 
 template <>
-inline int16 StringToNumber( char *pString, char **ppEnd, int nRadix )
+inline int16 StringToNumber( char *pString, char **ppEnd, uint32 nFlags, bool *pSuccess )
 {
-	return ( int16 )strtol( pString, ppEnd, nRadix );
+	return V_StringToInt16( pString, 0, pSuccess, ppEnd, nFlags );
 }
 
 template <>
-inline uint16 StringToNumber( char *pString, char **ppEnd, int nRadix )
+inline uint16 StringToNumber( char *pString, char **ppEnd, uint32 nFlags, bool *pSuccess )
 {
-	return ( uint16 )strtoul( pString, ppEnd, nRadix );
+	return V_StringToUint16( pString, 0, pSuccess, ppEnd, nFlags );
 }
 
 template <>
-inline int32 StringToNumber( char *pString, char **ppEnd, int nRadix )
+inline int32 StringToNumber( char *pString, char **ppEnd, uint32 nFlags, bool *pSuccess )
 {
-	return ( int32 )strtol( pString, ppEnd, nRadix );
+	return V_StringToInt32( pString, 0, pSuccess, ppEnd, nFlags );
 }
 
 template <>
-inline uint32 StringToNumber( char *pString, char **ppEnd, int nRadix )
+inline uint32 StringToNumber( char *pString, char **ppEnd, uint32 nFlags, bool *pSuccess )
 {
-	return ( uint32 )strtoul( pString, ppEnd, nRadix );
+	return V_StringToUint32( pString, 0, pSuccess, ppEnd, nFlags );
 }
 
 template <>
-inline int64 StringToNumber( char *pString, char **ppEnd, int nRadix )
+inline int64 StringToNumber( char *pString, char **ppEnd, uint32 nFlags, bool *pSuccess )
 {
-	return ( int64 )_strtoi64( pString, ppEnd, nRadix );
+	return V_StringToInt64( pString, 0, pSuccess, ppEnd, nFlags );
 }
 
 template <>
-inline float StringToNumber( char *pString, char **ppEnd, int nRadix )
+inline float StringToNumber( char *pString, char **ppEnd, uint32 nFlags, bool *pSuccess )
 {
-	// /*UNUSED*/( nRadix );
-	return ( float )strtod( pString, ppEnd );
+	return V_StringToFloat32( pString, 0.0f, pSuccess, ppEnd, nFlags );
 }
 
 template <>
-inline double StringToNumber( char *pString, char **ppEnd, int nRadix )
+inline double StringToNumber( char *pString, char **ppEnd, uint32 nFlags, bool *pSuccess )
 {
-	// /*UNUSED*/( nRadix );
-	return ( double )strtod( pString, ppEnd );
+	return V_StringToFloat64( pString, 0.0, pSuccess, ppEnd, nFlags );
 }
 
 template <typename T>
@@ -695,14 +696,17 @@ inline bool CUtlBuffer::GetTypeText( T &value, int nRadix /*= 10*/ )
 
 	char *pStart = (char*)PeekGet();
 	char* pEnd = pStart;
-	value = StringToNumber< T >( pStart, &pEnd, nRadix );
+	bool bSuccess = false;
+	// Text numbers parse without asserting on errors, which return 0; a radix of 16 reads hex
+	uint32 nFlags = PARSING_FLAG_SKIP_ASSERT | ( nRadix == 16 ? PARSING_FLAG_USE_BASE_16 : 0 );
+	value = StringToNumber< T >( pStart, &pEnd, nFlags, &bSuccess );
 
 	int nBytesRead = (int)( pEnd - pStart );
 	if ( nBytesRead == 0 )
 		return false;
 
 	m_Get += nBytesRead;
-	return true;
+	return bSuccess;
 }
 
 template <typename T> 
@@ -901,7 +905,7 @@ inline void CUtlBuffer::PutType( T src )
 //-----------------------------------------------------------------------------
 inline bool CUtlBuffer::WasLastCharacterCR()
 {
-	if ( !IsText() || (TellPut() == 0) )
+	if ( !IsText() || ( TellPut() == m_nOffset ) )
 		return false;
 	return ( *( const char * )PeekPut( -1 ) == '\n' );
 }
@@ -950,7 +954,8 @@ inline void CUtlBuffer::EnableTabs( bool bEnable )
 
 inline void CUtlBuffer::PutChar( char c )
 {
-	if ( WasLastCharacterCR() )
+	// Tabs start every line but empty ones, the first included
+	if ( m_nTab != 0 && ( WasLastCharacterCR() || TellPut() == 0 ) && c != '\n' )
 	{
 		PutTabs();
 	}
@@ -1015,6 +1020,24 @@ inline void CUtlBuffer::PutPtr( void *p )
 	else
 	{
 		Printf( "0x%p", p );
+	}
+}
+
+
+//-----------------------------------------------------------------------------
+// Writes a char, escaped if the conversion has a replacement for it
+//-----------------------------------------------------------------------------
+inline void CUtlBuffer::PutDelimitedCharInternal( CUtlCharConversion *pConv, char c )
+{
+	int l = pConv->GetConversionLength( c );
+	if ( l == 0 )
+	{
+		PutChar( c );
+	}
+	else
+	{
+		PutChar( pConv->GetEscapeChar() );
+		Put( pConv->GetConversionString( c ), l );
 	}
 }
 
