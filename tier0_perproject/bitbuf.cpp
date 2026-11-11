@@ -696,7 +696,7 @@ void bf_write::WriteWord(int val)
 	WriteUBitLong(val, sizeof(unsigned short) << 3);
 }
 
-void bf_write::WriteLong(long val)
+void bf_write::WriteLong(int32 val)
 {
 	WriteSBitLong(val, 32);
 }
@@ -906,16 +906,11 @@ int bf_read::ReadBitsClamped_ptr(void *pOutData, size_t outSizeBytes, size_t nBi
 
 float bf_read::ReadBitAngle( int numbits )
 {
-	float fReturn;
-	int i;
-	float shift;
+	float shift = (float)( BitForBitnum(numbits) );
 
-	shift = (float)( BitForBitnum(numbits) );
-
-	i = ReadUBitLong( numbits );
-	fReturn = (float)i * (360.0 / shift);
-
-	return fReturn;
+	// Scaled in double, so values over 24 bits keep their precision
+	unsigned int i = ReadUBitLong( numbits );
+	return (float)( (360.0 / shift) * i );
 }
 
 unsigned int bf_read::PeekUBitLong( int numbits )
@@ -1017,7 +1012,7 @@ int32 bf_read::ReadSignedVarInt32()
 
 int64 bf_read::ReadSignedVarInt64()
 {
-	uint32 value = ReadVarInt64();
+	uint64 value = ReadVarInt64();
 	return bitbuf::ZigZagDecode64( value );
 }
 
@@ -1084,7 +1079,7 @@ float bf_read::ReadBitCoordMP( bool bIntegral, bool bLowPrecision )
 	// int bits are always encoded as (value - 1) since zero is handled by the integer bit
 
 	// With integer-only encoding, the presence of the third bit depends on the second
-	int flags = ReadUBitLong(3 - bIntegral);
+	int flags = bIntegral ? ReadNBits<2>() : ReadNBits<3>();
 	enum { INBOUNDS=1, INTVAL=2, SIGN=4 };
 
 	if ( bIntegral )
@@ -1166,7 +1161,7 @@ unsigned int bf_read::ReadBitCoordBits (void)
 	VPROF( "bf_read::ReadBitCoordBits" );
 #endif
 
-	unsigned int flags = ReadUBitLong(2);
+	unsigned int flags = ReadNBits<2>();
 	if ( flags == 0 )
 		return 0;
 
@@ -1358,6 +1353,35 @@ bool bf_read::ReadString( char *pStr, int maxLen, bool bLine, int *pOutNumChars 
 	return !IsOverflowed() && !bTooSmall;
 }
 
+bool bf_read::ReadString( CBufferString *pStr, bool bLine, int *pOutNumChars )
+{
+	pStr->Clear();
+
+	bool bTooSmall = false;
+	while(1)
+	{
+		char val = ReadChar();
+		if ( val == 0 )
+			break;
+		else if ( bLine && val == '\n' )
+			break;
+
+		if ( pStr->CanHeapAllocate() || pStr->Length() + 1 < pStr->AllocatedNum() )
+		{
+			pStr->Insert( pStr->Length(), &val, 1, false );
+		}
+		else
+		{
+			bTooSmall = true;
+		}
+	}
+
+	if ( pOutNumChars )
+		*pOutNumChars = pStr->Length();
+
+	return !IsOverflowed() && !bTooSmall;
+}
+
 
 char* bf_read::ReadAndAllocateString( bool *pOverflow )
 {
@@ -1419,9 +1443,9 @@ int bf_read::CompareBitsAt( int offset, bf_read * RESTRICT other, int otherOffse
 	while ( numbits > 32 )
 	{
 		x  = LoadLittleDWord( (uint32*)pData1, 0 ) >> iStartBit1;
-		x ^= LoadLittleDWord( (uint32*)pData1, 1 ) << (32 - iStartBit1);
+		x ^= LoadLittleDWord( (uint32*)pData1, 1 ) << ((32 - iStartBit1) & 31);
 		x ^= LoadLittleDWord( (uint32*)pData2, 0 ) >> iStartBit2;
-		x ^= LoadLittleDWord( (uint32*)pData2, 1 ) << (32 - iStartBit2);
+		x ^= LoadLittleDWord( (uint32*)pData2, 1 ) << ((32 - iStartBit2) & 31);
 		if ( x != 0 )
 		{
 			return x; 
@@ -1432,8 +1456,8 @@ int bf_read::CompareBitsAt( int offset, bf_read * RESTRICT other, int otherOffse
 	}
 
 	x  = LoadLittleDWord( (uint32*)pData1, 0 ) >> iStartBit1;
-	x ^= LoadLittleDWord( (uint32*)pData1End, 0 ) << (32 - iStartBit1);
+	x ^= LoadLittleDWord( (uint32*)pData1End, 0 ) << ((32 - iStartBit1) & 31);
 	x ^= LoadLittleDWord( (uint32*)pData2, 0 ) >> iStartBit2;
-	x ^= LoadLittleDWord( (uint32*)pData2End, 0 ) << (32 - iStartBit2);
+	x ^= LoadLittleDWord( (uint32*)pData2End, 0 ) << ((32 - iStartBit2) & 31);
 	return x & g_BitBuf_ExtraMasks[ numbits ];
 }
