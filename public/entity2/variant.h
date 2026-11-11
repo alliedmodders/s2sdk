@@ -301,9 +301,10 @@ private:
 	void CopyData( const T &src, bool bForceCopy = false );
 	void CopyData( const char *src, bool bForceCopy = false );
 
-	// Sets the internal value to the pData content, doesn't allocate memory nor copies the content.
-	// Be sure to call ConvertToCopiedData() when required
-	void Set( fieldtype_t ftype, void *pData );
+	// The text of a FIELD_STRING, FIELD_CSTRING or FIELD_GLOBALSYMBOL value, nullptr when it has none
+	const char *GetStringValue() const		{ return ( m_type == FIELD_STRING ) ? ( !m_stringt ? nullptr : m_stringt.ToCStr() ) : m_pszString; }
+
+	template < typename T > friend class CVariantBase;
 
 	union
 	{
@@ -435,11 +436,11 @@ inline const char *VariantFieldTypeName( fieldtype_t eType )
 	switch(eType)
 	{
 		case FIELD_VOID:					return "void";
-		case FIELD_FLOAT32:					return "float32";
+		case FIELD_FLOAT32:					return "float";
 		case FIELD_STRING:					return "string_t";
 		case FIELD_VECTOR:					return "vector";
 		case FIELD_QUATERNION:				return "quaternion";
-		case FIELD_INT32:					return "int32";
+		case FIELD_INT32:					return "integer";
 		case FIELD_BOOLEAN:					return "boolean";
 		case FIELD_CHARACTER:				return "character";
 		case FIELD_COLOR32:					return "color";
@@ -599,11 +600,9 @@ inline T CVariantBase<CValueAllocator>::Get() const
 template< class CValueAllocator >
 inline bool CVariantBase<CValueAllocator>::AssignTo( CBufferString &buf ) const
 {
-	buf.Purge( 0 );
-
 	switch(m_type)
 	{
-		case FIELD_VOID:		return false;
+		case FIELD_VOID:		break;
 		case FIELD_FLOAT32:		buf.Format( "%g", m_float32 ); return true;
 		case FIELD_FLOAT64:		buf.Format( "%g", m_float64 ); return true;
 		case FIELD_INT32:		buf.Format( "%d", m_int32 ); return true;
@@ -615,9 +614,18 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( CBufferString &buf ) const
 
 		case FIELD_INT64:		buf.Format( "%lld", m_int64 ); return true;
 		case FIELD_UINT64:		buf.Format( "%llu", m_uint64 ); return true;
-		case FIELD_BOOLEAN:		buf.Insert( 0, m_bool ? "true" : "false" ); return true;
-		case FIELD_STRING:		buf.Insert( 0, m_stringt.ToCStr() ); return true;
-		case FIELD_CSTRING:		buf.Insert( 0, m_pszString ? m_pszString : "(null)" ); return true;
+		case FIELD_BOOLEAN:		buf.Clear(); buf.Insert( 0, m_bool ? "true" : "false" ); return true;
+
+		case FIELD_STRING:
+		case FIELD_CSTRING:
+		case FIELD_GLOBALSYMBOL:
+		{
+			const char *pszString = GetStringValue();
+			buf.Clear();
+			buf.Insert( 0, pszString ? pszString : "(null)" );
+			return true;
+		}
+
 		case FIELD_CHARACTER:	buf.Format( "%c", m_char ); return true;
 		case FIELD_VECTOR2D:	buf.Format( "%g %g", m_pVector2D->x, m_pVector2D->y ); return true;
 		case FIELD_COLOR32:		buf.Format( "%d %d %d %d", m_color32.r, m_color32.g, m_color32.b, m_color32.a ); return true;
@@ -637,9 +645,10 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( CBufferString &buf ) const
 			return true;
 		}
 
-		default: Warning( "No conversion from %s to string at the moment!\n", VariantFieldTypeName( m_type ) );
+		default: Warning( "No conversion from %s to string at the moment!\n", VariantFieldTypeName( m_type ) ); break;
 	}
 
+	buf.Clear();
 	return false;
 }
 
@@ -648,33 +657,25 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( float *pDest ) const
 {
 	switch(m_type)
 	{
-		case FIELD_VOID:		*pDest = 0.0; return false;
-		case FIELD_UINT8:		*pDest = m_uint8; return true;
-		case FIELD_INT32:		*pDest = m_int32; return true;
-		case FIELD_INT64:		*pDest = m_int64; return true;
-		case FIELD_UINT32:		*pDest = m_uint32; return true;
-		case FIELD_UINT64:		*pDest = m_uint64; return true;
+		case FIELD_VOID:		*pDest = 0.0f; return false;
 		case FIELD_FLOAT32:		*pDest = m_float32; return true;
-		case FIELD_FLOAT64:		*pDest = m_float64; return true;
+		case FIELD_INT32:		*pDest = m_int32; return true;
 		case FIELD_BOOLEAN:		*pDest = m_bool; return true;
-		case FIELD_CSTRING:
-		{
-			if(m_pszString && m_pszString[0])
-			{
-				*pDest = V_atof( m_pszString );
-				return true;
-			}
-		}
+		case FIELD_UINT8:		*pDest = m_uint8; return true;
+		case FIELD_INT64:		*pDest = m_int64; return true;
+		case FIELD_UINT64:		*pDest = m_uint64; return true;
+		case FIELD_UINT32:		*pDest = m_uint32; return true;
+		case FIELD_FLOAT64:		*pDest = m_float64; return true;
 		case FIELD_STRING:
+		case FIELD_CSTRING:
+		case FIELD_GLOBALSYMBOL:
 		{
-			if(m_stringt.ToCStr()[0])
-			{
-				*pDest = V_atof( m_stringt.ToCStr() );
-				return true;
-			}
+			const char *pszString = GetStringValue();
+			*pDest = pszString ? V_atof( pszString ) : 0.0f;
+			return pszString != nullptr;
 		}
 
-		default: Warning( "No conversion from %s to float right now\n", VariantFieldTypeName( m_type ) );
+		default: Warning( "No conversion from %s to float now\n", VariantFieldTypeName( m_type ) ); break;
 	}
 
 	return false;
@@ -686,29 +687,24 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( int *pDest ) const
 	switch(m_type)
 	{
 		case FIELD_VOID:		*pDest = 0; return false;
-		case FIELD_UINT8:		*pDest = m_uint8; return true;
+		case FIELD_FLOAT32:		*pDest = (int)m_float32; return true;
 		case FIELD_INT32:		*pDest = m_int32; return true;
-		case FIELD_INT64:		*pDest = m_int64; return true;
-		case FIELD_UINT32:		*pDest = m_uint32; return true;
-		case FIELD_UINT64:		*pDest = m_uint64; return true;
-		case FIELD_FLOAT32:		*pDest = m_float32; return true;
-		case FIELD_FLOAT64:		*pDest = m_float64; return true;
 		case FIELD_BOOLEAN:		*pDest = m_bool; return true;
-		case FIELD_CSTRING:
-		{
-			*pDest = 0;
-			if(m_pszString)
-				*pDest = V_atoi( m_pszString );
-
-			return m_pszString != nullptr;
-		}
+		case FIELD_UINT8:		*pDest = m_uint8; return true;
+		case FIELD_INT64:		*pDest = (int)clamp( m_int64, (int64)INT_MIN, (int64)INT_MAX ); return true;
+		case FIELD_UINT64:		*pDest = (int)MIN( m_uint64, (uint64)INT_MAX ); return true;
+		case FIELD_UINT32:		*pDest = (int)MIN( m_uint32, (uint32)INT_MAX ); return true;
+		case FIELD_FLOAT64:		*pDest = (int)m_float64; return true;
 		case FIELD_STRING:
+		case FIELD_CSTRING:
+		case FIELD_GLOBALSYMBOL:
 		{
-			*pDest = V_atoi( m_stringt.ToCStr() );
-			return !m_stringt;
+			const char *pszString = GetStringValue();
+			*pDest = pszString ? V_atoi( pszString ) : 0;
+			return pszString != nullptr;
 		}
 
-		default: Warning( "No conversion from %s to int now\n", VariantFieldTypeName( m_type ) );
+		default: Warning( "No conversion from %s to int now\n", VariantFieldTypeName( m_type ) ); break;
 	}
 
 	return false;
@@ -719,34 +715,32 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( bool *pDest ) const
 {
 	switch(m_type)
 	{
-		case FIELD_VOID:		*pDest = 0; return false;
-		case FIELD_INT32:		*pDest = m_int32 != 0; return true;
-		case FIELD_INT64:		*pDest = m_int64 != 0; return true;
+		case FIELD_VOID:		*pDest = false; return false;
+		case FIELD_FLOAT32:		*pDest = m_float32 != 0.0f; return true;
+		case FIELD_INT32:
 		case FIELD_UINT32:		*pDest = m_uint32 != 0; return true;
-		case FIELD_UINT64:		*pDest = m_uint64 != 0; return true;
-		case FIELD_FLOAT32:		*pDest = m_float32 != 0.0; return true;
-		case FIELD_FLOAT64:		*pDest = m_float64 != 0.0; return true;
 		case FIELD_BOOLEAN:		*pDest = m_bool; return true;
-		case FIELD_CSTRING:
-		{
-			if(m_pszString && m_pszString[0])
-			{
-				bool successful = false;
-				*pDest = V_StringToBool( m_pszString, false, &successful );
-				return successful;
-			}
-		}
+		case FIELD_INT64:
+		case FIELD_UINT64:		*pDest = m_uint64 != 0; return true;
+		case FIELD_FLOAT64:		*pDest = m_float64 != 0.0; return true;
+		case FIELD_UINT8:		*pDest = m_uint8 != 0; return true;
 		case FIELD_STRING:
+		case FIELD_CSTRING:
+		case FIELD_GLOBALSYMBOL:
 		{
-			if(m_stringt.ToCStr()[0])
+			const char *pszString = GetStringValue();
+			if(pszString && pszString[0])
 			{
 				bool successful = false;
-				*pDest = V_StringToBool( m_stringt.ToCStr(), false, &successful );
+				*pDest = V_StringToBool( pszString, false, &successful );
 				return successful;
 			}
+
+			*pDest = false;
+			return false;
 		}
 
-		default: Warning( "No conversion from %s to bool right now\n", VariantFieldTypeName( m_type ) );
+		default: Warning( "No conversion from %s to bool now\n", VariantFieldTypeName( m_type ) ); break;
 	}
 
 	return false;
@@ -783,27 +777,25 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( Vector *pDest ) const
 	{
 		case FIELD_VOID:			*pDest = vec3_origin; return false;
 		case FIELD_VECTOR:			*pDest = *m_pVector; return true;
-		case FIELD_POSITION_VECTOR:	*pDest = *(Vector *)m_pVectorWS; return true;
-		case FIELD_CSTRING:
-		{
-			if(m_pszString && m_pszString[0] != '\0')
-			{
-				bool successful = false;
-				V_StringToVector( m_pszString, *pDest, &successful );
-				return successful;
-			}
-		}
+		case FIELD_QANGLE:			*pDest = *(const Vector *)m_pQAngle; return true;
+		case FIELD_POSITION_VECTOR:	*pDest = *(const Vector *)m_pVectorWS; return true;
 		case FIELD_STRING:
+		case FIELD_CSTRING:
+		case FIELD_GLOBALSYMBOL:
 		{
-			if(m_stringt.ToCStr()[0])
+			const char *pszString = GetStringValue();
+			if(pszString && pszString[0])
 			{
 				bool successful = false;
-				V_StringToVector( m_stringt.ToCStr(), *pDest, &successful );
+				V_StringToVector( pszString, *pDest, &successful );
 				return successful;
 			}
+
+			*pDest = vec3_origin;
+			return false;
 		}
 
-		default: Warning( "No conversion from %s to Vector right now\n", VariantFieldTypeName( m_type ) );
+		default: Warning( "No free conversion of %s variant to Vector right now\n", VariantFieldTypeName( m_type ) ); break;
 	}
 
 	return false;
@@ -817,26 +809,23 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( VectorWS *pDest ) const
 		case FIELD_VOID:			*pDest = vec3ws_origin; return false;
 		case FIELD_POSITION_VECTOR:	*pDest = *m_pVectorWS; return true;
 		case FIELD_VECTOR:			*pDest = *(VectorWS *)m_pVector; return true;
-		case FIELD_CSTRING:
-		{
-			if(m_pszString && m_pszString[0] != '\0')
-			{
-				bool successful = false;
-				V_StringToVectorWS( m_pszString, *pDest, &successful );
-				return successful;
-			}
-		}
 		case FIELD_STRING:
+		case FIELD_CSTRING:
+		case FIELD_GLOBALSYMBOL:
 		{
-			if(m_stringt.ToCStr()[0])
+			const char *pszString = GetStringValue();
+			if(pszString && pszString[0])
 			{
 				bool successful = false;
-				V_StringToVectorWS( m_stringt.ToCStr(), *pDest, &successful );
+				V_StringToVectorWS( pszString, *pDest, &successful );
 				return successful;
 			}
+
+			*pDest = vec3ws_origin;
+			return false;
 		}
 
-		default: Warning( "No conversion from %s to Vector right now\n", VariantFieldTypeName( m_type ) );
+		default: Warning( "No conversion from %s to VectorWS right now\n", VariantFieldTypeName( m_type ) );
 	}
 
 	return false;
@@ -849,23 +838,20 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( Vector2D *pDest ) const
 	{
 		case FIELD_VOID:		*pDest = vec2_origin; return false;
 		case FIELD_VECTOR2D:	*pDest = *m_pVector2D; return true;
-		case FIELD_CSTRING:
-		{
-			if(m_pszString && m_pszString[0] != '\0')
-			{
-				bool successful = false;
-				V_StringToVector2D( m_pszString, *pDest, &successful );
-				return successful;
-			}
-		}
 		case FIELD_STRING:
+		case FIELD_CSTRING:
+		case FIELD_GLOBALSYMBOL:
 		{
-			if(m_stringt.ToCStr()[0])
+			const char *pszString = GetStringValue();
+			if(pszString && pszString[0])
 			{
 				bool successful = false;
-				V_StringToVector2D( m_stringt.ToCStr(), *pDest, &successful );
+				V_StringToVector2D( pszString, *pDest, &successful );
 				return successful;
 			}
+
+			*pDest = vec2_origin;
+			return false;
 		}
 
 		default: Warning( "No conversion from %s to Vector2D right now\n", VariantFieldTypeName( m_type ) );
@@ -881,23 +867,20 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( Vector4D *pDest ) const
 	{
 		case FIELD_VOID:		*pDest = vec4_origin; return false;
 		case FIELD_VECTOR4D:	*pDest = *m_pVector4D; return true;
-		case FIELD_CSTRING:
-		{
-			if(m_pszString && m_pszString[0] != '\0')
-			{
-				bool successful = false;
-				V_StringToVector4D( m_pszString, *pDest, &successful );
-				return successful;
-			}
-		}
 		case FIELD_STRING:
+		case FIELD_CSTRING:
+		case FIELD_GLOBALSYMBOL:
 		{
-			if(m_stringt.ToCStr()[0])
+			const char *pszString = GetStringValue();
+			if(pszString && pszString[0])
 			{
 				bool successful = false;
-				V_StringToVector4D( m_stringt.ToCStr(), *pDest, &successful );
+				V_StringToVector4D( pszString, *pDest, &successful );
 				return successful;
 			}
+
+			*pDest = vec4_origin;
+			return false;
 		}
 
 		default: Warning( "No conversion from %s to Vector4D right now\n", VariantFieldTypeName( m_type ) );
@@ -913,23 +896,20 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( Quaternion *pDest ) const
 	{
 		case FIELD_VOID:		*pDest = quat_identity; return false;
 		case FIELD_QUATERNION:	*pDest = *m_pQuaternion; return true;
-		case FIELD_CSTRING:
-		{
-			if(m_pszString && m_pszString[0] != '\0')
-			{
-				bool successful = false;
-				V_StringToQuaternion( m_pszString, *pDest, &successful );
-				return successful;
-			}
-		}
 		case FIELD_STRING:
+		case FIELD_CSTRING:
+		case FIELD_GLOBALSYMBOL:
 		{
-			if(m_stringt.ToCStr()[0])
+			const char *pszString = GetStringValue();
+			if(pszString && pszString[0])
 			{
 				bool successful = false;
-				V_StringToQuaternion( m_stringt.ToCStr(), *pDest, &successful );
+				V_StringToQuaternion( pszString, *pDest, &successful );
 				return successful;
 			}
+
+			*pDest = quat_identity;
+			return false;
 		}
 		case FIELD_QANGLE:
 		{
@@ -950,23 +930,20 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( QAngle *pDest ) const
 	{
 		case FIELD_VOID:		*pDest = vec3_angle; return false;
 		case FIELD_QANGLE:		*pDest = *m_pQAngle; return true;
-		case FIELD_CSTRING:
-		{
-			if(m_pszString && m_pszString[0] != '\0')
-			{
-				bool successful = false;
-				V_StringToQAngle( m_pszString, *pDest, &successful );
-				return successful;
-			}
-		}
 		case FIELD_STRING:
+		case FIELD_CSTRING:
+		case FIELD_GLOBALSYMBOL:
 		{
-			if(m_stringt.ToCStr()[0])
+			const char *pszString = GetStringValue();
+			if(pszString && pszString[0])
 			{
 				bool successful = false;
-				V_StringToQAngle( m_stringt.ToCStr(), *pDest, &successful );
+				V_StringToQAngle( pszString, *pDest, &successful );
 				return successful;
 			}
+
+			*pDest = vec3_angle;
+			return false;
 		}
 		case FIELD_QUATERNION:
 		{
@@ -986,23 +963,20 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( Color *pDest ) const
 	switch(m_type)
 	{
 		case FIELD_COLOR32:		*pDest = Color( m_color32 ); return true;
-		case FIELD_CSTRING:
-		{
-			if(m_pszString && m_pszString[0] != '\0')
-			{
-				bool successful = false;
-				V_StringToColor( m_pszString, *pDest, &successful );
-				return successful;
-			}
-		}
 		case FIELD_STRING:
+		case FIELD_CSTRING:
+		case FIELD_GLOBALSYMBOL:
 		{
-			if(m_stringt.ToCStr()[0])
+			const char *pszString = GetStringValue();
+			if(pszString && pszString[0])
 			{
 				bool successful = false;
-				V_StringToColor( m_stringt.ToCStr(), *pDest, &successful );
+				V_StringToColor( pszString, *pDest, &successful );
 				return successful;
 			}
+
+			*pDest = Color();
+			return false;
 		}
 
 		default: Warning( "No conversion from %s to Color right now\n", VariantFieldTypeName( m_type ) );
@@ -1110,6 +1084,11 @@ template< class CValueAllocator >
 template< typename T >
 inline bool CVariantBase<CValueAllocator>::AssignTo( CVariantBase<T> *pDest ) const
 {
+	if((const void *)pDest == (const void *)this)
+		return true;
+
+	pDest->Free();
+
 	switch(m_type)
 	{
 		case FIELD_VECTOR:		pDest->CopyData( *m_pVector, true ); return true;
@@ -1150,6 +1129,7 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( T *pDest ) const
 	{
 		switch(m_type)
 		{
+			case FIELD_VOID:		*pDest = {}; return false;
 			case FIELD_INT32:		*pDest = m_int32; return true;
 			case FIELD_INT64:		*pDest = m_int64; return true;
 			case FIELD_UINT32:		*pDest = m_uint32; return true;
@@ -1158,6 +1138,7 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( T *pDest ) const
 			case FIELD_FLOAT64:		*pDest = m_float64; return true;
 			case FIELD_CHARACTER:	*pDest = m_char; return true;
 			case FIELD_BOOLEAN:		*pDest = m_bool; return true;
+			case FIELD_UINT8:		*pDest = m_uint8; return true;
 			default:				break;
 		}
 	}
@@ -1171,40 +1152,6 @@ inline bool CVariantBase<CValueAllocator>::AssignTo( T *pDest ) const
 }
 
 template< class CValueAllocator >
-inline void CVariantBase<CValueAllocator>::Set( fieldtype_t ftype, void *pData )
-{
-	switch(ftype)
-	{
-		case FIELD_VOID:			Free(); m_type = FIELD_VOID; m_pData = nullptr; return;
-		case FIELD_FLOAT32:			CopyData( *(float32 *)pData, false ); return;
-		case FIELD_FLOAT64:			CopyData( *(float64 *)pData, false ); return;
-		case FIELD_UINT8:			CopyData( *(uint8 *)pData, false ); return;
-		case FIELD_INT16:			CopyData( *(int16 *)pData, false ); return;
-		case FIELD_UINT16:			CopyData( *(uint16 *)pData, false ); return;
-		case FIELD_INT32:			CopyData( *(int32 *)pData, false ); return;
-		case FIELD_UINT32:			CopyData( *(uint32 *)pData, false ); return;
-		case FIELD_INT64:			CopyData( *(int64 *)pData, false ); return;
-		case FIELD_UINT64:			CopyData( *(uint64 *)pData, false ); return;
-		case FIELD_BOOLEAN:			CopyData( *(bool *)pData, false ); return;
-		case FIELD_CHARACTER:		CopyData( *(char *)pData, false ); return;
-		case FIELD_STRING:			CopyData( *(string_t *)pData, false ); return;
-		case FIELD_CSTRING:			CopyData( *(const char **)pData, false ); return;
-		case FIELD_VECTOR:			CopyData( (Vector *)pData, false ); return;
-		case FIELD_VECTOR2D:		CopyData( (Vector2D *)pData, false ); return;
-		case FIELD_VECTOR4D:		CopyData( (Vector4D *)pData, false ); return;
-		case FIELD_POSITION_VECTOR:	CopyData( (VectorWS *)pData, false ); return;
-		case FIELD_QANGLE:			CopyData( (QAngle *)pData, false ); return;
-		case FIELD_QUATERNION:		CopyData( (Quaternion *)pData, false ); return;
-		case FIELD_COLOR32:			CopyData( *(color32 *)pData, false ); return;
-		case FIELD_HSCRIPT:			CopyData( *(HSCRIPT *)pData, false ); return;
-		case FIELD_EHANDLE:			CopyData( *(CEntityHandle *)pData, false ); return;
-		case FIELD_RESOURCE:		CopyData( *(ResourceHandle_t *)pData, false ); return;
-		case FIELD_UTLSTRINGTOKEN:	CopyData( *(CUtlStringToken *)pData, false ); return;
-		default:					break;
-	}
-}
-
-template< class CValueAllocator >
 inline bool CVariantBase<CValueAllocator>::Convert( fieldtype_t newType )
 {
 	if(newType == m_type)
@@ -1213,28 +1160,45 @@ inline bool CVariantBase<CValueAllocator>::Convert( fieldtype_t newType )
 	}
 
 	bool successful = false;
-	void *pData = nullptr;
 	switch(newType)
 	{
 		case FIELD_VOID:			successful = true; Free(); m_type = FIELD_VOID; m_pData = nullptr; break;
-		case FIELD_FLOAT32:			if((successful = AssignTo( (float32 *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_FLOAT64:			if((successful = AssignTo( (float64 *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_UINT8:			if((successful = AssignTo( (uint8 *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_INT16:			if((successful = AssignTo( (int16 *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_UINT16:			if((successful = AssignTo( (uint16 *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_INT32:			if((successful = AssignTo( (int32 *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_UINT32:			if((successful = AssignTo( (uint32 *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_INT64:			if((successful = AssignTo( (int64 *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_UINT64:			if((successful = AssignTo( (uint64 *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_BOOLEAN:			if((successful = AssignTo( (bool *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_CHARACTER:		if((successful = AssignTo( (char *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_STRING:			if((successful = AssignTo( (string_t *)&pData ))) { Set( newType, &pData ); } break;
+		case FIELD_FLOAT32:			{ float32 value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_FLOAT64:			{ float64 value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_UINT8:			{ uint8 value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_INT16:			{ int16 value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_UINT16:			{ uint16 value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_INT32:			{ int32 value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_UINT32:			{ uint32 value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_INT64:			{ int64 value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_UINT64:			{ uint64 value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_BOOLEAN:			{ bool value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_CHARACTER:		{ char value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_STRING:
+		{
+			// A string this variant owns stays its buffer: storing a string_t to it and then freeing it would dangle
+			if(m_type == FIELD_CSTRING && ( m_flags & SV_FREE ))
+			{
+				m_type = FIELD_STRING;
+				successful = true;
+			}
+			else
+			{
+				string_t value;
+				if((successful = AssignTo( &value )))
+				{
+					Free();
+					m_stringt = value;
+				}
+			}
+			break;
+		}
 		case FIELD_CSTRING:			successful = true; CopyData( ToString(), true ); break;
-		case FIELD_HSCRIPT:			if((successful = AssignTo( (HSCRIPT *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_EHANDLE:			if((successful = AssignTo( (CEntityHandle *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_RESOURCE:		if((successful = AssignTo( (ResourceHandle_t *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_UTLSTRINGTOKEN:	if((successful = AssignTo( (CUtlStringToken *)&pData ))) { Set( newType, &pData ); } break;
-		case FIELD_COLOR32:			if((successful = AssignTo( (Color *)&pData ))) { Set( newType, &pData ); } break;
+		case FIELD_HSCRIPT:			{ HSCRIPT value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_EHANDLE:			{ CEntityHandle value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_RESOURCE:		{ ResourceHandle_t value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_UTLSTRINGTOKEN:	{ CUtlStringToken value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
+		case FIELD_COLOR32:			{ Color value{}; if((successful = AssignTo( &value ))) { *this = value; } break; }
 		case FIELD_VECTOR:			{ Vector vec; if((successful = AssignTo( &vec ))) { CopyData( vec, true ); } break; }
 		case FIELD_VECTOR2D:		{ Vector2D vec; if((successful = AssignTo( &vec ))) { CopyData( vec, true ); } break; }
 		case FIELD_VECTOR4D:		{ Vector4D vec; if((successful = AssignTo( &vec ))) { CopyData( vec, true ); } break; }
@@ -1257,7 +1221,8 @@ inline const char *CVariantBase<CValueAllocator>::ToString() const
 	switch(m_type)
 	{
 		case FIELD_CSTRING:	return m_pszString;
-		case FIELD_STRING:	return m_stringt.ToCStr();
+		case FIELD_STRING:
+		case FIELD_GLOBALSYMBOL: return GetStringValue() ? GetStringValue() : "";
 		default:
 		{
 			static CBufferStringN<512> szBuf;
@@ -1268,29 +1233,31 @@ inline const char *CVariantBase<CValueAllocator>::ToString() const
 }
 
 // overloading == as an external function
+// AMNOTE: Only the scalar types compare, by value; void, strings, vectors and resources are never equal
 template< class CValueAllocator1, class CValueAllocator2 >
 inline bool operator ==( const CVariantBase<CValueAllocator1> &v1, const CVariantBase<CValueAllocator2> &v2 )
 {
-	if(v1.m_type != v2.m_type)
+	if(v1.GetType() != v2.GetType())
 		return false;
 
-	switch(v1.m_type)
+	switch(v1.GetType())
 	{
-		case FIELD_UINT8: { return v1.m_uint8 == v2.m_uint8; }
-		case FIELD_INT16: { return v1.m_int16 == v2.m_int16; }
-		case FIELD_UINT16: { return v1.m_uint16 == v2.m_uint16; }
-		case FIELD_INT32: { return v1.m_int32 == v2.m_int32; }
-		case FIELD_UINT32: { return v1.m_uint32 == v2.m_uint32; }
-		case FIELD_INT64: { return v1.m_int64 == v2.m_int64; }
-		case FIELD_UINT64: { return v1.m_uint64 == v2.m_uint64; }
-		case FIELD_FLOAT32: { return v1.m_float32 == v2.m_float32; }
-		case FIELD_FLOAT64: { return v1.m_float64 == v2.m_float64; }
-		case FIELD_CHARACTER: { return v1.m_char == v2.m_char; }
-		case FIELD_BOOLEAN: { return v1.m_bool == v2.m_bool; }
-		case FIELD_HSCRIPT: { return v1.m_hScript == v2.m_hScript; }
-		case FIELD_EHANDLE: { return v1.m_hEntity == v2.m_hEntity; }
-		case FIELD_COLOR32: { return v1.m_color32 == v2.m_color32; }
-		case FIELD_UTLSTRINGTOKEN: { return v1.m_utlStringToken == v2.m_utlStringToken; }
+		case FIELD_UINT8: { return (uint8)v1 == (uint8)v2; }
+		case FIELD_INT16: { return (int16)v1 == (int16)v2; }
+		case FIELD_UINT16: { return (uint16)v1 == (uint16)v2; }
+		case FIELD_INT32: { return (int32)v1 == (int32)v2; }
+		case FIELD_UINT32: { return (uint32)v1 == (uint32)v2; }
+		case FIELD_INT64: { return (int64)v1 == (int64)v2; }
+		case FIELD_UINT64: { return (uint64)v1 == (uint64)v2; }
+		case FIELD_FLOAT32: { return (float32)v1 == (float32)v2; }
+		case FIELD_FLOAT64: { return (float64)v1 == (float64)v2; }
+		case FIELD_CHARACTER: { return (char)v1 == (char)v2; }
+		case FIELD_BOOLEAN: { return (bool)v1 == (bool)v2; }
+		case FIELD_HSCRIPT: { return (HSCRIPT)v1 == (HSCRIPT)v2; }
+		case FIELD_EHANDLE: { return v1.operator CEntityHandle() == v2.operator CEntityHandle(); }
+		case FIELD_COLOR32: { return (Color)v1 == (Color)v2; }
+		case FIELD_UTLSTRINGTOKEN: { return v1.operator CUtlStringToken() == v2.operator CUtlStringToken(); }
+		default: break;
 	}
 
 	return false;
