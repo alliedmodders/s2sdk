@@ -245,3 +245,16 @@ for sdk_target in SdkHelpers.sdk_targets:
   SdkHelpers.configureCxx(builder, binary, sdk)
 
 builder.Add(rwlocktest)
+
+# Writes and reads CUtlBuffer's typed, text and pretty-printing helpers through tier0
+ubtest = builder.ProgramProject('utlbuffer_test')
+ubtest.sources = [
+  os.path.join('tests', 'run', 'utlbuffer.cpp'),
+  os.path.join('public', 'tier0', 'memoverride.cpp'),
+]
+
+for sdk_target in SdkHelpers.sdk_targets:
+  binary = ubtest.Configure(sdk_target.cxx, 'utlbuffer_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
+  SdkHelpers.configureCxx(builder, binary, sdk)
+
+builder.Add(ubtest)
