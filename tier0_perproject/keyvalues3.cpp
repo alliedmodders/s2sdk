@@ -2166,6 +2166,7 @@ void CKeyValues3Table::PurgeBuffers()
 CKV3ArenaBase::CKV3ArenaBase( CKV3Arena* context ) :
 	m_pContext( context ),
 	m_KV3BaseCluster( context ),
+	m_Symbols( 0, 0 ),
 	m_bMetaDataEnabled( false ),
 	m_bFormatConverted( false ),
 	m_bRootAvailabe( false ),

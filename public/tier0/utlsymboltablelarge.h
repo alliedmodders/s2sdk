@@ -48,7 +48,7 @@ class CUtlSymbolTableLargeBase
 public:
 	// constructor, destructor
 	CUtlSymbolTableLargeBase( int nGrowSize = 0, int nInitSize = 16 )
-		:	m_HashTable( 0 ), 
+		:	m_HashTable( 32 ),
 			m_MemBlocks( nGrowSize, nInitSize ), 
 			m_Mutex(), 
 			m_MemBlockAllocator( ( nInitSize > 0 ) ? 8 : 0, PAGE_SIZE ), 
@@ -330,6 +330,7 @@ inline void CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUTEX_TYPE >::
 	m_HashTable.RemoveAll();
 	m_MemBlocks.RemoveAll();
 	m_MemBlockAllocator.RemoveAll();
+	m_nBytesAccumulated = 0;
 }
 
 template < bool CASEINSENSITIVE, size_t PAGE_SIZE, class MUTEX_TYPE >
@@ -340,6 +341,7 @@ inline void CUtlSymbolTableLargeBase< CASEINSENSITIVE, PAGE_SIZE, MUTEX_TYPE >::
 	m_HashTable.Purge();
 	m_MemBlocks.Purge();
 	m_MemBlockAllocator.Purge();
+	m_nBytesAccumulated = 0;
 }
 
 // Case-sensitive
