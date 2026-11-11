@@ -16,10 +16,15 @@
 #include "tier0/threadtools.h"
 #include "tier0/utlleanvector.h"
 #include "tier0/utlmap.h"
+#include "tier0/utlrbtree.h"
 #include "gcsdk/gcclient_sharedobjectcache.h"
 #include "gcsdk/jobmgr.h"
 
 class CTestEvent;
+class CMsgServerHello;
+
+// Values in the game's gcsdk_gcmessages.proto
+enum GCConnectionStatus : int;
 
 namespace GCSDK
 {
@@ -38,6 +43,9 @@ public:
 
 	ISteamGameCoordinator *GetSteamGameCoordinator() const { return m_pSteamGameCoordinator; }
 	bool BIsGameserver() const { return m_bGameserver; }
+	CJobMgr &GetJobMgr() { return m_JobMgr; }
+	const CJobMgr &GetJobMgr() const { return m_JobMgr; }
+	GCConnectionStatus GetConnectionStatus() const { return m_eConnectionStatus; }
 
 	/// Find the shared object cache for the specified owner, NULL if there is none
 	CGCClientSharedObjectCache *FindSOCache( const SOID_t &owner ) const
@@ -78,9 +86,39 @@ protected:
 	// AMNOTE: The listeners of every cache, see ISharedObjectListener
 	CUtlVector<ISharedObjectListener *> m_vecSOCacheListeners;
 
-	uint8 m_unk001[72];
+	// AMNOTE: Message types sent even without a GC session; nothing adds any
+	CUtlRBTree<uint32, unsigned short> m_unk101;
+
+	// AMNOTE: Adds to the server hello before it is sent
+	typedef void (*FillServerHelloFunc_t)( CMsgServerHello *pMsg );
+	FillServerHelloFunc_t m_pfnFillServerHello;
+
+	// AMNOTE: Hellos sent since the last session or Steam logon, they space out the next ones
+	int m_nHelloAttempts;
+
+	// Times in microseconds
+	uint64 m_timeNextSendHello;
+	uint64 m_timeReceivedConnectionStatus;
+	uint64 m_timeLoggedOn;
+
+	uint32 m_unVersion;
+	GCConnectionStatus m_eConnectionStatus;
 	bool m_bGameserver;
-	uint8 m_unk101[47];
+
+	// AMNOTE: 0 off, 1 the GC is down (nothing sent or received), 2 receive only (sends are dropped)
+	int m_nSimulateGCConnectionFailure;
+
+	uint32 m_nSessionNeed;
+	uint32 m_nLastSessionNeed;
+	bool m_bWantSession;
+
+	// AMNOTE: 1 with -perfectworld
+	uint32 m_nLauncherType;
+
+	int m_nLogonQueuePosition;
+	int m_nLogonQueueSize;
+	uint64 m_timeLogonQueueApproxTimeEnteredQueue;
+	uint64 m_timeLogonQueueEstimatedTimeExitQueue;
 
 	CCallback<CGCClient, GCMessageAvailable_t, false> m_CallbackGCMessageAvailable;
 	CCallback<CGCClient, SteamServersDisconnected_t, false> m_CallbackSteamServersDisconnected;
