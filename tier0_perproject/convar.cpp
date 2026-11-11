@@ -564,7 +564,7 @@ void ConVarData::MinValueToString( CBufferString &buf ) const
 	if(HasMinValue())
 		TypeTraits()->ValueToString( m_minValue, buf );
 	else
-		buf.Insert( 0, "" );
+		buf = "";
 }
 
 void ConVarData::MaxValueToString( CBufferString &buf ) const
@@ -572,7 +572,7 @@ void ConVarData::MaxValueToString( CBufferString &buf ) const
 	if(HasMaxValue())
 		TypeTraits()->ValueToString( m_maxValue, buf );
 	else
-		buf.Insert( 0, "" );
+		buf = "";
 }
 
 ConVarRef::ConVarRef( const char *name, bool allow_developer )
@@ -603,9 +603,6 @@ void ConVarRefAbstract::InvalidateConVarData( EConVarType type )
 
 void ConVarRefAbstract::CallChangeCallbacks( CSplitScreenSlot slot, CVValue_t *new_value, CVValue_t *prev_value, const char *new_str, const char *prev_str )
 {
-	if(slot.Get() == -1)
-		slot = CSplitScreenSlot( 0 );
-
 	g_pCVar->CallChangeCallback( *this, slot, new_value, prev_value );
 	g_pCVar->CallGlobalChangeCallbacks( this, slot, new_str, prev_str );
 }
@@ -631,6 +628,9 @@ void ConVarRefAbstract::QueueSetValueInternal( CSplitScreenSlot slot, CVValue_t 
 
 void ConVarRefAbstract::SetValueInternal( CSplitScreenSlot slot, CVValue_t *value )
 {
+	if(slot.Get() == -1)
+		slot = CSplitScreenSlot( 0 );
+
 	CVValue_t *curr_value = m_ConVarData->ValueOrDefault( slot );
 
 	CVValue_t prev;
@@ -657,6 +657,10 @@ void ConVarRefAbstract::SetValueInternal( CSplitScreenSlot slot, CVValue_t *valu
 			CallChangeCallbacks( slot, curr_value, &prev, new_str.Get(), prev_str.Get() );
 		}
 	}
+	else
+	{
+		Log_Warning( LOG_CONSOLE, "Can't change '%s' right now.\n", GetName() );
+	}
 
 	TypeTraits()->Destruct( &prev );
 }
@@ -669,7 +673,7 @@ bool ConVarRefAbstract::SetString( CUtlString string, CSplitScreenSlot slot )
 		return true;
 	
 	if(GetType() != EConVarType_String)
-		string.Trim( "\t\n\v\f\r " );
+		string.TrimLeft( "\t\n\v\f\r " );
 
 	CVValue_t new_value;
 	TypeTraits()->Construct( &new_value );

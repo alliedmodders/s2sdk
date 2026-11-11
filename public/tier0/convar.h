@@ -733,13 +733,13 @@ struct ConVarCreation_t : CVarCreationBase_t
 	ConVarValueInfo_t m_valueInfo;
 };
 
-template <typename T> static void CvarTypeTrait_ConstructFn( CVValue_t *obj ) { Construct( (T *)obj ); }
-template <typename T> static void CvarTypeTrait_CopyFn( CVValue_t *obj, const CVValue_t &other ) { *(T *)obj = *(T *)&other; }
-template <typename T> static void CvarTypeTrait_DestructFn( CVValue_t *obj ) { Destruct( (T *)obj ); }
-template <typename T> static bool CvarTypeTrait_StringToValueFn( const char *string, CVValue_t *obj ) { return V_StringToValue<T>( string, *(T *)obj ); }
-template <typename T> static void CvarTypeTrait_ValueToStringFn( const CVValue_t *obj, CBufferString &buf );
-template <typename T> static bool CvarTypeTrait_EqualFn( const CVValue_t *obj, const CVValue_t *other ) { return *(T *)obj == *(T *)other; }
-template <typename T> static void CvarTypeTrait_ClampFn( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
+template <typename T> inline void CvarTypeTrait_ConstructFn( CVValue_t *obj ) { Construct( (T *)obj ); }
+template <typename T> inline void CvarTypeTrait_CopyFn( CVValue_t *obj, const CVValue_t &other ) { *(T *)obj = *(T *)&other; }
+template <typename T> inline void CvarTypeTrait_DestructFn( CVValue_t *obj ) { Destruct( (T *)obj ); }
+template <typename T> inline bool CvarTypeTrait_StringToValueFn( const char *string, CVValue_t *obj ) { return V_StringToValue<T>( string, *(T *)obj, PARSING_FLAG_SKIP_ASSERT ); }
+template <typename T> inline void CvarTypeTrait_ValueToStringFn( const CVValue_t *obj, CBufferString &buf );
+template <typename T> inline bool CvarTypeTrait_EqualFn( const CVValue_t *obj, const CVValue_t *other ) { return *(T *)obj == *(T *)other; }
+template <typename T> inline void CvarTypeTrait_ClampFn( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
 {
 	if(min)
 		*(T *)obj = Max( *(T *)obj, *(T *)min );
@@ -748,24 +748,61 @@ template <typename T> static void CvarTypeTrait_ClampFn( CVValue_t *obj, const C
 		*(T *)obj = Min( *(T *)obj, *(T *)max );
 }
 
-template<> bool CvarTypeTrait_StringToValueFn<CUtlString>( const char *string, CVValue_t *obj ) { obj->m_StringValue = string; return true; }
+template<> inline bool CvarTypeTrait_StringToValueFn<CUtlString>( const char *string, CVValue_t *obj ) { obj->m_StringValue = string; return true; }
+// AMNOTE: A change of case alone is no change: it fires no change callbacks, and a queued set of it is dropped
+template<> inline bool CvarTypeTrait_EqualFn<CUtlString>( const CVValue_t *obj, const CVValue_t *other ) { return obj->m_StringValue.IsEqual_FastCaseInsensitive( other->m_StringValue.Get() ); }
 
-template<> void CvarTypeTrait_ValueToStringFn<bool>( const CVValue_t *obj, CBufferString &buf ) { buf.Insert( 0, obj->m_bValue ? "true" : "false" ); }
-template<> void CvarTypeTrait_ValueToStringFn<int16>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%d", obj->m_i16Value ); }
-template<> void CvarTypeTrait_ValueToStringFn<uint16>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%u", obj->m_u16Value ); }
-template<> void CvarTypeTrait_ValueToStringFn<int32>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%d", obj->m_i32Value ); }
-template<> void CvarTypeTrait_ValueToStringFn<uint32>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%u", obj->m_u32Value ); }
-template<> void CvarTypeTrait_ValueToStringFn<int64>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%lld", obj->m_i64Value ); }
-template<> void CvarTypeTrait_ValueToStringFn<uint64>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%llu", obj->m_u64Value ); }
-template<> void CvarTypeTrait_ValueToStringFn<float32>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%f", obj->m_fl32Value ); }
-template<> void CvarTypeTrait_ValueToStringFn<float64>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%lf", obj->m_fl64Value ); }
-template<> void CvarTypeTrait_ValueToStringFn<CUtlString>( const CVValue_t *obj, CBufferString &buf ) { buf.Insert( 0, obj->m_StringValue.Get() ); }
-template<> void CvarTypeTrait_ValueToStringFn<Vector2D>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%f %f", obj->m_vec2Value[0], obj->m_vec2Value[1] ); }
-template<> void CvarTypeTrait_ValueToStringFn<Vector>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%f %f %f", obj->m_vec3Value[0], obj->m_vec3Value[1], obj->m_vec3Value[2] ); }
-template<> void CvarTypeTrait_ValueToStringFn<Vector4D>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%f %f %f %f", obj->m_vec4Value[0], obj->m_vec4Value[1], obj->m_vec4Value[2], obj->m_vec4Value[3] ); }
-template<> void CvarTypeTrait_ValueToStringFn<QAngle>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%f %f %f", obj->m_angValue[0], obj->m_angValue[1], obj->m_angValue[2] ); }
-template<> void CvarTypeTrait_ValueToStringFn<VectorWS>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%f %f %f", obj->m_vecwsValue[0], obj->m_vecwsValue[1], obj->m_vecwsValue[2] ); }
-template<> void CvarTypeTrait_ValueToStringFn<Color>( const CVValue_t *obj, CBufferString &buf )
+template<> inline void CvarTypeTrait_ValueToStringFn<bool>( const CVValue_t *obj, CBufferString &buf ) { buf.Insert( 0, obj->m_bValue ? "true" : "false" ); }
+template<> inline void CvarTypeTrait_ValueToStringFn<int16>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%d", obj->m_i16Value ); }
+template<> inline void CvarTypeTrait_ValueToStringFn<uint16>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%u", obj->m_u16Value ); }
+template<> inline void CvarTypeTrait_ValueToStringFn<int32>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%d", obj->m_i32Value ); }
+template<> inline void CvarTypeTrait_ValueToStringFn<uint32>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%u", obj->m_u32Value ); }
+template<> inline void CvarTypeTrait_ValueToStringFn<int64>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%lld", obj->m_i64Value ); }
+template<> inline void CvarTypeTrait_ValueToStringFn<uint64>( const CVValue_t *obj, CBufferString &buf ) { buf.Format( "%llu", obj->m_u64Value ); }
+template<> inline void CvarTypeTrait_ValueToStringFn<float32>( const CVValue_t *obj, CBufferString &buf ) { char szValue[40]; V_FloatToString_Unsafe( obj->m_fl32Value, szValue ); buf.Format( "%s", szValue ); }
+template<> inline void CvarTypeTrait_ValueToStringFn<float64>( const CVValue_t *obj, CBufferString &buf ) { char szValue[40]; V_DoubleToString_Unsafe( obj->m_fl64Value, szValue ); buf.Format( "%s", szValue ); }
+template<> inline void CvarTypeTrait_ValueToStringFn<CUtlString>( const CVValue_t *obj, CBufferString &buf ) { buf.Insert( 0, obj->m_StringValue.Get() ); }
+template<> inline void CvarTypeTrait_ValueToStringFn<Vector2D>( const CVValue_t *obj, CBufferString &buf )
+{
+	char szX[32], szY[32];
+	V_FloatToString_Unsafe( obj->m_vec2Value[0], szX );
+	V_FloatToString_Unsafe( obj->m_vec2Value[1], szY );
+	buf.Format( "%s %s", szX, szY );
+}
+template<> inline void CvarTypeTrait_ValueToStringFn<Vector>( const CVValue_t *obj, CBufferString &buf )
+{
+	char szX[32], szY[32], szZ[32];
+	V_FloatToString_Unsafe( obj->m_vec3Value[0], szX );
+	V_FloatToString_Unsafe( obj->m_vec3Value[1], szY );
+	V_FloatToString_Unsafe( obj->m_vec3Value[2], szZ );
+	buf.Format( "%s %s %s", szX, szY, szZ );
+}
+template<> inline void CvarTypeTrait_ValueToStringFn<Vector4D>( const CVValue_t *obj, CBufferString &buf )
+{
+	char szX[32], szY[32], szZ[32], szW[32];
+	V_FloatToString_Unsafe( obj->m_vec4Value[0], szX );
+	V_FloatToString_Unsafe( obj->m_vec4Value[1], szY );
+	V_FloatToString_Unsafe( obj->m_vec4Value[2], szZ );
+	V_FloatToString_Unsafe( obj->m_vec4Value[3], szW );
+	buf.Format( "%s %s %s %s", szX, szY, szZ, szW );
+}
+template<> inline void CvarTypeTrait_ValueToStringFn<QAngle>( const CVValue_t *obj, CBufferString &buf )
+{
+	char szX[32], szY[32], szZ[32];
+	V_FloatToString_Unsafe( obj->m_angValue[0], szX );
+	V_FloatToString_Unsafe( obj->m_angValue[1], szY );
+	V_FloatToString_Unsafe( obj->m_angValue[2], szZ );
+	buf.Format( "%s %s %s", szX, szY, szZ );
+}
+template<> inline void CvarTypeTrait_ValueToStringFn<VectorWS>( const CVValue_t *obj, CBufferString &buf )
+{
+	char szX[32], szY[32], szZ[32];
+	V_FloatToString_Unsafe( obj->m_vecwsValue[0], szX );
+	V_FloatToString_Unsafe( obj->m_vecwsValue[1], szY );
+	V_FloatToString_Unsafe( obj->m_vecwsValue[2], szZ );
+	buf.Format( "%s %s %s", szX, szY, szZ );
+}
+template<> inline void CvarTypeTrait_ValueToStringFn<Color>( const CVValue_t *obj, CBufferString &buf )
 {
 	if( obj->m_clrValue.a() == 255 )
 		buf.Format( "%d %d %d", obj->m_clrValue[0], obj->m_clrValue[1], obj->m_clrValue[2] );
@@ -773,41 +810,41 @@ template<> void CvarTypeTrait_ValueToStringFn<Color>( const CVValue_t *obj, CBuf
 		buf.Format( "%d %d %d %d", obj->m_clrValue[0], obj->m_clrValue[1], obj->m_clrValue[2], obj->m_clrValue[3] );
 }
 
-template<> void CvarTypeTrait_ClampFn<bool>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max ) { }
-template<> void CvarTypeTrait_ClampFn<CUtlString>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max ) { }
-template<> void CvarTypeTrait_ClampFn<Color>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
+template<> inline void CvarTypeTrait_ClampFn<bool>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max ) { }
+template<> inline void CvarTypeTrait_ClampFn<CUtlString>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max ) { }
+template<> inline void CvarTypeTrait_ClampFn<Color>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
 {
 	if(min) for(int i = 0; i < 4; i++) obj->m_clrValue[i] = Max( obj->m_clrValue[i], min->m_clrValue[i] );
 	if(max) for(int i = 0; i < 4; i++) obj->m_clrValue[i] = Min( obj->m_clrValue[i], max->m_clrValue[i] );
 }
-template<> void CvarTypeTrait_ClampFn<Vector2D>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
+template<> inline void CvarTypeTrait_ClampFn<Vector2D>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
 {
 	if(min) for(int i = 0; i < 2; i++) obj->m_vec2Value[i] = Max( obj->m_vec2Value[i], min->m_vec2Value[i] );
 	if(max) for(int i = 0; i < 2; i++) obj->m_vec2Value[i] = Min( obj->m_vec2Value[i], max->m_vec2Value[i] );
 }
-template<> void CvarTypeTrait_ClampFn<Vector>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
+template<> inline void CvarTypeTrait_ClampFn<Vector>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
 {
 	if(min) for(int i = 0; i < 3; i++) obj->m_vec3Value[i] = Max( obj->m_vec3Value[i], min->m_vec3Value[i] );
 	if(max) for(int i = 0; i < 3; i++) obj->m_vec3Value[i] = Min( obj->m_vec3Value[i], max->m_vec3Value[i] );
 }
-template<> void CvarTypeTrait_ClampFn<Vector4D>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
+template<> inline void CvarTypeTrait_ClampFn<Vector4D>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
 {
 	if(min) for(int i = 0; i < 4; i++) obj->m_vec4Value[i] = Max( obj->m_vec4Value[i], min->m_vec4Value[i] );
 	if(max) for(int i = 0; i < 4; i++) obj->m_vec4Value[i] = Min( obj->m_vec4Value[i], max->m_vec4Value[i] );
 }
-template<> void CvarTypeTrait_ClampFn<QAngle>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
+template<> inline void CvarTypeTrait_ClampFn<QAngle>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
 {
 	if(min) for(int i = 0; i < 3; i++) obj->m_angValue[i] = Max( obj->m_angValue[i], min->m_angValue[i] );
 	if(max) for(int i = 0; i < 3; i++) obj->m_angValue[i] = Min( obj->m_angValue[i], max->m_angValue[i] );
 }
-template<> void CvarTypeTrait_ClampFn<VectorWS>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
+template<> inline void CvarTypeTrait_ClampFn<VectorWS>( CVValue_t *obj, const CVValue_t *min, const CVValue_t *max )
 {
 	if(min) for(int i = 0; i < 3; i++) obj->m_vecwsValue[i] = Max( obj->m_vecwsValue[i], min->m_vecwsValue[i] );
 	if(max) for(int i = 0; i < 3; i++) obj->m_vecwsValue[i] = Min( obj->m_vecwsValue[i], max->m_vecwsValue[i] );
 }
 
 class ConVarData;
-static ConVarData *GetInvalidConVarData( EConVarType type );
+inline ConVarData *GetInvalidConVarData( EConVarType type );
 
 struct CVarTypeTraits
 {
@@ -848,7 +885,7 @@ struct CVarTypeTraits
 	ConVarData *m_InvalidCvarData;
 };
 
-static CVarTypeTraits *GetCvarTypeTraits( EConVarType type )
+inline CVarTypeTraits *GetCvarTypeTraits( EConVarType type )
 {
 	Assert( type >= 0 && type < EConVarType_MAX );
 
@@ -1043,7 +1080,7 @@ private:
 	alignas( CVValue_t ) uint8 m_Values[sizeof( CVValue_t ) * MAX_SPLITSCREEN_CLIENTS];
 };
 
-static ConVarData *GetInvalidConVarData( EConVarType type )
+inline ConVarData *GetInvalidConVarData( EConVarType type )
 {
 	Assert( type >= EConVarType_Invalid && type < EConVarType_MAX );
 
@@ -1368,17 +1405,10 @@ inline const T ConVarRefAbstract::GetAs( CSplitScreenSlot slot ) const
 		return *value;
 	else if(GetType() == EConVarType_String)
 	{
-		CVValue_t obj;
-		GetCvarTypeTraits( TranslateConVarType<T>() )->Construct( &obj );
-
-		if(GetCvarTypeTraits( TranslateConVarType<T>() )->StringToValue( value->m_StringValue.Get(), &obj ))
-		{
-			T ret = obj;
-			GetCvarTypeTraits( TranslateConVarType<T>() )->Destruct( &obj );
+		// Parsed silently, unlike SetString, as a read can happen every frame
+		T ret;
+		if(V_StringToValue<T>( value->m_StringValue.Get(), ret ))
 			return ret;
-		}
-
-		GetCvarTypeTraits( TranslateConVarType<T>() )->Destruct( &obj );
 	}
 	else if(IsValuePrimitive())
 		return ConvertFromPrimitiveTo<T>( slot );
