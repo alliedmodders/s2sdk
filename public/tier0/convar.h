@@ -288,6 +288,7 @@ public:
 private:
 	CommandTarget_t m_nTarget;
 	CPlayerSlot m_nPlayerSlot;
+	CUtlString m_unk101;
 };
 
 class CCommand
