@@ -369,6 +369,8 @@ PLATFORM_INTERFACE uint64			Plat_MSTime64();		// Time in milliseconds.
 PLATFORM_INTERFACE uint64			Plat_USTime();			// Time in microseconds.
 PLATFORM_INTERFACE char *			Plat_ctime64( const time_t *timep, char *buf, size_t bufsize );
 PLATFORM_INTERFACE uint64			Plat_GetClockStart();	// Snapshot of the clock when app started.
+PLATFORM_INTERFACE uint64			Plat_RelativeTicks();	// Clock ticks, never decreasing.
+PLATFORM_INTERFACE uint64			Plat_TicksAfterMicroSecs( uint64 nMicroSecs );	// Plat_RelativeTicks() nMicroSecs from now.
 PLATFORM_INTERFACE time_t			Plat_GetTime();			// Same as time().
 
 // Get the local calendar time.
