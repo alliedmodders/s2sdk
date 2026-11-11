@@ -238,10 +238,8 @@ public:
 	{
 		ConCommandCallbackInfo_t m_CB;
 
-		// Register index of concommand which completion cb comes from
+		// Register index of concommand which this cb comes from
 		int m_ConCmdIndex;
-		// Index in a linkedlist of callbackinfos
-		uint16 m_CallbackInfoIndex;
 	};
 
 	struct QueuedConVarSet_t
