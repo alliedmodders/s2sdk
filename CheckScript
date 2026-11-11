@@ -163,6 +163,19 @@ for sdk_target in SdkHelpers.sdk_targets:
 
 builder.Add(vectest)
 
+# Converts CVariants between every type, prints them, copies, compares and converts them in place
+varianttest = builder.ProgramProject('variant_test')
+varianttest.sources = [
+  os.path.join('tests', 'run', 'variant.cpp'),
+  os.path.join('public', 'tier0', 'memoverride.cpp'),
+]
+
+for sdk_target in SdkHelpers.sdk_targets:
+  binary = varianttest.Configure(sdk_target.cxx, 'variant_test', '{0} - {1}'.format(HL2SDK.tag, sdk_target.cxx.target.arch))
+  SdkHelpers.configureCxx(builder, binary, sdk)
+
+builder.Add(varianttest)
+
 # Copies CCommands, also full-length ones, which tokenizes them again with a test cvar system's break set
 cmdtest = builder.ProgramProject('ccommand_test')
 cmdtest.sources = [
