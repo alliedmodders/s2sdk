@@ -68,7 +68,7 @@ class IConnectionlessPacketHandler
 public:
 	virtual	~IConnectionlessPacketHandler( void ) {};
 
-	virtual bool ProcessConnectionlessPacket( const ns_address *addr, bf_read *bf ) = 0;	// process a connectionless packet
+	virtual void ProcessConnectionlessPacket( NetPacket_t *pPacket ) = 0;	// process a connectionless packet
 };
 
 enum

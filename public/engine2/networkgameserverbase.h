@@ -79,7 +79,7 @@ public:
 	// AMNOTE: Creates or reuses a client without a connection, returns its slot
 	virtual CPlayerSlot CreateClient( CPlayerSlot slot, CSteamID steamID, const char *pszName ) = 0;
 
-	virtual bool	ProcessConnectionlessPacket( const ns_address *addr, bf_read *bf ) = 0; // process a connectionless packet
+	virtual void	ProcessConnectionlessPacket( NetPacket_t *pPacket ) = 0; // process a connectionless packet
 
 	virtual void	OnConVarCreated( ConVarRefAbstract *pNewCvar ) = 0;
 	virtual void	OnConCommandCreated( ConCommand *pNewCommand ) = 0;
