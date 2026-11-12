@@ -25,6 +25,7 @@ struct FlattenedSerializerDesc_t
 };
 
 class CSchemaClassInfo;
+class INetworkSerializerBindingBuildFilter;
 
 // AMNOTE: One class to build a flattened serializer for, FindOrCreateCreateFlattenedSerializers fills
 // *m_pSerializer and m_bSerializerAlreadyExisted
