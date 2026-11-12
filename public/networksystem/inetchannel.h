@@ -139,6 +139,7 @@ public:
 	virtual void	WriteFrameQualityToTick( CNetMessagePB<CNETMsg_Tick> *pMsg ) = 0;
 	// AMNOTE: 1 applies the net_limit_sv_recv_* convars to the connection's receive limits, other values use the defaults
 	virtual void	SetRecvLimitMode( int nMode ) = 0;
+	virtual int		GetRecvLimitMode() const = 0;
 };
 
 
