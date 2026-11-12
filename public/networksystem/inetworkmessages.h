@@ -256,8 +256,9 @@ public:
 	// and its nMessageId is replaced by the next free id when 0 or less
 	virtual NetMessageInfo_t *FindOrCreateNetMessage(int nMessageId, NetMessageAllocateFn pfnAllocateMessage, int nGroup, NetChannelBufType_t nDefaultBufferType, bool bOkayToRedispatch, bool bCannotBeNetworked) = 0;
 
-	// Doesn't support duplicated callbacks per field
-	virtual void RegisterNetworkFieldChangeCallbackInternal(char const *szFieldName, uint64, NetworkFieldChangedDelegateType_t fieldType, CUtlAbstractDelegate pCallback, NetworkFieldChangeCallbackPerformType_t cbPerformType, int unkflag ) = 0;
+	// szCallbackName is the name fields refer to in their MNetworkChangeCallback metadata; registering it twice is a fatal error.
+	// AMNOTE: szClassName is stored with the callback but not used
+	virtual void RegisterNetworkFieldChangeCallbackInternal(char const *szCallbackName, char const *szClassName, NetworkFieldChangedDelegateType_t fieldType, CUtlAbstractDelegate pCallback, NetworkFieldChangeCallbackPerformType_t cbPerformType, int nPriority ) = 0;
 
 	virtual void AllowAdditionalMessageRegistration(bool bAllow) = 0;
 	virtual bool IsAdditionalMessageRegistrationAllowed() = 0;
