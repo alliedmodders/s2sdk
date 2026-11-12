@@ -19,6 +19,7 @@ alliedmodders/s2sdk holds the Source 2 SDKs, one branch per game: `cs2`, `dota` 
 
 - Changes land first on the branch whose game gets them first, usually `cs2`; the other branches follow by cherry-pick, never by merge. Sync PRs only cherry-pick; game-specific changes go in a separate PR.
 - The games can be on different engine versions, so check each game instead of assuming it matches another.
+- Before committing a change, look on the other branches for commits that already make it, by subject and by the declarations it touches (the `range-diff` below lists them). If one does and the game's binary matches it, cherry-pick it instead of writing your own, and put the game's differences in a follow-up commit.
 - Pick the commit unchanged; the game's differences go in a follow-up commit in the game-specific PR. If a pick conflicts because the branch already has its own version of the change, keep the branch's side. No empty picks and no `-x` trailers.
 - Prefix the subject with `cs2:`, `dota:` or `deadlock:` when a change applies to that game only; proto updates count as game-specific. Before committing an engine change, check the same declaration in the other games' binaries:
   - If they match the change, it's shared: leave it unprefixed and fix any branch whose header still differs, in that branch's own PR.
@@ -103,4 +104,5 @@ Each game's schema (classes with sizes and field offsets, enums, convars, entiti
 - Commits read as if the work was done in one go: one commit per header or interface, with follow-up and review fixes folded into the commit they fix.
 - Complete a change or leave the old code alone: no partial interfaces or half-done containers.
 - Keep PRs narrow and based on the current branch tip, dropping what another open PR or a merged commit already covers.
+- Before opening a PR, search the existing PRs, open and closed, for the same subject (`gh pr list --state all --search "<class or subject>"`). If one exists, add your change there as a comment instead of opening a new one.
 - Be ready to back engine claims with byte signatures of the functions that show them, in each binary checked.
