@@ -16,6 +16,7 @@
 #include "networksystem/inetworkserializer.h"
 #include "tier0/bitbuf.h"
 #include "tier0/ns_address.h"
+#include "tier0/utlvector.h"
 
 class IConnectionlessPacketHandler;
 
@@ -116,7 +117,9 @@ public:
 	virtual bool IsValidSocket( int sock ) = 0;
 
 	virtual bool BufferToBufferCompress( uint8 *pDest, unsigned int &nDestSize, uint8 *pIn, unsigned int nInSize ) = 0;
-	virtual bool BufferToBufferDecompress( uint8 *pDest, unsigned int &nDestSize, uint8 *pIn, unsigned int nInSize ) = 0;
+	// AMNOTE: Replaces pDest's contents with pIn decompressed, or copied when pIn isn't compressed; fails when the result would be
+	// larger than NET_MAX_PAYLOAD or pIn is malformed
+	virtual bool BufferToBufferDecompress( const uint8 *pIn, size_t nInSize, CUtlVector<uint8> *pDest ) = 0;
 
 	virtual netadr_t &GetPublicAdr() = 0;
 	virtual netadr_t &GetLocalAdr() = 0;
