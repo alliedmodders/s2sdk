@@ -31,7 +31,7 @@ enum NetworkValidationMode_t
 
 };
 
-typedef uint32 NetworkMessageId;
+typedef int NetworkMessageId;
 typedef uint8 NetworkGroupId;
 typedef uint NetworkCategoryId;
 
