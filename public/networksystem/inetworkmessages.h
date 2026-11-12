@@ -120,6 +120,17 @@ struct NetMessageInfo_t
 	bool m_bOkayToRedispatch : 1;
 	// AMNOTE: Set when FindOrCreateNetMessage's nGroup is -1
 	uint8 m_unk001 : 1;
+
+	const char *GetName() const { return m_szName.Get(); }
+	const char *GetGroupName() const { return m_szGroup.Get(); }
+	NetworkMessageId GetMessageId() const { return m_MessageId; }
+	NetworkGroupId GetGroupId() const { return m_GroupId; }
+	int GetCategoryMask() const { return m_nCategories; }
+	NetChannelBufType_t GetBufType() const { return m_nBufType; }
+	bool CannotBeNetworked() const { return m_bCannotBeNetworked; }
+	bool OkayToRedispatch() const { return m_bOkayToRedispatch; }
+
+	CNetMessage *AllocateMessage() const { return m_pfnAllocateMessage(); }
 };
 
 enum NetworkFieldChangedDelegateType_t
