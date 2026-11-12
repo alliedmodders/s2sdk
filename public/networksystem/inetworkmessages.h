@@ -217,11 +217,11 @@ public:
 
 	virtual bool Serialize(bf_write &pBuf, const CNetMessage *pData) = 0;
 
-	virtual bool UnserializeMessageInternal( bf_read &pBuf, CNetMessage *pData, CUtlString *err_reason ) = 0;
+	virtual bool UnserializeMessageInternal( bf_read &pBuf, CNetMessage *pData, NetChannelBufType_t nBufType, CUtlString *err_reason ) = 0;
 	virtual bool SerializeMessageInternal( bf_write &pBuf, const CNetMessage *pData ) = 0;
 
 	// Returns nullptr if failed to unserialize, reason is written to err_reason
-	virtual CNetMessage *UnserializeFromStream(bf_read &pBuf, CUtlString &err_reason) = 0;
+	virtual CNetMessage *UnserializeFromStream(bf_read &pBuf, NetChannelBufType_t nBufType, CUtlString &err_reason) = 0;
 
 	// For both, the last two callbacks are used instead of the first serialize and unserialize callbacks while
 	// net_validatemessages is on; null ones fall back to them
