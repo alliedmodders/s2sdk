@@ -144,6 +144,9 @@ public:
 	virtual bool Encode( const FlattenedSerializerDesc_t &serializer, CSerializedEntity *pOut, void *pObject, int nEntityIndex, NetworkSerializationMode_t nMode, CSendProxyDataList *pSendProxyData ) = 0;
 	virtual bool GatherSendProxyResults( const FlattenedSerializerDesc_t &serializer, void *pObject, int nEntityIndex, NetworkSerializationMode_t nMode, CSendProxyDataList *pSendProxyData ) = 0;
 	virtual bool Decode( const FlattenedSerializerDesc_t &serializer, const CSerializedEntity *pFrom, void *pObject, int nEntityIndex, NetworkSerializationMode_t nMode, void *, int nFlags ) = 0;
+	// AMNOTE: Reads the fields from pBuf and decodes them into pObject, as ReadFields and Decode do together. *pnFieldCount, when
+	// set, gets the number of fields read
+	virtual bool ReadFieldsAndDecode( const FlattenedSerializerDesc_t &serializer, bf_read *pBuf, void *pObject, int nEntityIndex, NetworkSerializationMode_t nMode, void *pUnk, int *pnFieldCount ) = 0;
 	virtual int CalcDelta( const FlattenedSerializerDesc_t &serializer, const CSerializedEntity *pFrom, const CSerializedEntity *pTo, CUtlLeanVectorFixedGrowable<uint32> *pOutFieldPaths, int nEntityIndex, NetworkSerializationMode_t nMode, SendProxyRecipientsDelta_t *pRecipientsDelta ) = 0;
 	virtual CSerializedEntity *BuildDeltaProperties( const FlattenedSerializerDesc_t &serializer, void *pObject, int nEntityIndex, NetworkSerializationMode_t nMode, const CSerializedEntity *pFrom, const CUtlLeanVectorFixedGrowable<uint32> *pFieldPaths, CUtlLeanVectorFixedGrowable<uint32> *pOutFieldPaths, CSendProxyDataList *pSendProxyData, bool *pbNoFieldsChanged, bool *pbFieldSizeChanged ) = 0;
 	virtual bool WriteFieldList( const FlattenedSerializerDesc_t &serializer, bf_write *pBuf, const CSerializedEntity *pEntity, int nEntityIndex, NetworkSerializationMode_t nMode, const CUtlLeanVectorFixedGrowable<uint32> *pFieldPaths, CPlayerSlot nSlot ) = 0;
