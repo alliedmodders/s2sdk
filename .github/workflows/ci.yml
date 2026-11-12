@@ -8,31 +8,10 @@ jobs:
   build:
     strategy:
       matrix:
+        # Deadlock ships Windows only, so there is no Linux tier0 to link the checks and tests against
         include:
-          - os: ubuntu-22.04
-            cc: clang-22
-            cxx: clang++-22
-            container_image: ghcr.io/alliedmodders/build-containers/debian11-clang22:latest
-            configure_args: --enable-optimize
-          - os: ubuntu-22.04
-            cc: gcc
-            cxx: g++
-            container_image: ghcr.io/alliedmodders/build-containers/debian11-clang22:latest
-            configure_args: --enable-optimize
           - os: windows-2022
             cc: msvc
-          - os: ubuntu-22.04
-            cc: clang-22
-            cxx: clang++-22
-            container_image: ghcr.io/alliedmodders/build-containers/debian11-clang22:latest
-            configure_args: --enable-debug
-            debug: true
-          - os: ubuntu-22.04
-            cc: gcc
-            cxx: g++
-            container_image: ghcr.io/alliedmodders/build-containers/debian11-clang22:latest
-            configure_args: --enable-debug
-            debug: true
       fail-fast: false
 
     name: ${{ matrix.os }} - ${{ matrix.cc }}${{ matrix.debug && ' - debug' || '' }}
