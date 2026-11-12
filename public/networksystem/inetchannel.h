@@ -139,8 +139,10 @@ public:
 	virtual CUtlQueue<CNetMessage *> *GetReceivedMessageQueue() = 0;
 	// AMNOTE: Writes the incoming flow's dropped and late frame percentages, which the peer reads in SetRemoteFramerate
 	virtual void	WriteFrameQualityToTick( CNetMessagePB<CNETMsg_Tick> *pMsg ) = 0;
-	// AMNOTE: Received messages beyond the convar's value are reported
-	virtual void	SetQueuedMessageLimitConVar( CConVar<int> *pQueuedMessageLimit ) = 0;
+	// AMNOTE: Stores the value; 1 also sets larger Steam networking send buffers on the connection
+	virtual void	unk001( int nUnk ) = 0;
+	// AMNOTE: Returns what unk001 stored
+	virtual int		unk002() const = 0;
 };
 
 
