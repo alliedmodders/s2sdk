@@ -119,7 +119,9 @@ public:
 	virtual void	InstallMessageFilter( INetworkMessageProcessingPreFilter *pFilter ) = 0;
 	virtual void	UninstallMessageFilter( INetworkMessageProcessingPreFilter *pFilter ) = 0;
 	
-	virtual void	PostReceivedNetMessage( NetMessageInfo_t *pNetMessage, const CNetMessage *pData, const NetChannelBufType_t *pBufType, int nBits, int nInSequenceNr ) = 0;
+	virtual void	PostReceivedNetMessage( CNetMessage *pData ) = 0;
+	// AMNOTE: Same as PostReceivedNetMessage, but adds the message to the front of the queue
+	virtual void	PostReceivedNetMessageToFront( CNetMessage *pData ) = 0;
 	virtual void	InsertReplayMessage( InstantReplayMessage_t &msg ) = 0;
 	virtual bool	HasQueuedNetMessages( int nMessageId ) const = 0;
 
