@@ -118,8 +118,9 @@ struct NetMessageInfo_t
 	// AMNOTE: Set by FindOrCreateNetMessage's bCannotBeNetworked
 	bool m_bCannotBeNetworked : 1;
 	bool m_bOkayToRedispatch : 1;
-	// AMNOTE: Set when FindOrCreateNetMessage's nGroup is -1
-	uint8 m_unk001 : 1;
+	// AMNOTE: Set when FindOrCreateNetMessage's nGroup is SIGNONGROUP_INVALID: net channels don't count the message in
+	// their per-group message stats (INetChannel::UpdateMessageStats)
+	bool m_bExcludeFromMessageStats : 1;
 
 	const char *GetName() const { return m_szName.Get(); }
 	const char *GetGroupName() const { return m_szGroup.Get(); }
@@ -129,6 +130,7 @@ struct NetMessageInfo_t
 	NetChannelBufType_t GetBufType() const { return m_nBufType; }
 	bool CannotBeNetworked() const { return m_bCannotBeNetworked; }
 	bool OkayToRedispatch() const { return m_bOkayToRedispatch; }
+	bool ExcludeFromMessageStats() const { return m_bExcludeFromMessageStats; }
 
 	CNetMessage *AllocateMessage() const { return m_pfnAllocateMessage(); }
 };
