@@ -240,11 +240,13 @@ public:
 
 	virtual bool Serialize(bf_write &pBuf, const CNetMessage *pData) = 0;
 
-	virtual bool UnserializeMessageInternal( bf_read &pBuf, CNetMessage *pData, int nRecvLimitMode, CUtlString *err_reason ) = 0;
+	// AMNOTE: With NET_RECV_LIMIT_MODE_CLIENT, a message larger than its maximum size (its maximum_size_bytes option, else
+	// 1500 bytes) is let through, logged or rejected as net_message_size_enforce says
+	virtual bool UnserializeMessageInternal( bf_read &pBuf, CNetMessage *pData, NetRecvLimitMode_t nRecvLimitMode, CUtlString *err_reason ) = 0;
 	virtual bool SerializeMessageInternal( bf_write &pBuf, const CNetMessage *pData ) = 0;
 
 	// Returns nullptr if failed to unserialize, reason is written to err_reason
-	virtual CNetMessage *UnserializeFromStream(bf_read &pBuf, int nRecvLimitMode, CUtlString &err_reason) = 0;
+	virtual CNetMessage *UnserializeFromStream(bf_read &pBuf, NetRecvLimitMode_t nRecvLimitMode, CUtlString &err_reason) = 0;
 
 	// For both, the last two callbacks are used instead of the first serialize and unserialize callbacks while
 	// net_validatemessages is on; null ones fall back to them
