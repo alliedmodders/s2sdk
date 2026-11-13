@@ -133,6 +133,29 @@ struct NetMessageInfo_t
 	CNetMessage *AllocateMessage() const { return m_pfnAllocateMessage(); }
 };
 
+enum SignonGroup_t
+{
+	SIGNONGROUP_INVALID = -1,
+	SIGNONGROUP_GENERIC = 0,
+	SIGNONGROUP_LOCAL_PLAYER,
+	SIGNONGROUP_OTHER_PLAYERS,
+	SIGNONGROUP_ENTITIES,
+	SIGNONGROUP_SOUNDS,
+	SIGNONGROUP_EVENTS,
+	SIGNONGROUP_VOICE,
+	SIGNONGROUP_STRING_TABLE,
+	SIGNONGROUP_MOVE,
+	SIGNONGROUP_STRING_COMMAND,
+	SIGNONGROUP_SIGNON,
+	SIGNONGROUP_SYSTEM,
+	SIGNONGROUP_DECALS,
+	SIGNONGROUP_USER_MESSAGES,
+	SIGNONGROUP_CLIENT_MESSAGES,
+	SIGNONGROUP_SPAWN_GROUPS,
+	SIGNONGROUP_GAME_ENGINE,
+	SIGNONGROUP_HLTV_REPLAY,
+};
+
 enum NetworkFieldChangedDelegateType_t
 {
 	NETWORK_FIELD_CHANGED_TYPE_NONE,
@@ -217,11 +240,11 @@ public:
 
 	virtual bool Serialize(bf_write &pBuf, const CNetMessage *pData) = 0;
 
-	virtual bool UnserializeMessageInternal( bf_read &pBuf, CNetMessage *pData, CUtlString *err_reason ) = 0;
+	virtual bool UnserializeMessageInternal( bf_read &pBuf, CNetMessage *pData, int nRecvLimitMode, CUtlString *err_reason ) = 0;
 	virtual bool SerializeMessageInternal( bf_write &pBuf, const CNetMessage *pData ) = 0;
 
 	// Returns nullptr if failed to unserialize, reason is written to err_reason
-	virtual CNetMessage *UnserializeFromStream(bf_read &pBuf, CUtlString &err_reason) = 0;
+	virtual CNetMessage *UnserializeFromStream(bf_read &pBuf, int nRecvLimitMode, CUtlString &err_reason) = 0;
 
 	// For both, the last two callbacks are used instead of the first serialize and unserialize callbacks while
 	// net_validatemessages is on; null ones fall back to them
@@ -254,7 +277,7 @@ public:
 	// Passing nMessasgeId as -1 would auto-assign the id even if bCannotBeNetworked is false based on the message name hash.
 	// AMNOTE: bCannotBeNetworked marks the message as never sent over the network, Serialize rejects it,
 	// and its nMessageId is replaced by the next free id when 0 or less
-	virtual NetMessageInfo_t *FindOrCreateNetMessage(int nMessageId, NetMessageAllocateFn pfnAllocateMessage, int nGroup, NetChannelBufType_t nDefaultBufferType, bool bOkayToRedispatch, bool bCannotBeNetworked) = 0;
+	virtual NetMessageInfo_t *FindOrCreateNetMessage(int nMessageId, NetMessageAllocateFn pfnAllocateMessage, SignonGroup_t nGroup, NetChannelBufType_t nDefaultBufferType, bool bOkayToRedispatch, bool bCannotBeNetworked) = 0;
 
 	// szCallbackName is the name fields refer to in their MNetworkChangeCallback metadata; registering it twice is a fatal error.
 	// AMNOTE: szClassName is stored with the callback but not used
