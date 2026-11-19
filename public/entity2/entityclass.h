@@ -172,6 +172,10 @@ public:
 	
 	ComponentUnserializerClassInfo_t m_componentUnserializerClassInfo;
 	
+	// AMNOTE: A CUtlHashtable by how it's constructed (minimum size 32) and destroyed (32-byte entries); key and
+	// value types unknown
+	uint8 m_unk101[32];
+
 	FlattenedSerializerDesc_t m_flattenedSerializer;
 
 	CUtlVector<ClassOutputInfo_t> m_classOutputInfos;
