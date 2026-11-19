@@ -103,6 +103,8 @@ class CEntityInstance
 {
 public:
 	virtual CNetworkSerializerClassInfo* GetNetworkSerializerInfo() = 0;
+	// Unserializes the entity's fields from pData through its class (CEntityClass::Unserialize)
+	virtual bool Unserialize( void *pData ) = 0;
 
 	virtual void KV3TransferSave( CKV3TransferSaveContext* pContext ) const = 0;
 	virtual void KV3TransferLoad( CKV3TransferLoadContext* pContext ) = 0;
