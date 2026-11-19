@@ -49,9 +49,6 @@ public:
 	virtual ~CClientFrameManager();
 
 public:
-	// AMNOTE: Nothing reads it and the constructor doesn't set it
-	int m_unk001;
-
 	CThreadFastMutex m_Mutex;
 
 	// Ordered from the oldest to the newest tick
