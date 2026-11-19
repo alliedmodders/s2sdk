@@ -47,6 +47,9 @@ struct SchemaEnumInfoData_t
 	uint16 m_nNumMetadata;
 	
 	SchemaEnumeratorInfoData_t* m_pEnumerators;
+	// Indices into m_pEnumerators sorted by name, for a binary search by name
+	// AMNOTE: nullptr in enums with fewer than 20 enumerators
+	uint16* m_pEnumeratorsSorted;
 	SchemaMetadataEntryData_t* m_pMetadata;
 	
 	CSchemaSystemTypeScope* m_pOuterTypeScope;
