@@ -30,6 +30,7 @@
 //
 //-----------------------------------------------------------------------------
 
+class CThreadedJobSource;
 class CThreadedJob;
 class IThreadPool;
 struct ThreadMultiWaitExtra_t;
@@ -50,7 +51,7 @@ enum JobStatus_t
 	JOB_STATUS_UNSERVICED,		// file is not yet queued
 };
 
-enum JobPriority_t
+enum JobPriority_t : uint8
 {
 	JP_LOW,
 	JP_NORMAL,
@@ -116,19 +117,19 @@ public:
 	// Functions for any thread
 	//-----------------------------------------------------
 	virtual int GetCoreTypeRequest() = 0;
+	// The number of the pool's threads that run jobs of this priority.
+	// AMNOTE: When some of the pool's threads are of the second core type, JP_LOW and JP_NORMAL jobs get one group
+	// and higher priorities the other; otherwise it is NumThreads()
+	virtual int NumThreadsForPriority( JobPriority_t priority ) = 0;
 	virtual int NumThreads() = 0;
 	virtual int NumIdleThreads() = 0;
 	virtual int GetCurrentThreadIndex() = 0;
+	// Whether the current thread is one of the pool's threads that run jobs of this priority
+	virtual bool IsCurrentThreadForPriority( JobPriority_t priority ) = 0;
 	// The current thread's slot for per-thread data: GetCurrentThreadIndex() + 1 on the pool's threads,
 	// 0 on the main thread, else nOtherThreadSlot.
 	// AMNOTE: bUnk is unused
 	virtual int GetCurrentThreadSlot( bool bUnk, int nOtherThreadSlot ) = 0;
-
-	//-----------------------------------------------------
-	// Pause/resume processing jobs
-	//-----------------------------------------------------
-	virtual int SuspendExecution() = 0;
-	virtual int ResumeExecution() = 0;
 
 	//-----------------------------------------------------
 	// Offer the current thread to the pool
@@ -145,12 +146,17 @@ public:
 	// Add a native job to the queue (master thread)
 	// Call YieldWaitPerFrameJobs() to wait only until all per-frame jobs are done
 	//-----------------------------------------------------
-	virtual void AddJob( CThreadedJob *pJob ) = 0;
 	virtual void AddPerFrameJob( CThreadedJob *pJob ) = 0;
 	virtual bool YieldWaitPerFrameJobs() = 0;
 
 	virtual void ExecuteMultipleWorkerJob( IMultipleWorkerJob *pJob, int nMaxWorkers, const char *pszName, JobPriority_t priority ) = 0;
+	// Queues nRunCountIncrease more runs of pJobSource (at most INT16_MAX owed); a pool without threads runs them on
+	// the calling thread
+	virtual void QueueJobSourceRuns( CThreadedJobSource *pJobSource, int nRunCountIncrease ) = 0;
 	virtual const char *GetName() = 0;
+	// Queues pJob for one run; on a pool without threads, and for some JP_HIGH and JP_IMMEDIATE jobs, it runs on the
+	// calling thread instead. With bRelease the pool releases the caller's reference to it afterwards
+	virtual void AddJob( CThreadedJob *pJob, bool bRelease ) = 0;
 	virtual void AddFunctionJob( const std::function<void()> &func, CThreadedJob **ppJob, const char *pszDescription, unsigned int nFlags, JobPriority_t priority ) = 0;
 
 	template <typename T>
@@ -161,9 +167,6 @@ public:
 
 PLATFORM_INTERFACE IThreadPool *CreateNewThreadPool();
 PLATFORM_INTERFACE void DestroyThreadPool( IThreadPool *pPool );
-
-PLATFORM_INTERFACE CThreadMultiWaitEvent *GetJobManualEventFromPool();
-PLATFORM_INTERFACE void ReturnJobManualEventToPool( CThreadMultiWaitEvent *pEvent );
 
 PLATFORM_INTERFACE void ParallelForSharedCode( int nBegin, int nEnd, const char *pszName, const std::function<void( int, int )> &func, int nChunkSize, int nMaxThreads, JobPriority_t priority );
 
@@ -178,153 +181,124 @@ PLATFORM_INTERFACE IThreadPool *g_pThreadPool;
 PLATFORM_INTERFACE double g_flThreadedJobWaitTimeAccumulator;
 
 //-----------------------------------------------------------------------------
-// Class to combine the metadata for an operation and the ability to perform
-// the operation. Meant for inheritance.
+// Something a thread pool runs: once when added as a job (CThreadedJob), or as
+// many times as IThreadPool::QueueJobSourceRuns asks. Reference counted, the
+// last Release() deletes it.
 //-----------------------------------------------------------------------------
 
-class CThreadedJob : public CRefCounted1<IRefCounted, CRefCountServiceBase<CRefMT>>
+class CThreadedJobSource
 {
 public:
-	CThreadedJob( JobPriority_t priority = JP_HIGH )
-	  : m_status( JOB_STATUS_UNSERVICED ),
-		m_flags( 0 ),
-		m_priority( (uint8)priority ),
-		m_bHasDescription( false ),
+	CThreadedJobSource( JobPriority_t priority = JP_HIGH )
+	  : m_State( (uint64)1 << 32 ),	// One reference
+		m_pWaitCounter( NULL ),
 		m_pThreadPool( NULL ),
-		m_pCompleteEvent( NULL ),
-		m_pWaitCounter( NULL )
+		m_flags( 0 ),
+		m_priority( priority )
 	{
 		m_szDescription[0] = '\0';
 	}
 
-	virtual ~CThreadedJob()
+	virtual ~CThreadedJobSource() {}
+
+	virtual char const *Describe() { return m_szDescription[0] ? m_szDescription : "JobSource"; }
+
+	virtual void SetDescription( const char *pszDescription )
 	{
-		if ( m_pCompleteEvent )
-		{
-			ReturnJobManualEventToPool( m_pCompleteEvent );
-			m_pCompleteEvent = NULL;
-		}
-		m_pWaitCounter = NULL;
+		if ( pszDescription )
+			V_strncpy( m_szDescription, pszDescription, sizeof( m_szDescription ) );
+		else
+			m_szDescription[0] = '\0';
+	}
+
+	int AddRef()
+	{
+		return StateReferences( AddToReferences( 1 ) ) + 1;
+	}
+
+	int Release()
+	{
+		int nRefs = StateReferences( AddToReferences( -1 ) ) - 1;
+		if ( nRefs == 0 )
+			DeleteThis();
+
+		return nRefs;
 	}
 
 	//-----------------------------------------------------
 	// Priority (not thread safe)
 	//-----------------------------------------------------
-	void SetPriority( JobPriority_t priority )		{ m_priority = (uint8)priority; }
-	JobPriority_t GetPriority() const				{ return (JobPriority_t)m_priority; }
+	void SetPriority( JobPriority_t priority )		{ m_priority = priority; }
+	JobPriority_t GetPriority() const				{ return m_priority; }
 
 	//-----------------------------------------------------
 
 	void SetFlags( unsigned flags )					{ m_flags = (uint8)flags; }
 	unsigned GetFlags() const						{ return m_flags; }
 
-	//-----------------------------------------------------
-	// Fast queries
-	//-----------------------------------------------------
-	bool Executed() const							{ return ( m_status == JOB_OK );	}
-	bool CanExecute() const							{ return ( m_status == JOB_STATUS_PENDING || m_status == JOB_STATUS_UNSERVICED ); }
-	bool IsFinished() const							{ return ( m_status != JOB_STATUS_PENDING && m_status != JOB_STATUS_INPROGRESS && m_status != JOB_STATUS_UNSERVICED ); }
-	JobStatus_t GetStatus() const					{ return m_status; }
+	// Finished its runs or was aborted, and no run is in progress
+	bool IsFinished() const							{ uint64 state = m_State; return StateRunsOwed( state ) < 0 && StateRunsInProgress( state ) == 0; }
 
-	DLL_CLASS_IMPORT void WaitOrImmediatelyExecute();
-
-	//-----------------------------------------------------
-	// Execute the job on this thread, or wait for the thread executing it
-	//-----------------------------------------------------
-	JobStatus_t Execute()
-	{
-		if ( IsFinished() )
-		{
-			return m_status;
-		}
-
-		AddRef();
-
-		WaitOrImmediatelyExecute();
-		JobStatus_t result = m_status;
-
-		Release();
-
-		return result;
-	}
-
-	JobStatus_t ExecuteAndRelease()
-	{
-		JobStatus_t status = Execute();
-		Release();
-		return status;
-	}
-
-	//-----------------------------------------------------
-	// Execute the job on this thread if it's queued and no thread started it
-	//-----------------------------------------------------
-	JobStatus_t TryExecute()
-	{
-		JobStatus_t status = (JobStatus_t)ThreadInterlockedCompareExchange( (int32 volatile *)&m_status, JOB_STATUS_INPROGRESS, JOB_STATUS_PENDING );
-		if ( status != JOB_STATUS_PENDING )
-			return status;
-
-		DoExecute();
-		DoCleanup();
-		ThreadInterlockedExchange( (int32 volatile *)&m_status, JOB_OK );
-
-		if ( m_pWaitCounter )
-		{
-			ThreadInterlockedIncrement( (int32 volatile *)m_pWaitCounter );
-			ThreadAtomicNotifyAll( (const uint32 *)m_pWaitCounter );
-		}
-
-		if ( m_pCompleteEvent )
-			m_pCompleteEvent->Set();
-
-		return JOB_OK;
-	}
-
-	JobStatus_t TryExecuteAndRelease()
-	{
-		JobStatus_t status = TryExecute();
-		Release();
-		return status;
-	}
-
-	//-----------------------------------------------------
-	// Terminate the job, discard if partially or wholly fulfilled
-	//-----------------------------------------------------
-	DLL_CLASS_IMPORT JobStatus_t Abort( bool bDiscard = true );
-
-	virtual char const *Describe()					{ return m_szDescription[0] ? m_szDescription : "Job"; }
-
-	virtual void SetDescription( const char *pszDescription )
-	{
-		if ( pszDescription )
-		{
-			V_strncpy( m_szDescription, pszDescription, sizeof( m_szDescription ) );
-			m_bHasDescription = true;
-		}
-		else
-		{
-			m_szDescription[0] = '\0';
-		}
-	}
+protected:
+	// Increments the counter m_pWaitCounter points at, if any, and wakes the threads waiting on it
+	DLL_CLASS_IMPORT static void SignalEventMonitor( CThreadedJobSource *pJobSource );
 
 private:
 	friend class IThreadPool;
 
-	//-----------------------------------------------------
-	CThreadedJob( const CThreadedJob &fromRequest );
-	void operator=(const CThreadedJob &fromRequest );
+	CThreadedJobSource( const CThreadedJobSource &other );
+	void operator=( const CThreadedJobSource &other );
+
+	// Called by the last Release()
+	virtual void DeleteThis()						{ delete this; }
+	// Called once the last run finished or the job was aborted
+	virtual void OnFinished()						{ SignalEventMonitor( this ); }
+	// One run; nRunsLeft is the number of its queued runs still owed after this one
+	virtual void Run( int nRunsLeft ) = 0;
+
+	static int StateRunsOwed( uint64 state )		{ return (int16)( state & 0xFFFF ); }
+	static int StateRunsInProgress( uint64 state )	{ return (int)( ( state >> 16 ) & 0xFFFF ); }
+	static int StateReferences( uint64 state )		{ return (int)( state >> 32 ); }
+
+	// Adds nDelta to the references and returns the state before
+	uint64 AddToReferences( int nDelta )
+	{
+		return (uint64)ThreadInterlockedExchangeAdd64( (int64 volatile *)&m_State, nDelta * ( (int64)1 << 32 ) );
+	}
+
+	// Changed atomically as a whole: bits 0-15 the runs owed (int16; -1 once finished, -2 once aborted), bits 16-31 the
+	// runs in progress, bits 32-63 the references
+	uint64 volatile			m_State;
+	uint32 volatile *		m_pWaitCounter;		// AMNOTE: Waiters sleep on it, OnFinished increments it and wakes them
+	IThreadPool *			m_pThreadPool;
+	uint8					m_flags;			// AMNOTE: 4 for a per-frame job
+	JobPriority_t			m_priority;
+	char					m_szDescription[32];
+};
+
+//-----------------------------------------------------------------------------
+// Class to combine the metadata for an operation and the ability to perform
+// the operation. Meant for inheritance.
+//-----------------------------------------------------------------------------
+
+class CThreadedJob : public CThreadedJobSource
+{
+public:
+	CThreadedJob( JobPriority_t priority = JP_HIGH ) : CThreadedJobSource( priority ) {}
+
+	// Runs the job on this thread if no run of it started, else waits for the run in progress
+	DLL_CLASS_IMPORT void WaitOrImmediatelyExecute();
+
+	// Marks the job aborted if no run of it started, so its pool won't run it, calling DoCleanup if bDiscard and then
+	// OnFinished. Returns true once the job is aborted, false if it already finished or another thread was running it
+	// (after waiting for that run)
+	DLL_CLASS_IMPORT bool Abort( bool bDiscard = true );
+
+private:
+	virtual void Run( int nRunsLeft )				{ DoExecute(); DoCleanup(); }
 
 	virtual void DoExecute() = 0;
 	virtual void DoCleanup() {}
-
-	JobStatus_t				m_status;
-	uint8					m_flags;			// AMNOTE: 4 for a per-frame job
-	uint8					m_priority;			// JobPriority_t
-	bool					m_bHasDescription;
-	IThreadPool *			m_pThreadPool;
-	CThreadMultiWaitEvent *	m_pCompleteEvent;
-	uint32 volatile *		m_pWaitCounter;		// AMNOTE: Waiters sleep on it, the job increments it and wakes them when it finishes
-	char					m_szDescription[32];
 };
 
 //-----------------------------------------------------------------------------
@@ -351,7 +325,7 @@ inline CSmartPtr<CThreadedJob, CRefCountAccessor> IThreadPool::QueueJobWithFlags
 
 	CThreadedJob *pJob = new CLambdaJob( std::forward<T>( func ), pszDescription, priority, nFlags );
 	pJob->m_pThreadPool = this;
-	AddJob( pJob );
+	AddJob( pJob, false );
 
 	CSmartPtr<CThreadedJob, CRefCountAccessor> pResult( pJob );
 	pJob->Release();
