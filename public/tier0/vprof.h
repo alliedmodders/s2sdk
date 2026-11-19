@@ -249,7 +249,7 @@ struct VProfLiteHistoricalData_t
 	CUtlVector< VProfLiteBudgetGroupData_t > m_BudgetGroups;
 };
 
-// The current frame's time in a budget group so far, in seconds
+// A budget group's time in the last frame, in seconds
 struct VProfLiteFrameStats_t
 {
 	float m_flTime;
@@ -265,7 +265,7 @@ PLATFORM_INTERFACE void VProfLite_Clear();
 PLATFORM_INTERFACE void VProfLite_SetExclusivePercentiles( bool bExclusive );
 // AMNOTE: nFrameSampling: 2 records the frame's times, 1 counts it as excluded from the analysis
 PLATFORM_INTERFACE void VProfLite_NextFrame( int nFrameSampling );
-PLATFORM_INTERFACE VProfLiteFrameStats_t VProfLite_GetBudgetGroupCurrentFrameStats( int nBudgetGroupID, uint64 nCurrentTicks );
+PLATFORM_INTERFACE VProfLiteFrameStats_t VProfLite_GetBudgetGroupLastFrameStats( int nBudgetGroupID );
 PLATFORM_INTERFACE void VProfLite_GetHistoricalData( VProfLiteHistoricalData_t *pData );
 // Takes the dedicated server's sleep out of the frame times, keeping the time it overslept
 PLATFORM_INTERFACE void VProfLite_DedicatedServerSleepBegin();
