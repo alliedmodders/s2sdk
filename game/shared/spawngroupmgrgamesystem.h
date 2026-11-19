@@ -9,9 +9,11 @@
 #include "entityhandle.h"
 #include "igamesystem.h"
 #include "engine2/isource2engine.h"
+#include "mathlib/vector.h"
 #include "scenesystem/iscenesystem.h"
 #include "tier0/convar.h"
 #include "tier0/threadtools.h"
+#include "tier0/utlhashtable.h"
 #include "tier0/utlmap.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlstringtoken.h"
@@ -114,8 +116,29 @@ private:
 	ISpawnGroup *m_pSpawnGroup;
 	bool m_bSpawnGroupPrecacheDispatched;
 	bool m_bSpawnGroupLoadDispatched;
+	bool m_bSpawnGroupShutdownDispatched;
 	IPVS *m_pPVS;
 	CUtlVector<SpawnGroupConnectionInfo_t> m_Connections;
+};
+
+struct SpawnGroupUnloadRequest_t
+{
+	SpawnGroupHandle_t m_hSpawnGroup;
+	// AMNOTE: Plat_FloatTime() when it was queued; spawngroup_debug_delay_unload holds it back that many seconds
+	double m_flQueueTime;
+};
+
+struct EntitySpawnGroupChange_t
+{
+	SpawnGroupHandle_t m_SpawnGroupHandle;
+	// AMNOTE: CEntityHandle::ToPackedInt() of each entity
+	CUtlVector<uint32> m_EntityHandles;
+};
+
+struct StreamedOutLevel_t
+{
+	CUtlString m_Level;
+	Vector m_WorldOffset;
 };
 
 // AMNOTE: Short stub representing game class hierarchy
@@ -140,9 +163,27 @@ public:
 	CThreadRWLock_FastRead m_hHandleMutex;
 
 	// UnloadSpawnGroup requests, carried out at the next frame boundary
-	CUtlVector<SpawnGroupHandle_t> m_QueuedUnloadRequests;
+	CUtlVector<SpawnGroupUnloadRequest_t> m_QueuedUnloadRequests;
+
+	// When IsGameReadyToSave started holding back a save (0 when it isn't) and when it last did; it starts over after
+	// a gap of more than a second, and lets the save go ahead after 10 seconds
+	double m_flSaveHoldStartTime;
+	double m_flLastSaveHoldTime;
+	// AMNOTE: Incremented each time a spawn group spawns its entities or shuts down; nothing reads it
+	int m_nSpawnGroupChangeCount;
+	bool m_bPrebuildPersistentEntityManifest;
+	SpawnGroupHandle_t m_hQueuedActiveSpawnGroup;
+	CUtlVector<EntitySpawnGroupChange_t> m_EntitySpawnGroupChanges;
+	// AMNOTE: What spawngroup_debug_check_ownership last logged for each entity in the wrong level, by CEntityHandle::ToInt()
+	CUtlHashtable<uint32, CUtlString> m_OwnershipProblems;
+	double m_flNextOwnershipCheckTime;
+	CUtlVector<StreamedOutLevel_t> m_StreamedOutLevels;
 
 	CUtlString m_Name;
+	SpawnGroupHandle_t m_hActiveSpawnGroup;
+	// AMNOTE: The first spawn group allocated since the game started that isn't a CO- one (handle -1 or more);
+	// nothing reads it
+	SpawnGroupHandle_t m_hFirstSpawnGroup;
 };
 
 #endif // SPAWNGROUPMGRGAMESYSTEM_H
