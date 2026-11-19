@@ -20,6 +20,7 @@ enum EGCItemMsg {
 	k_EMsgGCGiftedItems = 1027;
 	k_EMsgGCUnwrapGiftRequest = 1037;
 	k_EMsgGCUnwrapGiftResponse = 1038;
+	k_EMsgGCDeleteItem = 1040;
 	k_EMsgGCSortItems = 1041;
 	k_EMsgGCBackpackSortFinished = 1058;
 	k_EMsgGCAdjustItemEquippedState = 1059;
@@ -286,6 +287,7 @@ message CMsgRequestCrateEscalationLevelResponse {
 	optional uint32 escalation_level1 = 3;
 	optional uint32 escalation_level2 = 4;
 	optional uint32 escalation_level3 = 5;
+	optional uint32 escalation_level4 = 6;
 }
 
 message CMsgGCToGCCanUseDropRateBonus {
@@ -388,6 +390,17 @@ message CMsgServerUseItem {
 
 message CMsgUseMultipleItems {
 	repeated uint64 item_ids = 1;
+}
+
+message CMsgGCUseItemResponse {
+	optional .EGCMsgUseItemResponse response = 1 [default = k_EGCMsgUseItemResponse_ItemUsed];
+	optional uint32 defindex = 2;
+}
+
+message CMsgGCGiftedItems {
+	optional uint32 gifter_account_id = 1;
+	optional bool was_random_person = 2;
+	repeated uint32 recipient_account_ids = 3;
 }
 
 message CGCStoreRechargeRedirect_LineItem {
@@ -872,13 +885,11 @@ message CMsgProcessTransactionOrder {
 		optional uint64 source_reference_id = 6;
 		optional int32 parent_stack_index = 7;
 		optional bool default_price = 8;
-		optional bool is_user_facing = 9;
 		optional int32 price_index = 11;
 	}
 
 	optional uint64 txn_id = 1;
 	optional uint64 steam_txn_id = 2;
-	optional uint64 partner_txn_id = 3;
 	optional fixed64 steam_id = 4;
 	optional uint32 time_stamp = 5;
 	optional uint64 watermark = 6;

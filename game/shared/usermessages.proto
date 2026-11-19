@@ -51,6 +51,9 @@ enum EBaseUserMessages {
 	UM_PlayResponseConditional = 166;
 	UM_UserSentBugBug = 167;
 	UM_UsageReport = 168;
+	UM_RemoteServerCommand = 169;
+	UM_RemoteServerResponse = 170;
+	UM_EntitySpawnGroupChanged = 171;
 	UM_MAX_BASE = 200;
 }
 
@@ -113,6 +116,7 @@ enum PARTICLE_MESSAGE {
 	GAME_PARTICLE_MANAGER_EVENT_REMOVE_FAN = 39;
 	GAME_PARTICLE_MANAGER_EVENT_CREATE_SMOKE_GRID = 40;
 	GAME_PARTICLE_MANAGER_EVENT_SET_OVERRIDE_TEXTURE = 41;
+	GAME_PARTICLE_MANAGER_EVENT_SET_CONTROL_POINT_CLIENT_SNAPSHOT = 42;
 }
 
 enum EHapticPulseType {
@@ -123,6 +127,7 @@ enum EHapticPulseType {
 
 message CUserMessageAchievementEvent {
 	optional uint32 achievement = 1;
+	optional int32 count = 2 [default = 1];
 }
 
 message CUserMessageCloseCaptionPlaceholder {
@@ -181,6 +186,7 @@ message CUserMessageSayText {
 	optional int32 playerindex = 1 [default = -1];
 	optional string text = 2;
 	optional bool chat = 3;
+	optional bool textallchat = 4;
 }
 
 message CUserMessageSayText2 {
@@ -191,6 +197,7 @@ message CUserMessageSayText2 {
 	optional string param2 = 5;
 	optional string param3 = 6;
 	optional string param4 = 7;
+	optional bool textallchat = 8;
 }
 
 message CUserMessageHudMsg {
@@ -459,6 +466,11 @@ message CUserMsg_ParticleManager {
 		optional string texture_name = 1;
 	}
 
+	message SetControlPointClientSnapshot {
+		optional int32 control_point = 1;
+		optional string snapshot_name = 2;
+	}
+
 	message SetSceneObjectGenericFlag {
 		optional bool flag_value = 1;
 	}
@@ -528,6 +540,7 @@ message CUserMsg_ParticleManager {
 		optional string prop_group_name = 1;
 		optional bool use_high_quality_simulation = 2;
 		optional uint32 max_particle_count = 3;
+		optional bool reuse_existing_sims = 4;
 	}
 
 	message DestroyPhysicsSim {
@@ -628,6 +641,7 @@ message CUserMsg_ParticleManager {
 	optional .CUserMsg_ParticleManager.RemoveFan remove_fan = 42;
 	optional .CUserMsg_ParticleManager.CreateSmokeGrid create_smoke_grid = 43;
 	optional .CUserMsg_ParticleManager.SetOverrideTexture set_override_texture = 44;
+	optional .CUserMsg_ParticleManager.SetControlPointClientSnapshot set_control_point_client_snapshot = 45;
 
 	extensions 100 to 201;
 }
@@ -854,4 +868,36 @@ message CUserMessage_PlayResponseConditional {
 
 message CUserMessage_UsageReport {
 	optional string usage = 1;
+}
+
+message CUserMessage_RemoteServerCommand {
+	enum ECommand {
+		ECommandChangeConVar = 1;
+		ECommandRunCommand = 2;
+	}
+
+	optional .CUserMessage_RemoteServerCommand.ECommand ecommand = 1 [default = ECommandChangeConVar];
+	optional string convar = 2;
+	optional string value = 3;
+	optional string command_str = 4;
+	optional string command_args = 5;
+}
+
+message CUserMessageRemoteServerResponse {
+	enum ECommandResult {
+		EResultSuccess = 1;
+		EResultServerDoesntAllow = 2;
+		EResultClientNotAuthenticated = 3;
+		EResultClientNotAllowed = 4;
+		EResultCommandNotAllowed = 5;
+	}
+
+	optional .CUserMessageRemoteServerResponse.ECommandResult command_result = 1 [default = EResultSuccess];
+	optional string request = 2;
+	optional string results = 3;
+}
+
+message CUserMessageEntitySpawnGroupChanged {
+	optional uint32 spawn_group_handle = 1;
+	repeated uint32 entity_handles = 2;
 }
