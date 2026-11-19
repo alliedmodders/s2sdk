@@ -17,7 +17,6 @@
 #include "tier0/threadtools.h"
 #include "tier0/interface.h"
 #include "tier0/utlsymbol.h"
-#include "tier0/filenamesymboltable.h"
 #include "tier0/utlstring.h"
 #include "tier0/utlstringtoken.h"
 #include "tier0/checksum_crc.h"
@@ -41,6 +40,8 @@ class CSteamID;
 class CPackedStore;
 
 typedef void * FileHandle_t;
+// A file name split into its path (before the last '/') and its file part, as two symbols packed into an int
+typedef uint32 FileNameHandle_t;
 struct FileFindHandle_t
 {
 	IFileSystem *m_pFileSystem;
