@@ -166,6 +166,10 @@ public:
 
 	virtual void			GetMatchmakingGameData( CBufferString &buf ) = 0;
 
+	// The game description the server reports to Steam (ISteamGameServer::SetGameDescription); left empty, the
+	// engine reports its default
+	virtual void			GetGameDescription( CBufferString &buf ) = 0;
+
 	// return true to disconnect client due to timeout (used to do stricter timeouts when the game is sure the client isn't loading a map)
 	virtual bool			ShouldTimeoutClient( int nUserID, float flTimeSinceLastReceived ) = 0;
 
@@ -292,6 +296,8 @@ public:
 	// Gets the output of a console redirect whose target is a number (nTarget); output redirected to a network address
 	// is sent there instead
 	virtual void			OnConsoleRedirectFlush( const char *pszOutput, int nTarget ) = 0;
+
+	virtual void			unk_501( void ) = 0;
 };
 
 typedef ISource2Server IServerGameDLL;
