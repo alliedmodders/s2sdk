@@ -53,6 +53,9 @@ public:
 	virtual void unk102() = 0;
 
 	virtual CUtlVector<ServerClass*>* GetServerClasses() = 0;
+
+	// Copies the entity's spawn group (CEntityIdentity::m_hSpawnGroup) into its Entity2Networkable_t
+	virtual void UpdateEntitySpawnGroup( CEntityIdentity* pEntity ) = 0;
 };
 
 #endif // ENTITYNETWORKABLE_H
