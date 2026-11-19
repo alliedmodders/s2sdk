@@ -266,6 +266,9 @@ public:
 	virtual void OnWorldGroupCreated(WorldGroupId_t hWorldGroup) = 0;
 	virtual void OnWorldGroupDestroyed(WorldGroupId_t hWorldGroup) = 0;
 	virtual CUtlString GetName() const = 0;
+	// False for an unknown spawn group or one being shut down. A spawn group whose load was dispatched counts while the
+	// engine is loading it or has it loaded, any other one only when it was created by hand and its children are ready
+	virtual bool IsSpawnGroupLoadedOrLoading(SpawnGroupHandle_t handle) = 0;
 };
 
 #endif // ISOURCE2ENGINE_H
