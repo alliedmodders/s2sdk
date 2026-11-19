@@ -1,5 +1,5 @@
-#ifndef WORKTHREADPOOL_H
-#define WORKTHREADPOOL_H
+#ifndef COJOBWORKTHREADPOOL_H
+#define COJOBWORKTHREADPOOL_H
 
 #ifdef _WIN32
 #pragma once
@@ -10,37 +10,34 @@
 #include "tier0/tslist.h"
 #include "tier0/utlvector.h"
 
-namespace GCSDK
-{
-
-class CWorkItem;
-class CWorkThread;
+class CCoJobWorkItem;
+class CCoJobWorkThread;
 class IWorkThreadFactory;
 
 //-----------------------------------------------------------------------------
 // Purpose: Threads that run work items queued by the job manager, which then dispatches the completed ones
 //-----------------------------------------------------------------------------
-class CWorkThreadPool
+class CCoJobWorkThreadPool
 {
 public:
-	virtual ~CWorkThreadPool();
-	virtual void OnWorkItemCompleted( CWorkItem *pWorkItem );
+	virtual ~CCoJobWorkThreadPool();
+	virtual void OnWorkItemCompleted( CCoJobWorkItem *pWorkItem );
 
 	char m_szThreadNamePfx[32];
 	bool m_bThreadsInitialized;
-	CTSQueue<CWorkItem *> *m_pTSQueueToProcess;
-	CTSQueue<CWorkItem *> *m_pTSQueueCompleted;
+	CTSQueue<CCoJobWorkItem *> *m_pTSQueueToProcess;
+	CTSQueue<CCoJobWorkItem *> *m_pTSQueueCompleted;
 
 	// AMNOTE: With m_bEnsureOutputOrdering, completed items wait here until those queued before them complete
 	CAtomicMutex m_MutexOnItemCompletedOrdered;
-	CUtlVector<CWorkItem *> m_vecCompletedAndWaiting;
+	CUtlVector<CCoJobWorkItem *> m_vecCompletedAndWaiting;
 	bool m_bEnsureOutputOrdering;
 	uint64 m_ulLastUsedSequenceNumber;
 	uint64 m_ulLastCompletedSequenceNumber;
 	uint64 m_ulLastDispatchedSequenceNumber;
 
 	bool m_bMayHaveJobTimeouts;
-	CUtlVector<CWorkThread *> m_WorkThreads;
+	CUtlVector<CCoJobWorkThread *> m_WorkThreads;
 	CAtomicMutex m_WorkThreadMutex;
 	CInterlockedUInt m_cThreadsRunning;
 	volatile bool m_bExiting;
@@ -56,6 +53,4 @@ public:
 	CLimitTimer m_LimitTimerCreateNewThreads;
 };
 
-} // namespace GCSDK
-
-#endif // WORKTHREADPOOL_H
+#endif // COJOBWORKTHREADPOOL_H
