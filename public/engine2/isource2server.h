@@ -288,6 +288,10 @@ public:
 	virtual void			OnSteamAuthWarning( const char *pszMessage ) = 0;
 	virtual void			OnNetworkGameServerActivated( INetworkGameServer *pNetworkGameServer ) = 0;
 	virtual uint32			GetSteamGroupAccountID( void ) = 0;
+
+	// Gets the output of a console redirect whose target is a number (nTarget); output redirected to a network address
+	// is sent there instead
+	virtual void			OnConsoleRedirectFlush( const char *pszOutput, int nTarget ) = 0;
 };
 
 typedef ISource2Server IServerGameDLL;
