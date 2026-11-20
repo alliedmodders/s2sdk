@@ -114,6 +114,24 @@ struct PolymorphicMetadata_t
 	bool m_bNeedsSort; // Set once there are two entries; GatherPolymorphicMetadata sorts them and clears it
 };
 
+struct FieldChangeCallbackInfo_t
+{
+	const char *m_pszCallbackName;
+
+	// AMNOTE: The class of the serializer whose override list added the callback, nullptr when the field's metadata did. Only
+	// serializers built from meta (MakeSerializersMatchByMeta(), CreateReplayCompatSerializerFromMeta()) have one
+	const char *m_pszOverrideClassName;
+
+	CUtlAbstractDelegate m_Callback;
+	NetworkFieldChangedDelegateType_t m_nDelegateType;
+
+	// AMNOTE: INT_MIN, GetChangeCallbacksForPath doesn't set it
+	int m_unk101;
+
+	// AMNOTE: Bits 0-3 of the type the callback was registered with
+	NetworkFieldChangeCallbackPerformType_t m_nPerformType;
+};
+
 class bf_read;
 class bf_write;
 class CSerializedEntity;
@@ -171,6 +189,10 @@ public:
 	virtual const OffsetIgnore_t *LookupOffsetsToIgnoreForPath( const FlattenedSerializerDesc_t &serializer, const CFieldPath &path, IPolymorphicMetadataHelper *pMetadataHelper, NetworkSerializationMode_t nMode ) = 0;
 	virtual bool IsUnflattenedField( const FlattenedSerializerDesc_t &serializer, const char *pszFieldName ) = 0;
 	virtual bool IsFieldNetworked( const FlattenedSerializerDesc_t &serializer, const char *pszFieldName ) = 0;
+	// AMNOTE: Adds the change callbacks of the field at path to pCallbacks, and those of the fields above it whose m_nPerformType
+	// has flag 2; returns whether there are any. pCallbacks can be nullptr. pObject and nEntityIndex resolve polymorphic
+	// fields on the path
+	virtual bool GetChangeCallbacksForPath( const FlattenedSerializerDesc_t &serializer, const CFieldPath &path, void *pObject, int nEntityIndex, CUtlVector<FieldChangeCallbackInfo_t> *pCallbacks ) = 0;
 	virtual bool ValidateSerializedEntity( const FlattenedSerializerDesc_t &serializer, const CSerializedEntity *pEntity, int nEntityIndex, NetworkSerializationMode_t nMode ) = 0;
 	virtual void DumpSerializedEntityToConsole( const FlattenedSerializerDesc_t &serializer, const char *pszLabel, const CSerializedEntity *pEntity, int nEntityIndex, NetworkSerializationMode_t nMode ) = 0;
 	virtual void DumpSerializedEntityToLines( const FlattenedSerializerDesc_t &serializer, const char *pszLabel, const CSerializedEntity *pEntity, int nEntityIndex, NetworkSerializationMode_t nMode, CUtlVector<CUtlString> *pOutLines ) = 0;

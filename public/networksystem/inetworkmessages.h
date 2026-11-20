@@ -158,7 +158,7 @@ enum SignonGroup_t
 	SIGNONGROUP_HLTV_REPLAY,
 };
 
-enum NetworkFieldChangedDelegateType_t
+enum NetworkFieldChangedDelegateType_t : uint8
 {
 	NETWORK_FIELD_CHANGED_TYPE_NONE,
 	NETWORK_FIELD_CHANGED_NO_VALUE,
