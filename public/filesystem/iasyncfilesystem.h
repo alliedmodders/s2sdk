@@ -63,6 +63,13 @@ public:
 	virtual void ProcessResults( int nLimit ) = 0;
 };
 
+// AMONTE: IAsyncReadRequest2::GetFileVersionHash() values that aren't a hash.
+// None: the request wasn't built with SetComputeFileVersionHash(), the file couldn't be opened, or it has no version
+// (read from a VPK, opened in text mode, or filesystem_native is 0)
+#define FILE_VERSION_HASH_NONE		0ull
+// Unknown: the request hasn't been serviced yet, or querying the file failed
+#define FILE_VERSION_HASH_UNKNOWN	1ull
+
 //-----------------------------------------------------------------------------
 // A read request, made by IAsyncFileSystem2::IReadRequestBuilder::Build()
 //-----------------------------------------------------------------------------
@@ -94,6 +101,10 @@ public:
 
 	// Profiling isn't available, this zeroes 5 uint64s of pOutEventTimesArrayUS whatever nBufferSizeBytes is, and returns false
 	virtual bool GetProfilingInfo( uint64 *pOutEventTimesArrayUS, int nBufferSizeBytes ) = 0;
+
+	// A hash of the read file's identity, size and last write time, so it changes when the file is replaced or
+	// modified; FILE_VERSION_HASH_NONE or FILE_VERSION_HASH_UNKNOWN when there's none
+	virtual uint64 GetFileVersionHash() const = 0;
 
 protected:
 	const CPathBufferString m_fileName;
@@ -177,6 +188,10 @@ public:
 		This *SetTextMode( bool bTextMode ) { m_bTextMode = bTextMode; return this; }
 		bool GetTextMode() const { return m_bTextMode; }
 
+		// Makes the request compute IAsyncReadRequest2::GetFileVersionHash()
+		This *SetComputeFileVersionHash( bool bComputeFileVersionHash ) { m_bComputeFileVersionHash = bComputeFileVersionHash; return this; }
+		bool GetComputeFileVersionHash() const { return m_bComputeFileVersionHash; }
+
 		// AMNOTE: The filesystem ignores it, GetProfilingInfo() always fails
 		This *SetProfilingForRequest( bool bProfile ) { m_bProfile = bProfile; return this; }
 		bool GetProfilingForRequest() const { return m_bProfile; }
@@ -197,13 +212,14 @@ public:
 
 	protected:
 		IReadRequestBuilder() : m_bProfile( false ), m_bAllowMemoryMap( false ), m_bPreferMemoryMap( false ), m_bTextMode( false ), m_bFrontOfQueue( false ),
-			m_nReadOffset( -1 ), m_nReadBytes( 0 ), m_pResultBuffer( NULL ), m_nResultBufferSize( 0 ), m_priority( ASYNC_REQUEST_PRIORITY_DEFAULT ), m_pCompletionQueue( NULL ) {}
+			m_bComputeFileVersionHash( false ), m_nReadOffset( -1 ), m_nReadBytes( 0 ), m_pResultBuffer( NULL ), m_nResultBufferSize( 0 ), m_priority( ASYNC_REQUEST_PRIORITY_DEFAULT ), m_pCompletionQueue( NULL ) {}
 
 		bool m_bProfile;
 		bool m_bAllowMemoryMap;
 		bool m_bPreferMemoryMap;
 		bool m_bTextMode;
 		bool m_bFrontOfQueue;
+		bool m_bComputeFileVersionHash;
 		int64 m_nReadOffset;
 		size_t m_nReadBytes;
 		void *m_pResultBuffer;
