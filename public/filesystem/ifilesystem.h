@@ -40,8 +40,11 @@ class CSteamID;
 class CPackedStore;
 
 typedef void * FileHandle_t;
-// A file name split into its path (before the last '/') and its file part, as two symbols packed into an int
-typedef uint32 FileNameHandle_t;
+// An interned file name, normalized (lower case, slashes fixed, no dot-slashes), so equal names give the same string
+struct FileNameHandle_t
+{
+	const char *m_pszFileName;
+};
 struct FileFindHandle_t
 {
 	IFileSystem *m_pFileSystem;
