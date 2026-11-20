@@ -683,7 +683,6 @@ public:
 	//--------------------------------------------------------
 	//
 	//--------------------------------------------------------
-	virtual int			GetPathIndex( const FileNameHandle_t &handle ) = 0;
 	virtual int64		GetPathTime( const char *pPath, const char *pPathID ) = 0;
 
 	virtual void		GetSearchPathID( CBufferString &inout ) = 0;
