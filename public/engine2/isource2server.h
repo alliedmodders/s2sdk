@@ -141,6 +141,9 @@ public:
 	// Let the game .dll allocate it's own network/shared string tables
 	virtual void			GameCreateNetworkStringTables( void ) = 0;
 
+	// AMNOTE: Forwards to the game's network string table container, clearing its tables
+	virtual void			unk_101( void ) = 0;
+
 	virtual void			WriteSignonMessages( const bf_write &buf ) = 0;
 
 	virtual void			PreWorldUpdate( bool simulating ) = 0;
@@ -243,13 +246,13 @@ public:
 
 	virtual const CUtlVector<CUtlString> &GetDesignerNamesForClass( const char *pszClassName ) = 0;
 	// AMNOTE: Does nothing in CS2
-	virtual void			unk_101( void *, void * ) = 0;
+	virtual void			unk_201( void *, void * ) = 0;
 
 	virtual bool			ReportGCQueuedMatchStart( int32 iReservationStage, uint32 *puiConfirmedAccounts, int numConfirmedAccounts ) = 0;
 
 	// AMNOTE: Called each main loop iteration with two doubles, the iteration's time and the time slept after the main loop.
 	// Forwards to the game rules, which do nothing with it in CS2
-	virtual void			unk_201( void * ) = 0;
+	virtual void			unk_301( void * ) = 0;
 	virtual ISceneViewDebugOverlays *GetDebugOverlays( void ) = 0;
 
 	virtual const char		*GetNativeClassForScriptClass( const char *pszScriptClassName ) = 0;
@@ -281,10 +284,10 @@ public:
 	virtual bool			LogForHTTPListeners( const char *pszLogLine ) = 0;
 
 	// AMNOTE: These four do nothing in CS2
-	virtual void			unk_301( void ) = 0;
-	virtual void			unk_302( void ) = 0;
-	virtual void			unk_303( void ) = 0;
-	virtual void			unk_304( void ) = 0;
+	virtual void			unk_401( void ) = 0;
+	virtual void			unk_402( void ) = 0;
+	virtual void			unk_403( void ) = 0;
+	virtual void			unk_404( void ) = 0;
 
 	virtual void			RegisterClientNetMessageHandlers( INetChannel *pNetChannel, CPlayerSlot slot, int nAction ) = 0;
 	virtual bool			GetAddonForMap( const char *pszMapName, CUtlString &addonName ) = 0;
