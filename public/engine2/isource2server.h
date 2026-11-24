@@ -140,6 +140,7 @@ public:
 
 	// Let the game .dll allocate it's own network/shared string tables
 	virtual void			GameCreateNetworkStringTables( void ) = 0;
+	virtual void			GameResetStringTables( void ) = 0;
 
 	virtual void			WriteSignonMessages( const bf_write &buf ) = 0;
 
